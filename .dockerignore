@@ -1,0 +1,7 @@
+node_modules
+.vscode
+.env
+.dockerignore
+Dockerfile.development
+docker-compose.yaml
+package-lock.json
