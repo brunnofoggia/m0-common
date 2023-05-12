@@ -98,7 +98,19 @@ export class StageWorker {
 
     protected async _execute(): Promise<ResultInterface | null> {
         await this.checkExecution();
-        return await this.execute();
+        let result;
+
+        try {
+            result = await this.execute();
+        } catch (error) {
+            result = {
+                statudUid: StageStatusEnum.UNKNOWN,
+                errorCode: error.code || '',
+                errorMessage: error.message || '',
+            };
+        }
+
+        return result;
     }
 
 
