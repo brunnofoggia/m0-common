@@ -41,12 +41,12 @@ const split = async (worker: StageWorker, stateService = null, monitorService = 
         if (!fileStream) return;
 
         await storage.deleteDirectory(stageDir + '/');
-
+        const limitRows = worker.isProjectConfigActivated('limitRows');
 
         let splitLength = 0;
         await splitFile(createFileStream, config, '',
             (content, lineNumber, lineCount, splitNumber, bulkLimit) => {
-                const skip = worker.isProjectConfigActivated('limitRows') &&
+                const skip = limitRows &&
                     (lineCount >= worker['skipLimit'] || splitNumber >= worker['skipLimit']);
                 // debug('skip test', lineCount, splitNumber);
                 return lineNumber > 0 && !skip ? content : null;
