@@ -38,6 +38,7 @@ export class StageWorker {
     protected stageExecutionMocked = false;
 
     protected rootDir = '';
+    protected moduleDir = '';
     protected stageDir = '';
 
     private set({ transactionUid, moduleUid, stageUid, stageName, moduleConfig, stageConfig, body }) {
@@ -55,6 +56,7 @@ export class StageWorker {
 
     private setDirs() {
         this.rootDir = [this.moduleConfig.projectUid, this.transactionUid].join('/');
+        this.moduleDir = [this.rootDir, this.moduleConfig.moduleUid].join('/');
         this.stageDir = [this.rootDir, this.stageConfig.stageUid].join('/');
     }
 
