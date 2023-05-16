@@ -1,6 +1,6 @@
 import _ from 'lodash';
 import _debug from 'debug';
-const debug = _debug('app:workflow:stage');
+const debug = _debug('app:worker:stage');
 
 import { StageExecutionProvider } from '../../providers/stageExecution.provider';
 import { exitRequest } from 'node_common/dist/utils/errors';
@@ -16,6 +16,7 @@ import { ResultInterface } from '../../interfaces/result.interface';
 import { ModuleExecutionInterface } from '../../interfaces/moduleExecution.interface';
 import { ProjectInterface } from '../../interfaces/project.interface';
 import { ERROR } from '../../types/error.type';
+import { WorkerError } from './error';
 
 export class StageWorker {
     static getSolutions;
@@ -103,8 +104,9 @@ export class StageWorker {
         try {
             result = await this.execute();
         } catch (error) {
+            console.log(this.stageDir, error.stack);
             result = {
-                statudUid: StageStatusEnum.UNKNOWN,
+                statudUid: error.statusUid || StageStatusEnum.UNKNOWN,
                 errorCode: error.code || '',
                 errorMessage: error.message || '',
             };
@@ -230,6 +232,24 @@ export class StageWorker {
 
     public isProjectConfigDeactivated(configName) {
         return !this._isConfigActivated('project', configName, '_config');
+    }
+
+    async getSecret(name, basePath: any = null) {
+        name = name.replace(/^\//, '').replace(/\/$/, '');
+        const { secrets } = await StageWorker.getSolutions();
+
+        if (this.body.options.clearSecrets) secrets.clearCache();
+
+        const env = process.env.NODE_ENV || 'dev';
+        const path = ['', env];
+        basePath === null && (path.push([this.project.uid].join('/')));
+        path.push(name);
+
+        const value = await secrets.getSecretValue(path.join('/'));
+        if (!value)
+            throw new WorkerError(`secret value not found for ${path}`, StageStatusEnum.FAILED);
+
+        return value;
     }
 
     // getters
