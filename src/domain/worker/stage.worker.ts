@@ -245,9 +245,10 @@ export class StageWorker {
         basePath === null && (path.push([this.project.uid].join('/')));
         path.push(name);
 
-        const value = await secrets.getSecretValue(path.join('/'));
+        const secretPath = path.join('/');
+        const value = await secrets.getSecretValue(secretPath);
         if (!value)
-            throw new WorkerError(`secret value not found for ${path}`, StageStatusEnum.FAILED);
+            throw new WorkerError(`secret value not found for ${secretPath}`, StageStatusEnum.FAILED);
 
         return value;
     }
