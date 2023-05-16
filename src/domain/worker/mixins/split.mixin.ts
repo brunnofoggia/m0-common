@@ -2,6 +2,8 @@
 import _debug from 'debug';
 const debug = _debug('app:workflow:split');
 
+import { defaultsDeep, result } from 'lodash';
+
 import { exitRequest } from 'node_common/dist/utils/errors';
 import { StageStatusEnum } from '../../../types/stageStatus.type';
 import { ResultInterface } from '../../../interfaces/result.interface';
@@ -118,6 +120,10 @@ export class SplitMixin {
     }
 
     protected splitStageGlobalOptions(options) {
+        options = defaultsDeep(options, {
+            ...(this['splitStageOptions'] ? result(this, 'splitStageOptions') : {})
+        });
+
         return {
             transactionUid: this['transactionUid'],
             stageUid: this['stageConfig'].config.splitStage,

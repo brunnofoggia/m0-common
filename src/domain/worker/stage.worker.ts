@@ -104,7 +104,7 @@ export class StageWorker {
         try {
             result = await this.execute();
         } catch (error) {
-            console.log(this.stageDir, error.stack);
+            this.logError(error);
             result = {
                 statudUid: error.statusUid || StageStatusEnum.UNKNOWN,
                 errorCode: error.code || '',
@@ -113,6 +113,10 @@ export class StageWorker {
         }
 
         return result;
+    }
+
+    public logError(error) {
+        console.log(this.stageDir, error.stack);
     }
 
 
