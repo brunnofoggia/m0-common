@@ -22,6 +22,7 @@ export class ModuleDomain {
     static getSolutions;
     static skipQueues = false;
 
+    private uniqueId: string;
     private body: BodyInterface;
     private builder: StageWorker;
 
@@ -60,6 +61,8 @@ export class ModuleDomain {
 
     async initialize(body: BodyInterface) {
         if (ModuleDomain.skipQueues) return true;
+        debug('set unique id');
+        this.setUniqueId();
         // if (!count++) throw new Error('test');
         // return true;
         debug('set body');
@@ -82,7 +85,12 @@ export class ModuleDomain {
 
         // builder initialize
         debug('initialize builder');
-        return await this.builder.initialize();
+        return await this.builder.initialize(this.uniqueId);
+    }
+
+    private setUniqueId(uniqueId = '') {
+        !uniqueId && (uniqueId = [_.uniqueId('app:workflow:'), (new Date()).toISOString()].join(':'));
+        this.uniqueId = uniqueId;
     }
 
     private async builderFactory() {

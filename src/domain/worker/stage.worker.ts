@@ -23,6 +23,7 @@ export class StageWorker {
     protected readonly worflowEventName = 'm0/workflow';
     protected defaultConfig: any = {};
 
+    protected uniqueId: string;
     protected body: BodyInterface;
 
     protected transactionUid: string;
@@ -86,7 +87,9 @@ export class StageWorker {
             exitRequest(ERROR.NO_STAGE_EXEC_DATA);
     }
 
-    public async initialize(): Promise<any> {
+    public async initialize(uniqueId: string): Promise<any> {
+        debug('set unique id');
+        this.setUniqueId(uniqueId);
         debug('find module+stage execution');
         this.stageExecution = await this.findLastStageExecution();
         this.moduleExecution = this.stageExecution.moduleExecution;
@@ -100,6 +103,11 @@ export class StageWorker {
 
         debug('builder done');
         return { done: true };
+    }
+
+    private setUniqueId(uniqueId = '') {
+        !uniqueId && (uniqueId = [_.uniqueId('app:workflow:'), (new Date()).toISOString()].join(':'));
+        this.uniqueId = uniqueId;
     }
 
     protected async _execute(): Promise<ResultInterface | null> {
@@ -302,5 +310,9 @@ export class StageWorker {
 
     public getStageDir() {
         return this.stageDir;
+    }
+
+    public getService(Service) {
+        return new Service(this.uniqueId);
     }
 }
