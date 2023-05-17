@@ -62,21 +62,26 @@ export class ModuleDomain {
         if (ModuleDomain.skipQueues) return true;
         // if (!count++) throw new Error('test');
         // return true;
-
+        debug('set body');
         this.set(body);
+        debug('check body');
         await this.check();
 
         // obtain config
+        debug('obtain snapshot');
         await this.snapshotConfig();
 
+        debug('check stage config existence');
         if (!this.stageConfig) {
             exitRequest(ERROR.NO_STAGE_CONFIG_FOUND);
         }
 
         // instantiate the builder
+        debug('instantiate builder');
         this.builder = await this.builderFactory();
 
         // builder initialize
+        debug('initialize builder');
         return await this.builder.initialize();
     }
 

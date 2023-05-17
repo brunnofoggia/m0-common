@@ -87,13 +87,18 @@ export class StageWorker {
     }
 
     public async initialize(): Promise<any> {
+        debug('find module+stage execution');
         this.stageExecution = await this.findLastStageExecution();
         this.moduleExecution = this.stageExecution.moduleExecution;
 
+        debug('execute');
         const result = await this._execute();
+
+        debug('check result');
         if (result !== null)
             await this.result(result);
 
+        debug('builder done');
         return { done: true };
     }
 
