@@ -13,7 +13,7 @@ const prepareInsertOptions = (_options) => {
     return _.defaults(_options, defaultOptions);
 };
 
-export const insert = async (worker: StageWorker, Service, getData, monitorService = null) => {
+export const insert = async (worker: StageWorker, service, getData, monitorService = null) => {
     const { stageConfig, body, rootDir, stageDir } = worker.get();
 
     const key = _.camelCase([stageConfig.stageUid, 'process'].join('/'));
@@ -23,8 +23,6 @@ export const insert = async (worker: StageWorker, Service, getData, monitorServi
 
     monitorService?.time(monitorTimeKey);
     monitorService?.memoryInterval();
-
-    const service = new Service;
 
     const options = prepareInsertOptions(stageConfig.config);
     const { storage } = await StageWorker.getSolutions();

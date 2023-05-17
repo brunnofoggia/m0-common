@@ -52,11 +52,11 @@ export class SplitMixin {
 
         if (ordered === finished) {
             const saved = await stateService.saveBy(nextKey, '1', '0');
-            this['afterSplitEnd'] && (await this['afterSplitEnd']());
             if (!saved) {
                 // will get here when concurrent updates find each other
                 return null;
             }
+            this['afterSplitEnd'] && (await this['afterSplitEnd']());
 
             // finished all child
             return { statusUid: StageStatusEnum.DONE };
@@ -91,9 +91,9 @@ export class SplitMixin {
 
         // TODO: review if is needed
         // run split stage after updating stage execution status
-        setTimeout(() =>
-            this['splitStage'](length)
-            , 1000);
+        // setTimeout(() =>
+        await this['splitStage'](length);
+        // , 1000);
     }
 
     protected async splitStage(length = '0', options: any = {}) {
@@ -117,6 +117,8 @@ export class SplitMixin {
             await this['triggerStage'](this['worflowEventName'], body);
             // break;
         }
+
+        this['afterSplitStart'] && (await this['afterSplitStart']());
     }
 
     protected splitStageGlobalOptions(options) {

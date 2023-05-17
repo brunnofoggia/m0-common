@@ -82,7 +82,7 @@ export class StageWorker {
         return options;
     }
 
-    protected async checkExecution() {
+    private async checkExecution() {
         if (!this.stageExecution)
             exitRequest(ERROR.NO_STAGE_EXEC_DATA);
     }
@@ -94,13 +94,14 @@ export class StageWorker {
         this.stageExecution = await this.findLastStageExecution();
         this.moduleExecution = this.stageExecution.moduleExecution;
 
-        debug('execute');
         const result = await this._execute();
 
         debug('check result');
         if (result !== null)
             await this.result(result);
 
+        debug('on destroy');
+        await this._onDestroy();
         debug('builder done');
         return { done: true };
     }
@@ -110,11 +111,15 @@ export class StageWorker {
         this.uniqueId = uniqueId;
     }
 
-    protected async _execute(): Promise<ResultInterface | null> {
+    private async _execute(): Promise<ResultInterface | null> {
         await this.checkExecution();
         let result;
 
         try {
+            debug('on initialize');
+            await this._onInitialize();
+
+            debug('execute');
             result = await this.execute();
         } catch (error) {
             this.logError(error);
@@ -312,7 +317,33 @@ export class StageWorker {
         return this.stageDir;
     }
 
-    public getService(Service) {
+    public getService(Service): any {
         return new Service(this.uniqueId);
+    }
+
+    private async _onInitialize(): Promise<void> {
+        try {
+            await this.onInitialize();
+        } catch (error) {
+            debug('error on initialize');
+            throw error;
+        }
+    }
+
+    public async onInitialize(): Promise<void> {
+        return;
+    }
+
+    private async _onDestroy(): Promise<void> {
+        try {
+            await this.onDestroy();
+        } catch (error) {
+            debug('error on destroy');
+            this.logError(error);
+        }
+    }
+
+    public async onDestroy(): Promise<void> {
+        return;
     }
 }
