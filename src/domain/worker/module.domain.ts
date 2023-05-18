@@ -1,7 +1,7 @@
 
 import _ from 'lodash';
 import _debug from 'debug';
-const debug = _debug('app:worker:module');
+const debug = _debug('worker:module');
 
 import importWorker from '../../utils/importWorker';
 import { ModuleWorker } from './module.worker';
@@ -60,6 +60,7 @@ export class ModuleDomain {
     }
 
     async initialize(body: BodyInterface) {
+        debug('-------------------------\ninitialize');
         if (ModuleDomain.skipQueues) return true;
         debug('set unique id');
         this.setUniqueId();
@@ -89,7 +90,7 @@ export class ModuleDomain {
     }
 
     private setUniqueId(uniqueId = '') {
-        !uniqueId && (uniqueId = [_.uniqueId('app:workflow:'), (new Date()).toISOString()].join(':'));
+        !uniqueId && (uniqueId = [_.uniqueId('worker:'), (new Date()).toISOString()].join(':'));
         this.uniqueId = uniqueId;
     }
 

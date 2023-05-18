@@ -1,5 +1,5 @@
 import _debug from 'debug';
-const debug = _debug('app:workflow:handler');
+const debug = _debug('worker:module:handler');
 
 import { throwHttpException } from 'node_common/dist/utils/errors';
 import { ERROR } from '../../types/error.type';

@@ -1,6 +1,6 @@
 import _ from 'lodash';
 import _debug from 'debug';
-const debug = _debug('app:split');
+const debug = _debug('worker:handler:split');
 
 import { splitFile } from '../../../utils/split';
 import { StageWorker } from '../stage.worker';

@@ -1,6 +1,6 @@
 
 import _debug from 'debug';
-const debug = _debug('app:workflow:split');
+const debug = _debug('worker:mixin:split');
 
 import { defaultsDeep, result } from 'lodash';
 

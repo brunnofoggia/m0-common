@@ -1,5 +1,5 @@
 import _debug from 'debug';
-const debug = _debug('app:monitor');
+const debug = _debug('worker:monitor');
 
 import { DynamicDatabase } from 'node_common/dist/services/dynamicDatabase.service';
 

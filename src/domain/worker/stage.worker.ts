@@ -1,6 +1,6 @@
 import _ from 'lodash';
 import _debug from 'debug';
-const debug = _debug('app:worker:stage');
+const debug = _debug('worker:stage');
 
 import { StageExecutionProvider } from '../../providers/stageExecution.provider';
 import { exitRequest } from 'node_common/dist/utils/errors';
@@ -88,6 +88,7 @@ export class StageWorker {
     }
 
     public async initialize(uniqueId: string): Promise<any> {
+        debug('-------------------------\ninitialize');
         debug('set unique id');
         this.setUniqueId(uniqueId);
         debug('find module+stage execution');
@@ -102,12 +103,12 @@ export class StageWorker {
 
         debug('on destroy');
         await this._onDestroy();
-        debug('builder done');
+        debug('builder done\n-------------------------');
         return { done: true };
     }
 
     private setUniqueId(uniqueId = '') {
-        !uniqueId && (uniqueId = [_.uniqueId('app:workflow:'), (new Date()).toISOString()].join(':'));
+        !uniqueId && (uniqueId = [_.uniqueId('worker:'), (new Date()).toISOString()].join(':'));
         this.uniqueId = uniqueId;
     }
 

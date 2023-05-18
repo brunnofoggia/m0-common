@@ -1,5 +1,5 @@
 import _debug from 'debug';
-const debug = _debug('app:util:split');
+const debug = _debug(':worker:util:split');
 
 import { sleep } from 'node_common/dist/utils';
 
