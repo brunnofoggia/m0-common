@@ -1,6 +1,7 @@
 import _debug from 'debug';
-const debug = _debug('worker:monitor');
+const debug = _debug('worker:stage:monitor');
 
+import { Like } from 'typeorm';
 import { DynamicDatabase } from 'node_common/dist/services/dynamicDatabase.service';
 
 export class MonitorService<ENTITY> extends DynamicDatabase<ENTITY> {
@@ -118,5 +119,11 @@ export class MonitorService<ENTITY> extends DynamicDatabase<ENTITY> {
         return (
             (await this.getRepository().find({ where: { key } }))[0] || {}
         ).value;
+    }
+
+    async clearByPrefix(prefix) {
+        return await this.getRepository().delete({
+            key: Like(prefix + '%'),
+        });
     }
 }
