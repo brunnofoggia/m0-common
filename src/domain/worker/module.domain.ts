@@ -128,10 +128,11 @@ export class ModuleDomain {
     }
 
     private async snapshotConfig() {
-        this.moduleConfig = await SnapshotProvider.find(this.transactionUid, this.body.stageUid);
-        this.moduleConfig = this['buildSnapshot'](this.moduleConfig, this.body.mergeSnapshot);
+        if (!this.body.mockStageExecution)
+            this.moduleConfig = await SnapshotProvider.find(this.transactionUid, this.body.stageUid);
+        this.moduleConfig = this['buildSnapshot'](this.moduleConfig || {}, this.body.mergeSnapshot);
 
-        this.stageConfig = ModuleWorker.getConfig(this.stageUid, this.moduleConfig);
+        this.stageConfig = ModuleWorker.getConfig(this.stageUid, this.moduleConfig || {});
     }
 }
 

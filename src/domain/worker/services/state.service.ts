@@ -73,6 +73,12 @@ export class StateService<ENTITY> extends DynamicDatabase<ENTITY> {
             .execute();
     }
 
+    async clearByPrefix(prefix) {
+        return await this.getRepository().delete({
+            key: Like(prefix + '%'),
+        });
+    }
+
     async getValue(key) {
         return (
             (await this.getRepository().find({ where: { key } }))[0] || {}

@@ -57,7 +57,7 @@ export class StageWorker {
     }
 
     private setDirs() {
-        this.rootDir = [this.moduleConfig.projectUid, this.transactionUid].join('/');
+        this.rootDir = [this.moduleConfig.projectUid || this.project.uid, this.transactionUid].join('/');
         this.moduleDir = [this.rootDir, this.moduleConfig.moduleUid].join('/');
         this.stageDir = [this.rootDir, this.stageConfig.stageUid].join('/');
     }
