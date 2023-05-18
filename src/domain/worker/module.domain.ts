@@ -1,7 +1,7 @@
 
 import _ from 'lodash';
 import _debug from 'debug';
-const debug = _debug('app:workflow:module');
+const debug = _debug('app:worker:module');
 
 import importWorker from '../../utils/importWorker';
 import { ModuleWorker } from './module.worker';
