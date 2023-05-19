@@ -56,8 +56,12 @@ export class StageWorker {
         this.setDirs();
     }
 
+    protected getProjectUid() {
+        return this.moduleConfig.projectUid || this.project.uid;
+    }
+
     private setDirs() {
-        this.rootDir = [this.moduleConfig.projectUid || this.project.uid, this.transactionUid].join('/');
+        this.rootDir = [this.getProjectUid(), this.transactionUid].join('/');
         this.moduleDir = [this.rootDir, this.moduleConfig.moduleUid].join('/');
         this.stageDir = [this.rootDir, this.stageConfig.stageUid].join('/');
     }
@@ -265,7 +269,7 @@ export class StageWorker {
 
         const env = process.env.NODE_ENV || 'dev';
         const path = ['', env];
-        basePath === null && (path.push([this.project.uid].join('/')));
+        basePath === null && (path.push([this.getProjectUid()].join('/')));
         path.push(name);
 
         const secretPath = path.join('/');
