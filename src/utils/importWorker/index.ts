@@ -28,10 +28,8 @@ const importWorker = {
                 if (defaultHandler && handler != defaultHandler) {
                     return await this.get(basePath, '', defaultHandler);
                 }
-            } else {
-                debug(filePath, error.message);
             }
-            throwHttpException(ERROR.INVALID_HANDLER);
+            throw error;
         }
     }
 };
