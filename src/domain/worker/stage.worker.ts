@@ -269,7 +269,8 @@ export class StageWorker {
 
         const env = process.env.NODE_ENV || 'dev';
         const path = ['', env];
-        basePath === null && (path.push([this.getProjectUid()].join('/')));
+        basePath === null && (basePath = [this.getProjectUid()].join('/'));
+        path.push(basePath);
         path.push(name);
 
         const secretPath = path.join('/');
@@ -278,6 +279,11 @@ export class StageWorker {
             throw new WorkerError(`secret value not found for ${secretPath}`, StageStatusEnum.FAILED);
 
         return value;
+    }
+
+    async getStageSecret(name, basePath: any = null) {
+        basePath === null && (basePath = [this.getProjectUid(), this.stageUid].join('/'));
+        return await this.getSecret(name, basePath);
     }
 
     // getters
