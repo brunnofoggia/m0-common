@@ -332,6 +332,12 @@ export class StageWorker {
         return new Service(this.uniqueId);
     }
 
+    public getIndex() {
+        const index = this.stageExecution?.data?.index || this.body.options.index;
+        return typeof index === 'undefined' ? -1 : index;
+    }
+
+    /* lifecycle methods */
     private async _onInitialize(): Promise<void> {
         try {
             await this.onInitialize();
