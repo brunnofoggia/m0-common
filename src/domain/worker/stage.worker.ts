@@ -93,7 +93,7 @@ export class StageWorker {
 
     public async initialize(uniqueId: string): Promise<any> {
         debug('-------------------------\ninitialize');
-        debug('set unique id');
+        debug('set unique id', uniqueId);
         this.setUniqueId(uniqueId);
         debug('find module+stage execution');
         this.stageExecution = await this.findLastStageExecution();
