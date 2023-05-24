@@ -1,7 +1,6 @@
-import { ApiProvider } from 'node_common/dist/providers/api.provider';
+import { M0ApiProvider } from './m0Api.provider';
 
-export class ScheduleQueueProvider extends ApiProvider {
-    static baseUrl = process.env.M0_API;
+export class ScheduleQueueProvider extends M0ApiProvider {
     static basePath = 'm0/scheduleQueue';
 
     static async save(data = {}) {

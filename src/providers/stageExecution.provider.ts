@@ -1,9 +1,7 @@
-
-import { ApiProvider } from 'node_common/dist/providers/api.provider';
 import { StageStatusEnum } from '../types/stageStatus.type';
+import { M0ApiProvider } from './m0Api.provider';
 
-export class StageExecutionProvider extends ApiProvider {
-    static baseUrl = process.env.M0_API;
+export class StageExecutionProvider extends M0ApiProvider {
     static basePath = 'm0/stageExecution';
 
     static async create(moduleExecutionId: number, stageConfigId: number, _data = {}, statusUid = StageStatusEnum.INITIAL) {

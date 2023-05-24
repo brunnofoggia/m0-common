@@ -1,9 +1,9 @@
-import { ApiProvider } from 'node_common/dist/providers/api.provider';
 import { throwHttpException } from 'node_common/dist/utils/errors';
-import { ERROR } from '../types/error.type';
 
-export class ModuleExecutionProvider extends ApiProvider {
-    static baseUrl = process.env.M0_API;
+import { ERROR } from '../types/error.type';
+import { M0ApiProvider } from './m0Api.provider';
+
+export class ModuleExecutionProvider extends M0ApiProvider {
     static basePath = 'm0/moduleExecution';
 
     static async findIdByTransactionAndModuleUid(transactionUid: string, moduleUid: string) {

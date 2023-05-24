@@ -1,9 +1,9 @@
 import { throwHttpException } from 'node_common/dist/utils/errors';
-import { ApiProvider } from 'node_common/dist/providers/api.provider';
-import { ERROR } from '../types/error.type';
 
-export class StageConfigProvider extends ApiProvider {
-    static baseUrl = process.env.M0_API;
+import { ERROR } from '../types/error.type';
+import { M0ApiProvider } from './m0Api.provider';
+
+export class StageConfigProvider extends M0ApiProvider {
     static basePath = 'm0/stageConfig';
 
     static async findNames() {
