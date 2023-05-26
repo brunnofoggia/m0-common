@@ -106,8 +106,8 @@ export class ModuleDomain {
                 stageName,
                 this.stageConfig);
         } catch (error) {
-            if (error.message.indexOf('Unable to compile') >= 0) {
-                throw error;
+            if (error.message.indexOf('Cannot find module') <= 0) {
+                exitRequest(error);
             }
             builderClass = StageWorker;
         }

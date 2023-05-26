@@ -23,12 +23,13 @@ const importWorker = {
             const fileClass = (await _import(filePath)).default;
             return fileClass;
         } catch (error) {
-            if (error.message.indexOf('Unable to compile') < 0) {
+            if (error.message.indexOf('Cannot find module') >= 0) {
                 debug('stage handler not found', filePath);
                 if (defaultHandler && handler != defaultHandler) {
                     return await this.get(basePath, '', defaultHandler);
                 }
             }
+            debug(error);
             throw error;
         }
     }
