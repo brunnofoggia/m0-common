@@ -261,11 +261,11 @@ export class StageWorker {
         return !this._isConfigActivated('project', configName, '_config');
     }
 
-    async getSecret(name, basePath: any = null) {
+    async getSecret(name: string, basePath: any = null) {
         name = name.replace(/^\//, '').replace(/\/$/, '');
         const { secrets } = await StageWorker.getSolutions();
 
-        if (this.body.options.clearSecrets) secrets.clearCache();
+        if (this.body.options.clearSecrets || !!process.env.IS_TS_NODE) secrets.clearCache();
 
         const env = process.env.NODE_ENV || 'dev';
         const path = ['', env];
@@ -281,7 +281,7 @@ export class StageWorker {
         return value;
     }
 
-    async getStageSecret(name, basePath: any = null) {
+    async getStageSecret(name: string, basePath: any = null) {
         basePath === null && (basePath = [this.getProjectUid(), this.stageUid].join('/'));
         return await this.getSecret(name, basePath);
     }
