@@ -36,14 +36,20 @@ const split = async (worker: StageWorker, stateService = null, monitorService = 
     let done = false;
     let error;
     try {
+        debug('split file', fromPath);
         const createFileStream = async () => await readStream(fromPath, storage);
         const fileStream = await createFileStream();
         if (!fileStream) return;
 
-        await storage.deleteDirectory(stageDir + '/');
+        debug('deleting directory');
+        if (await storage.checkDirectoryExists(stageDir + '/')) {
+            debug('directory found');
+            await storage.deleteDirectory(stageDir + '/');
+        }
         const limitRows = worker.isProjectConfigActivated('limitRows');
 
         let splitLength = 0;
+        debug('reading file');
         await splitFile(createFileStream, config, '',
             (content, lineNumber, lineCount, splitNumber, bulkLimit) => {
                 const skip = limitRows &&
@@ -52,6 +58,7 @@ const split = async (worker: StageWorker, stateService = null, monitorService = 
                 return lineNumber > 0 && !skip ? content : null;
             },
             async (splitNumber, content, parts) => {
+                debug('sending file');
                 await storage.sendContent([stageDir, splitNumber].join('/'), content);
                 parts.finished++;
                 debug(`sent file ${[stageDir, splitNumber].join('/')}`);
