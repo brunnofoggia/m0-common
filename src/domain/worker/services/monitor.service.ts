@@ -89,4 +89,9 @@ export class MonitorService<ENTITY> extends DynamicDatabase<ENTITY> {
         await this.save(name, memoryUsage);
         return memoryUsage;
     }
+
+    async memoryIntervalClear() {
+        const memory = MemoryUtil.instance();
+        memory.memoryIntervalClear();
+    }
 }
