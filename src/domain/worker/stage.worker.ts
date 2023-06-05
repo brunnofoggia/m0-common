@@ -139,7 +139,7 @@ export class StageWorker {
     }
 
     public logError(error) {
-        console.log(this.stageDir, error.stack);
+        console.log(this.stageDir, typeof error === 'string' ? error : error.stack);
     }
 
 

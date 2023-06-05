@@ -59,7 +59,10 @@ const split = async (worker: StageWorker, stateService = null, monitorService = 
             },
             async (splitNumber, content, parts) => {
                 debug('sending file');
-                await storage.sendContent([stageDir, splitNumber].join('/'), content);
+                const filename = [stageDir, splitNumber].join('/');
+                const stream = storage.sendStream(filename);
+                stream.write(content);
+                await stream.end();
                 parts.finished++;
                 debug(`sent file ${[stageDir, splitNumber].join('/')}`);
 
