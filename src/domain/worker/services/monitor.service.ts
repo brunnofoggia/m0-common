@@ -70,8 +70,8 @@ export class MonitorService<ENTITY> extends DynamicDatabase<ENTITY> {
 
         if (persistent) {
             name = this.getPersistentTotalKey(name);
-            await this.save(name, elapsedTime);
         }
+        await this.save(name, elapsedTime);
         return elapsedTime;
     }
 
