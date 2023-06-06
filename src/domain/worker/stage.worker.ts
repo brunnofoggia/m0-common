@@ -286,6 +286,21 @@ export class StageWorker {
         return await this.getSecret(name, basePath);
     }
 
+    /* results */
+    public statusDone(options: any = {}) {
+        return {
+            ...options,
+            statusUid: StageStatusEnum.DONE
+        };
+    }
+
+    public statusFailed(options: any = {}) {
+        return {
+            ...options,
+            statusUid: StageStatusEnum.FAILED
+        };
+    }
+
     // getters
     public get() {
         return {
