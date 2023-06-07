@@ -54,10 +54,11 @@ export class MonitorService<ENTITY> extends DynamicDatabase<ENTITY> {
     /* process */
     async time(name, persistent = false) {
         const process = ProcessUtil.instance();
-        process.time(name);
+        const time = process.time(name);
+
         if (persistent) {
             name = this.getPersistentStartKey(name);
-            await this.save(name, process.times[name]);
+            await this.save(name, time);
         }
         return process.times[name];
     }
