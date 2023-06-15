@@ -22,7 +22,7 @@ export class SplitMixin {
 
                 if (length === '0') {
                     // if there is no split process proceed to next stage
-                    return { statusUid: StageStatusEnum.DONE };
+                    return await this.splitStagesDone();
                 }
 
                 return {
@@ -56,13 +56,17 @@ export class SplitMixin {
                 // will get here when concurrent updates find each other
                 return null;
             }
-            this['afterSplitEnd'] && (await this['afterSplitEnd']());
 
             // finished all child
-            return { statusUid: StageStatusEnum.DONE };
+            return await this.splitStagesDone();
         }
         // still waiting other child to finish
         return { statusUid: StageStatusEnum.WAITING };
+    }
+
+    private async splitStagesDone() {
+        this['afterSplitEnd'] && (await this['afterSplitEnd']());
+        return { statusUid: StageStatusEnum.DONE };
     }
 
     private getKeys(lengthKeyPrefix) {
