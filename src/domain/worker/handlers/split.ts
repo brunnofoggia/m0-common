@@ -30,7 +30,7 @@ const split = async (worker: StageWorker, stateService = null, monitorService = 
     monitorService?.memoryInterval();
 
     const config = prepareConfig(stageConfig.config, worker);
-    const fromDir = [rootDir, config.input.dir].join('/');
+    const fromDir = [rootDir, config.input?.dir || config.prevStage].join('/');
     const fromPath = [fromDir, 'file'].join('/');
 
     let done = false;

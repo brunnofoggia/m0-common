@@ -1,4 +1,4 @@
-import _ from 'lodash';
+import { each, isNumber, uniqueId, size, indexOf, omit, defaultsDeep, pickBy } from 'lodash';
 import _debug from 'debug';
 const debug = _debug('worker:stage');
 
@@ -79,7 +79,7 @@ export class StageWorker {
     protected prepareOptions(): any {
         const options = this.body.options || {};
 
-        _.each(this.defaultOptions, (value, key) => {
+        each(this.defaultOptions, (value, key) => {
             !(key in options) && (options[key] = value);
         });
 
@@ -111,9 +111,9 @@ export class StageWorker {
         return { done: true };
     }
 
-    private setUniqueId(uniqueId = '') {
-        !uniqueId && (uniqueId = [_.uniqueId('worker:'), (new Date()).toISOString()].join(':'));
-        this.uniqueId = uniqueId;
+    private setUniqueId(_uniqueId = '') {
+        !_uniqueId && (_uniqueId = [uniqueId('worker:'), (new Date()).toISOString()].join(':'));
+        this.uniqueId = _uniqueId;
     }
 
     private async _execute(): Promise<ResultInterface | null> {
@@ -164,7 +164,7 @@ export class StageWorker {
         );
 
         if (stageExecution?.statusUid &&
-            _.indexOf(
+            indexOf(
                 [
                     // StageStatusEnum.DONE,
                     StageStatusEnum.FAILED,
@@ -200,7 +200,7 @@ export class StageWorker {
                 index,
             },
             result: {
-                ..._.omit(result, '_options'),
+                ...omit(result, '_options'),
                 errorMessage: (result.errorMessage || '').split('\n')[0]
             }
         };
@@ -209,13 +209,13 @@ export class StageWorker {
     }
 
     protected prepareConfig(_config) {
-        return _.defaultsDeep(_config, this.defaultConfig);
+        return defaultsDeep(_config, this.defaultConfig);
     }
 
     protected mockStageExecution() {
         this.stageExecutionMocked = true;
         const mock = typeof this.body.mockStageExecution === 'object' ? this.body.mockStageExecution : {};
-        return _.defaultsDeep(mock, {
+        return defaultsDeep(mock, {
             moduleExecutionId: 0,
             stageConfigId: 0,
             data: {},
@@ -224,7 +224,7 @@ export class StageWorker {
     }
 
     protected fowardInternalOptions() {
-        return _.pickBy(this.stageExecution.data,
+        return pickBy(this.stageExecution.data,
             (value, key) => {
                 return /^_[a-zA-Z]/.test(key);
             }
@@ -232,9 +232,20 @@ export class StageWorker {
     }
 
     protected _isConfigActivated(configHolderKey, configName, configKey = 'config') {
-        return this[configHolderKey][configKey][configName] === 1 ||
-            this[configHolderKey][configKey][configName] === '1' ||
-            this[configHolderKey][configKey][configName] === true;
+        const value = this[configHolderKey][configKey][configName];
+
+        return (isNumber(value) && value > 0) ||
+            value === true ||
+            (
+                size(value) > 0 &&
+                !this._isConfigDeactivated(configHolderKey, configName, configKey)
+            );
+    }
+
+    protected _isConfigDeactivated(configHolderKey, configName, configKey = 'config') {
+        const value = this[configHolderKey][configKey][configName];
+        return value === 0 ||
+            value === false;
     }
 
     public isStageConfigActivated(configName) {
@@ -242,7 +253,7 @@ export class StageWorker {
     }
 
     public isStageConfigDeactivated(configName) {
-        return !this._isConfigActivated('stageConfig', configName);
+        return this._isConfigDeactivated('stageConfig', configName);
     }
 
     public isModuleConfigActivated(configName) {
@@ -250,7 +261,7 @@ export class StageWorker {
     }
 
     public isModuleConfigDeactivated(configName) {
-        return !this._isConfigActivated('moduleConfig', configName);
+        return this._isConfigDeactivated('moduleConfig', configName);
     }
 
     public isProjectConfigActivated(configName) {
@@ -258,7 +269,7 @@ export class StageWorker {
     }
 
     public isProjectConfigDeactivated(configName) {
-        return !this._isConfigActivated('project', configName, '_config');
+        return this._isConfigDeactivated('project', configName, '_config');
     }
 
     async getSecret(name: string, basePath: any = null) {
