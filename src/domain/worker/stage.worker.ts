@@ -10,7 +10,6 @@ import { ModuleConfigInterface } from '../../interfaces/moduleConfig.interface';
 import { StageConfigInterface } from '../../interfaces/stageConfig.interface';
 import { StageExecutionInterface } from '../../interfaces/stageExecution.interface';
 
-
 import { BodyInterface } from '../../interfaces/body.interface';
 import { ResultInterface } from '../../interfaces/result.interface';
 import { ModuleExecutionInterface } from '../../interfaces/moduleExecution.interface';
@@ -87,8 +86,7 @@ export class StageWorker {
     }
 
     private async checkExecution() {
-        if (!this.stageExecution)
-            exitRequest(ERROR.NO_STAGE_EXEC_DATA);
+        if (!this.stageExecution) exitRequest(ERROR.NO_STAGE_EXEC_DATA);
     }
 
     public async initialize(uniqueId: string): Promise<any> {
@@ -102,8 +100,7 @@ export class StageWorker {
         const result = await this._execute();
 
         debug('check result');
-        if (result !== null)
-            await this.result(result);
+        if (result !== null) await this.result(result);
 
         debug('on destroy');
         await this._onDestroy();
@@ -112,7 +109,7 @@ export class StageWorker {
     }
 
     private setUniqueId(_uniqueId = '') {
-        !_uniqueId && (_uniqueId = [uniqueId('worker:'), (new Date()).toISOString()].join(':'));
+        !_uniqueId && (_uniqueId = [uniqueId('worker:'), new Date().toISOString()].join(':'));
         this.uniqueId = _uniqueId;
     }
 
@@ -129,7 +126,7 @@ export class StageWorker {
         } catch (error) {
             this.logError(error);
             result = {
-                statudUid: error.statusUid || StageStatusEnum.UNKNOWN,
+                statusUid: error.statusUid || StageStatusEnum.UNKNOWN,
                 errorCode: error.code || '',
                 errorMessage: error.message || '',
             };
@@ -141,7 +138,6 @@ export class StageWorker {
     public logError(error) {
         console.log(this.stageDir, typeof error === 'string' ? error : error.stack);
     }
-
 
     protected async execute(): Promise<ResultInterface | null> {
         console.log('stage.builder execute()', this.stageUid);
@@ -160,17 +156,20 @@ export class StageWorker {
         const stageExecution = await StageExecutionProvider.findByTransactionAndModuleAndIndex(
             this.transactionUid,
             this.stageConfig.stageUid,
-            this.body.options.index
+            this.body.options.index,
         );
 
-        if (stageExecution?.statusUid &&
+        if (
+            stageExecution?.statusUid &&
             indexOf(
                 [
                     // StageStatusEnum.DONE,
                     StageStatusEnum.FAILED,
-                    StageStatusEnum.UNKNOWN
+                    StageStatusEnum.UNKNOWN,
                 ],
-                stageExecution.statusUid) === -1) {
+                stageExecution.statusUid,
+            ) === -1
+        ) {
             return stageExecution;
         }
     }
@@ -184,8 +183,7 @@ export class StageWorker {
     protected async triggerResult(result: ResultInterface) {
         const index = this.stageExecution.data.index;
         debug(`result:`, result, '; stage:', this.stageUid, '; index: ', index);
-        if (typeof result === 'undefined' || result === null || this.stageExecutionMocked)
-            return;
+        if (typeof result === 'undefined' || result === null || this.stageExecutionMocked) return;
 
         result.statusUid = result.statusUid || StageStatusEnum.UNKNOWN;
         // avoid infinity loop when waiting multiple child process
@@ -201,8 +199,8 @@ export class StageWorker {
             },
             result: {
                 ...omit(result, '_options'),
-                errorMessage: (result.errorMessage || '').split('\n')[0]
-            }
+                errorMessage: (result.errorMessage || '').split('\n')[0],
+            },
         };
 
         events.sendToQueue(this.worflowEventName, body);
@@ -224,28 +222,24 @@ export class StageWorker {
     }
 
     protected fowardInternalOptions() {
-        return pickBy(this.stageExecution.data,
-            (value, key) => {
-                return /^_[a-zA-Z]/.test(key);
-            }
-        );
+        return pickBy(this.stageExecution.data, (value, key) => {
+            return /^_[a-zA-Z]/.test(key);
+        });
     }
 
     protected _isConfigActivated(configHolderKey, configName, configKey = 'config') {
         const value = this[configHolderKey][configKey][configName];
 
-        return (isNumber(value) && value > 0) ||
+        return (
+            (isNumber(value) && value > 0) ||
             value === true ||
-            (
-                size(value) > 0 &&
-                !this._isConfigDeactivated(configHolderKey, configName, configKey)
-            );
+            (size(value) > 0 && !this._isConfigDeactivated(configHolderKey, configName, configKey))
+        );
     }
 
     protected _isConfigDeactivated(configHolderKey, configName, configKey = 'config') {
         const value = this[configHolderKey][configKey][configName];
-        return value === 0 ||
-            value === false;
+        return value === 0 || value === false;
     }
 
     public isStageConfigActivated(configName) {
@@ -286,10 +280,19 @@ export class StageWorker {
 
         const secretPath = path.join('/');
         const value = await secrets.getSecretValue(secretPath);
-        if (!value)
-            throw new WorkerError(`secret value not found for ${secretPath}`, StageStatusEnum.FAILED);
+        if (!value) throw new WorkerError(`secret value not found for ${secretPath}`, StageStatusEnum.FAILED);
 
         return value;
+    }
+
+    async getGlobalSecret(name: string, basePath: any = null) {
+        basePath === null && (basePath = ['mx'].join('/'));
+        return await this.getSecret(name, basePath);
+    }
+
+    async getModuleSecret(name: string, basePath: any = null) {
+        basePath === null && (basePath = [this.getProjectUid(), this.moduleUid].join('/'));
+        return await this.getSecret(name, basePath);
     }
 
     async getStageSecret(name: string, basePath: any = null) {
@@ -301,14 +304,14 @@ export class StageWorker {
     public statusDone(options: any = {}) {
         return {
             ...options,
-            statusUid: StageStatusEnum.DONE
+            statusUid: StageStatusEnum.DONE,
         };
     }
 
     public statusFailed(options: any = {}) {
         return {
             ...options,
-            statusUid: StageStatusEnum.FAILED
+            statusUid: StageStatusEnum.FAILED,
         };
     }
 
