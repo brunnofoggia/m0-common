@@ -13,7 +13,8 @@ export class SplitMixin {
             const { nextKey } = this.getKeys(lengthKeyPrefix);
             const nextValue = await stateService.getValue(nextKey);
 
-            if (typeof nextValue === 'undefined') {
+            // or its a new stage or a stage that required some stages before (requiredStage: results in stage waiting)
+            if (this['stageExecution'].statusUid !== StageStatusEnum.WAITING || typeof nextValue === 'undefined') {
                 this['beforeSplitStart'] && (await this['beforeSplitStart']());
 
                 const { lengthKey } = this.getKeys(lengthKeyPrefix);
