@@ -62,12 +62,12 @@ export class SplitMixin {
         return { statusUid: StageStatusEnum.WAITING };
     }
 
-    private async splitStagesDone() {
+    protected async splitStagesDone() {
         this['afterSplitEnd'] && (await this['afterSplitEnd']());
         return { statusUid: StageStatusEnum.DONE };
     }
 
-    private getKeys(lengthKeyPrefix) {
+    protected getKeys(lengthKeyPrefix = '') {
         if (!lengthKeyPrefix && this['stageConfig'].config.prevStage)
             lengthKeyPrefix = [this['rootDir'], this['stageConfig'].config.prevStage].join('/');
 

@@ -315,6 +315,13 @@ export class StageWorker {
         };
     }
 
+    public statusWaiting(options: any = {}) {
+        return {
+            ...options,
+            statusUid: StageStatusEnum.WAITING,
+        };
+    }
+
     // getters
     public get() {
         return {

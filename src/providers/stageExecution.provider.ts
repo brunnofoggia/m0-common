@@ -10,24 +10,28 @@ export class StageExecutionProvider extends M0ApiProvider {
             moduleExecutionId,
             stageConfigId,
             statusUid,
-            data: _data
+            data: _data,
         };
 
-        return (await this.fetch({
-            method: 'post',
-            url,
-            data
-        })).data;
+        return (
+            await this.fetch({
+                method: 'post',
+                url,
+                data,
+            })
+        ).data;
     }
 
     static async update(data) {
         const url = [this.basePath].join('/');
 
-        return (await this.fetch({
-            method: 'put',
-            url,
-            data
-        })).data;
+        return (
+            await this.fetch({
+                method: 'put',
+                url,
+                data,
+            })
+        ).data;
     }
 
     static async updateStatus(id, statusUid) {
@@ -38,15 +42,16 @@ export class StageExecutionProvider extends M0ApiProvider {
         transactionUid: string,
         stageUid: string,
         // relevant ony to parallel process
-        index = -1
+        index = -1,
     ) {
-        const url = [
-            this.basePath,
-            'findByTransactionAndModule',
-            transactionUid,
-            stageUid,
-            index
-        ].join('/');
+        const url = [this.basePath, 'findByTransactionAndModule', transactionUid, stageUid, index].join('/');
+
+        const result = (await this.fetch({ url })).data;
+        return result;
+    }
+
+    static async findAllByTransactionAndModule(transactionUid: string, stageUid: string, index = -1) {
+        const url = [this.basePath, 'findAllByTransactionAndModule', transactionUid, stageUid, index].join('/');
 
         const result = (await this.fetch({ url })).data;
         return result;
