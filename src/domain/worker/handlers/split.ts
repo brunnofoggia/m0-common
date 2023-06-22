@@ -4,10 +4,12 @@ const debug = _debug('worker:handler:split');
 
 import { splitFile } from '../../../utils/split';
 import { StageWorker } from '../stage.worker';
+import { WorkerError } from '../error';
+import { StageStatusEnum } from '../../../types/stageStatus.type';
 
 const prepareConfig = (_config, worker) => {
     const defaultOptions = {
-        bulkLimit: 50000
+        bulkLimit: 50000,
     };
 
     const source: any = {};
@@ -39,7 +41,7 @@ const split = async (worker: StageWorker, stateService = null, monitorService = 
         debug('split file', fromPath);
         const createFileStream = async () => await readStream(fromPath, storage);
         const fileStream = await createFileStream();
-        if (!fileStream) return;
+        if (!fileStream) throw new WorkerError('cant open the file', StageStatusEnum.FAILED);
 
         debug('deleting directory');
         if (await storage.checkDirectoryExists(stageDir + '/')) {
@@ -50,24 +52,26 @@ const split = async (worker: StageWorker, stateService = null, monitorService = 
 
         let splitLength = 0;
         debug('reading file');
-        await splitFile(createFileStream, config, '',
+        await splitFile(
+            createFileStream,
+            config,
+            '',
             (content, lineNumber, lineCount, splitNumber, bulkLimit) => {
-                const skip = limitRows &&
-                    (lineCount >= worker['skipLimit'] || splitNumber >= worker['skipLimit']);
+                const skip = limitRows && (lineCount >= worker['skipLimit'] || splitNumber >= worker['skipLimit']);
                 // debug('skip test', lineCount, splitNumber);
-                return lineNumber > 0 && !skip ? content : null;
+                return content && lineNumber > 0 && !skip ? content : null;
             },
             async (splitNumber, content, parts) => {
                 debug('sending file');
                 const filename = [stageDir, splitNumber].join('/');
                 const stream = storage.sendStream(filename);
-                stream.write(content);
+                stream.write(content + '\n');
                 await stream.end();
                 parts.finished++;
                 debug(`sent file ${[stageDir, splitNumber].join('/')}`);
 
                 parts.ordered > splitLength && (splitLength = parts.ordered);
-            }
+            },
         );
 
         await stateService?.save(lengthKey, splitLength);
@@ -81,8 +85,7 @@ const split = async (worker: StageWorker, stateService = null, monitorService = 
 
     debug(`timer ${key}: `, timeSpent);
 
-    if (!done)
-        throw error;
+    if (!done) throw error;
 };
 
 const readStream = async (fromPath, storage) => {

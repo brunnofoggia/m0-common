@@ -1,4 +1,3 @@
-
 import _ from 'lodash';
 import _debug from 'debug';
 const debug = _debug('worker:module');
@@ -22,6 +21,7 @@ export class ModuleDomain {
     static getSolutions;
     static skipQueues = false;
 
+    private fakeResult = false;
     private uniqueId: string;
     private body: BodyInterface;
     private builder: StageWorker;
@@ -43,7 +43,7 @@ export class ModuleDomain {
     async check() {
         if (this.body.mockStageExecution) return;
         const config = await ModuleConfigProvider.findConfig(this.transactionUid, this.moduleUid);
-        if ((!config || !_.size(config))) {
+        if (!config || !_.size(config)) {
             throwHttpException(ERROR.TRANSACTIONUID_NOT_INITIALIZED);
         }
     }
@@ -62,10 +62,11 @@ export class ModuleDomain {
     async initialize(body: BodyInterface) {
         debug('-------------------------\ninitialize');
         if (ModuleDomain.skipQueues) return true;
-        debug('set unique id');
+
         this.setUniqueId();
-        // if (!count++) throw new Error('test');
-        // return true;
+        debug('set unique id:', this.uniqueId);
+
+        // body
         debug('set body');
         this.set(body);
         debug('check body');
@@ -85,13 +86,19 @@ export class ModuleDomain {
         this.builder = await this.builderFactory();
 
         // builder initialize
-        debug('initialize builder');
+        this.__debug('initialize builder');
         return await this.builder.initialize(this.uniqueId);
     }
 
+    private async __debug(...args) {
+        if (!this.fakeResult) {
+            debug(...args);
+        }
+    }
+
     private setUniqueId(uniqueId = '') {
-        !uniqueId && (uniqueId = [_.uniqueId('worker:'), (new Date()).toISOString()].join(':'));
-        this.uniqueId = uniqueId;
+        !uniqueId && (uniqueId = [_.uniqueId('worker:'), new Date().toISOString()].join(':'));
+        return (this.uniqueId = uniqueId);
     }
 
     private async builderFactory() {
@@ -101,18 +108,14 @@ export class ModuleDomain {
 
         let builderClass;
         try {
-            builderClass = await this.locateBuilder(
-                moduleUid,
-                stageName,
-                this.stageConfig);
+            const { _class, found } = await this.locateBuilder(moduleUid, stageName, this.stageConfig);
+            this.fakeResult = !found;
+            builderClass = _class;
         } catch (error) {
-            if (error.message.indexOf('Cannot find module') <= 0) {
-                exitRequest(error);
-            }
-            builderClass = StageWorker;
+            exitRequest(error);
         }
 
-        return new builderClass({
+        const builder = new builderClass({
             transactionUid: this.transactionUid,
             moduleUid: this.moduleUid,
             stageUid: this.stageUid,
@@ -121,19 +124,17 @@ export class ModuleDomain {
             moduleConfig: this.moduleConfig,
             stageConfig: this.stageConfig,
         });
+        builder.fakeResult = this.fakeResult;
+
+        return builder;
     }
 
     private async locateBuilder(moduleUid, stageName, config: any): Promise<any> {
-        return await importWorker.get(
-            `modules/${moduleUid}/stages`,
-            stageName,
-            config?.worker
-        );
+        return await importWorker.get(`modules/${moduleUid}/stages`, stageName, config?.worker);
     }
 
     private async snapshotConfig() {
-        if (!this.body.mockStageExecution)
-            this.moduleConfig = await SnapshotProvider.find(this.transactionUid, this.body.stageUid);
+        if (!this.body.mockStageExecution) this.moduleConfig = await SnapshotProvider.find(this.transactionUid, this.body.stageUid);
         this.moduleConfig = this['buildSnapshot'](this.moduleConfig || {}, this.body.mergeSnapshot);
 
         this.stageConfig = ModuleWorker.getConfig(this.stageUid, this.moduleConfig || {});

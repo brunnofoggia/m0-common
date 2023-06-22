@@ -19,6 +19,7 @@ import { WorkerError } from './error';
 
 export class StageWorker {
     static getSolutions;
+    public fakeResult = false;
     protected readonly worflowEventName = 'm0/workflow';
     protected defaultConfig: any = {};
 
@@ -89,22 +90,32 @@ export class StageWorker {
         if (!this.stageExecution) exitRequest(ERROR.NO_STAGE_EXEC_DATA);
     }
 
+    private async __debug(...args) {
+        if (!this.fakeResult) {
+            debug(...args);
+        }
+    }
+
     public async initialize(uniqueId: string): Promise<any> {
-        debug('-------------------------\ninitialize');
-        debug('set unique id', uniqueId);
+        this.__debug('-------------------------\ninitialize');
+        this.__debug('set unique id', uniqueId);
         this.setUniqueId(uniqueId);
-        debug('find module+stage execution');
+        this.__debug('find module+stage execution');
         this.stageExecution = await this.findLastStageExecution();
         this.moduleExecution = this.stageExecution.moduleExecution;
 
-        const result = await this._execute();
+        if (!this.fakeResult) {
+            const result = await this._execute();
 
-        debug('check result');
-        if (result !== null) await this.result(result);
+            debug('check result');
+            if (result !== null) await this.result(result);
 
-        debug('on destroy');
-        await this._onDestroy();
-        debug('builder done\n-------------------------');
+            debug('on destroy');
+            await this._onDestroy();
+            debug('builder done\n-------------------------');
+        } else {
+            await this.result(this.statusDone());
+        }
         return { done: true };
     }
 

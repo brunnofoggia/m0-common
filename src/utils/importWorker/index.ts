@@ -1,5 +1,5 @@
 import _debug from 'debug';
-const debug = _debug('worker:stage:handler');
+const debug = _debug('worker:stage:handler:importWorker');
 
 import { throwHttpException } from 'node_common/dist/utils/errors';
 import { ERROR } from '../../types/error.type';
@@ -21,18 +21,19 @@ const importWorker = {
 
         try {
             const fileClass = (await _import(filePath)).default;
-            return fileClass;
+            return { _class: fileClass, found: true };
         } catch (error) {
-            if (error.message.indexOf('Cannot find module') >= 0) {
-                debug('stage handler not found', filePath);
+            const errorFirstLine = (error.message || '').split('\n')[0];
+            const fileLocation = [...stagePath, handler].join('/');
+            if (errorFirstLine.indexOf('Cannot find module') >= 0 && errorFirstLine.indexOf(fileLocation) > 0) {
+                debug('*** stage handler not found ***', filePath);
                 if (defaultHandler && handler != defaultHandler) {
-                    return await this.get(basePath, '', defaultHandler);
+                    return { ...(await this.get(basePath, '', defaultHandler)), found: false };
                 }
             }
-            debug(error);
             throw error;
         }
-    }
+    },
 };
 
 export { importWorker, setImportFn };
