@@ -1,4 +1,3 @@
-
 import _debug from 'debug';
 const debug = _debug('worker:mixin:split');
 
@@ -8,17 +7,17 @@ import { exitRequest } from 'node_common/dist/utils/errors';
 import { StageStatusEnum } from '../../../types/stageStatus.type';
 import { ResultInterface } from '../../../interfaces/result.interface';
 
-
 export class SplitMixin {
-
     protected async splitExecute({ stateService, lengthKeyPrefix = '' }): Promise<ResultInterface | null> {
         try {
+            const { nextKey } = this.getKeys(lengthKeyPrefix);
+            const nextValue = await stateService.getValue(nextKey);
 
-            if (this['stageExecution'].statusUid !== StageStatusEnum.WAITING) {
+            if (typeof nextValue === 'undefined') {
                 this['beforeSplitStart'] && (await this['beforeSplitStart']());
 
                 const { lengthKey } = this.getKeys(lengthKeyPrefix);
-                const length = (await stateService.getValue(lengthKey));
+                const length = await stateService.getValue(lengthKey);
 
                 if (length === '0') {
                     // if there is no split process proceed to next stage
@@ -28,8 +27,8 @@ export class SplitMixin {
                 return {
                     statusUid: StageStatusEnum.WAITING,
                     _options: {
-                        after: () => this.splitStagesTrigger({ stateService, lengthKeyPrefix })
-                    }
+                        after: () => this.splitStagesTrigger({ stateService, lengthKeyPrefix }),
+                    },
                 };
             }
 
@@ -38,7 +37,6 @@ export class SplitMixin {
             debug(error.message);
             return { statusUid: StageStatusEnum.FAILED, errorMessage: error.message };
         }
-
     }
 
     private async splitStagesResult({ stateService, lengthKeyPrefix }): Promise<ResultInterface | null> {
@@ -88,7 +86,7 @@ export class SplitMixin {
         await stateService.save(processKey, 0);
         await stateService.save(nextKey, 0);
 
-        const length = (await stateService.getValue(lengthKey));
+        const length = await stateService.getValue(lengthKey);
         if (!length) {
             exitRequest(`lenghKey not found to send parallel events`);
         }
@@ -114,7 +112,7 @@ export class SplitMixin {
                 options: {
                     ..._body.options,
                     index: counter,
-                }
+                },
             };
 
             // debug('new event will be created', this['worflowEventName'], body);
@@ -127,7 +125,7 @@ export class SplitMixin {
 
     protected splitStageGlobalOptions(options) {
         options = defaultsDeep(options, {
-            ...(this['splitStageOptions'] ? result(this, 'splitStageOptions') : {})
+            ...(this['splitStageOptions'] ? result(this, 'splitStageOptions') : {}),
         });
 
         return {
@@ -136,7 +134,7 @@ export class SplitMixin {
             options: {
                 ...options,
                 ...this['fowardInternalOptions'](),
-            }
+            },
         };
     }
 }
