@@ -1,5 +1,5 @@
 import _debug from 'debug';
-const debug = _debug(':worker:util:split');
+const debug = _debug('worker:util:split');
 
 import { sleep } from 'node_common/dist/utils';
 
@@ -43,7 +43,7 @@ const defineBulkLimit = async (createFileStream, options) => {
 export const splitFile = async function (createFileStream, options, splitContent: any = '', formatLineFn, bulkFn) {
     const bulkLimit = await defineBulkLimit(createFileStream, options);
     const fileStream = await createFileStream();
-    (formatLineFn === null) && (formatLineFn = (s) => s);
+    formatLineFn === null && (formatLineFn = (s) => s);
     const bulkPart = async (splitNumber, sendContent, parts) => {
         parts.ordered++;
         await bulkFn(splitNumber, sendContent, parts);
@@ -52,31 +52,31 @@ export const splitFile = async function (createFileStream, options, splitContent
     let lineNumber = 0;
     let splitNumber = 0;
 
-    let lineCount = 0;
+    let lineInsertedCount = 0;
     const parts = { ordered: 0, finished: 0 };
 
     for await (const line of fileStream) {
-        const lineResult = formatLineFn(line, lineNumber, lineCount, splitNumber, bulkLimit);
+        const lineResult = formatLineFn(line, lineNumber, lineInsertedCount, splitNumber, bulkLimit);
 
         // debug('bulkPart', lineCount, bulkLimit);
-        if (+bulkLimit > 0 && lineCount == bulkLimit) {
+        if (+bulkLimit > 0 && lineInsertedCount == bulkLimit) {
             await bulkPart(splitNumber, copyContent(splitContent), parts);
-            lineCount = 0;
+            lineInsertedCount = 0;
             splitContent = typeof splitContent === 'string' ? '' : [];
             splitNumber++;
         }
 
-        if (lineResult !== null) { // skip null values returned by formatLineFn
-            typeof splitContent === 'string' ?
-                (splitContent += lineResult + '\n') :
-                (splitContent.push(lineResult));
+        if (lineResult !== null) {
+            // skip null values returned by formatLineFn
+            const breakLine = !lineInsertedCount ? '' : '\n';
+            typeof splitContent === 'string' ? (splitContent += breakLine + lineResult) : splitContent.push(lineResult);
 
-            lineCount++;
+            lineInsertedCount++;
         }
         lineNumber++;
     }
 
-    if (lineCount > 0) {
+    if (lineInsertedCount > 0) {
         await bulkPart(splitNumber, copyContent(splitContent), parts);
     }
 
