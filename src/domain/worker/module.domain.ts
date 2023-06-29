@@ -1,4 +1,4 @@
-import _ from 'lodash';
+import _, { size } from 'lodash';
 import _debug from 'debug';
 const debug = _debug('worker:module');
 
@@ -77,7 +77,7 @@ export class ModuleDomain {
         await this.snapshotConfig();
 
         debug('check stage config existence');
-        if (!this.stageConfig) {
+        if (!this.stageConfig || !size(this.stageConfig)) {
             exitRequest(ERROR.NO_STAGE_CONFIG_FOUND);
         }
 
