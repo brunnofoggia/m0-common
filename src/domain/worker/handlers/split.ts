@@ -33,46 +33,24 @@ const split = async (worker: StageWorker, stateService = null, monitorService = 
 
     const config = prepareConfig(stageConfig.config, worker);
     const fromDir = [rootDir, config.input?.dir || config.prevStage].join('/');
-    const fromPath = [fromDir, 'file'].join('/');
 
+    let splitLength = 0;
     let done = false;
     let error;
     try {
-        debug('split file', fromPath);
-        const createFileStream = async () => await readStream(fromPath, storage);
-        const fileStream = await createFileStream();
-        if (!fileStream) throw new WorkerError('cant open the file', StageStatusEnum.FAILED);
-
         debug('deleting directory');
         if (await storage.checkDirectoryExists(stageDir + '/')) {
             debug('directory found');
             await storage.deleteDirectory(stageDir + '/');
         }
-        const limitRows = worker.isProjectConfigActivated('limitRows');
 
-        let splitLength = 0;
-        debug('reading file');
-        await splitFile(
-            createFileStream,
-            config,
-            '',
-            (content, lineNumber, lineCount, splitNumber, bulkLimit) => {
-                const skip = limitRows && (lineCount >= worker['skipLimit'] || splitNumber >= worker['skipLimit']);
-                // debug('skip test', lineCount, splitNumber);
-                return content && lineNumber > 0 && !skip ? content : null;
-            },
-            async (splitNumber, content, parts) => {
-                debug('sending file');
-                const filename = [stageDir, splitNumber].join('/');
-                const stream = storage.sendStream(filename);
-                stream.write(content);
-                await stream.end();
-                parts.finished++;
-                debug(`sent file ${[stageDir, splitNumber].join('/')}`);
+        const files = await storage.readDirectory(fromDir);
+        debug('split files', files);
 
-                parts.ordered > splitLength && (splitLength = parts.ordered);
-            },
-        );
+        for (const filePath of files) {
+            if (filePath.endsWith('/')) continue;
+            splitLength += await splitItem({ filePath, stageDir, worker, config, storage, splitNumberStartAt: splitLength });
+        }
 
         await stateService?.save(lengthKey, splitLength);
         done = true;
@@ -95,6 +73,42 @@ const readStream = async (fromPath, storage) => {
         debug(`file not found ${fromPath}`);
         throw error;
     }
+};
+
+const splitItem = async ({ filePath, stageDir, worker, config, storage, splitNumberStartAt }) => {
+    let splitLength = 0;
+
+    const createFileStream = async () => await readStream(filePath, storage);
+    const fileStream = await createFileStream();
+    if (!fileStream) throw new WorkerError('cant open the file', StageStatusEnum.FAILED);
+
+    const limitRows = worker.isProjectConfigActivated('limitRows');
+
+    debug('reading file', filePath);
+    await splitFile(
+        createFileStream,
+        config,
+        '',
+        (content, lineNumber, lineCount, splitNumber, bulkLimit) => {
+            const skip = limitRows && (lineCount >= worker['skipLimit'] || splitNumber >= worker['skipLimit']);
+            // debug('skip test', lineCount, splitNumber);
+            return content && lineNumber > 0 && !skip ? content : null;
+        },
+        async (splitNumber, content, parts) => {
+            const filename = splitNumber + splitNumberStartAt;
+            debug('sending file');
+            const filePath = [stageDir, filename].join('/');
+            const stream = storage.sendStream(filePath);
+            stream.write(content);
+            await stream.end();
+            parts.finished++;
+            debug(`sent file ${filePath}`);
+
+            parts.ordered > splitLength && (splitLength = parts.ordered);
+        },
+    );
+
+    return splitLength;
 };
 
 export { split };
