@@ -313,8 +313,20 @@ export class StageWorker {
     }
 
     /* date */
-    getDate(date = undefined, keepLocalTime = false, _timezoneOffset = 0) {
-        const timezoneOffset = _timezoneOffset || this.project?._config?.timezoneOffset || 0;
+    getTimezoneOffset(_customTimezoneOffset = 0) {
+        return +(_customTimezoneOffset || this.project?._config?.timezoneOffset || 0);
+    }
+
+    getTimezoneString(_customTimezoneOffset = 0, addMinutes = false) {
+        const timezoneOffset = this.getTimezoneOffset(_customTimezoneOffset);
+        const timezoneData = (timezoneOffset + '').split('');
+        timezoneData[1] = timezoneData[1].padStart(2, '0');
+        const timezoneString = timezoneData.join('');
+        return timezoneString + (addMinutes ? ':00' : '');
+    }
+
+    getDate(date = undefined, keepLocalTime = false, _customTimezoneOffset = 0) {
+        const timezoneOffset = this.getTimezoneOffset(_customTimezoneOffset);
         return getDateForTimezone(timezoneOffset, date, keepLocalTime);
     }
 
