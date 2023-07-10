@@ -16,6 +16,7 @@ import { ModuleExecutionInterface } from '../../interfaces/moduleExecution.inter
 import { ProjectInterface } from '../../interfaces/project.interface';
 import { ERROR } from '../../types/error.type';
 import { WorkerError } from './error';
+import { getDateForTimezone } from 'node_common/dist/utils';
 
 export class StageWorker {
     static getSolutions;
@@ -309,6 +310,11 @@ export class StageWorker {
     async getStageSecret(name: string, basePath: any = null) {
         basePath === null && (basePath = [this.getProjectUid(), this.stageUid].join('/'));
         return await this.getSecret(name, basePath);
+    }
+
+    /* date */
+    getDate(date = undefined, keepLocalTime = false) {
+        return getDateForTimezone(this.project?._config?.timezoneOffset || 0, date, keepLocalTime);
     }
 
     /* results */
