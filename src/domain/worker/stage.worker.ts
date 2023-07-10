@@ -313,8 +313,9 @@ export class StageWorker {
     }
 
     /* date */
-    getDate(date = undefined, keepLocalTime = false) {
-        return getDateForTimezone(this.project?._config?.timezoneOffset || 0, date, keepLocalTime);
+    getDate(date = undefined, keepLocalTime = false, _timezoneOffset = 0) {
+        const timezoneOffset = _timezoneOffset || this.project?._config?.timezoneOffset || 0;
+        return getDateForTimezone(timezoneOffset, date, keepLocalTime);
     }
 
     /* results */
