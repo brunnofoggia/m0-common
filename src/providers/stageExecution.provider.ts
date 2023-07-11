@@ -14,7 +14,7 @@ export class StageExecutionProvider extends M0ApiProvider {
         };
 
         return (
-            await this.fetch({
+            await this.request({
                 method: 'post',
                 url,
                 data,
@@ -26,7 +26,7 @@ export class StageExecutionProvider extends M0ApiProvider {
         const url = [this.basePath].join('/');
 
         return (
-            await this.fetch({
+            await this.request({
                 method: 'put',
                 url,
                 data,
@@ -46,14 +46,14 @@ export class StageExecutionProvider extends M0ApiProvider {
     ) {
         const url = [this.basePath, 'findByTransactionAndModule', transactionUid, stageUid, index].join('/');
 
-        const result = (await this.fetch({ url })).data;
+        const result = (await this.request({ url })).data;
         return result;
     }
 
     static async findAllByTransactionAndModule(transactionUid: string, stageUid: string, index = -1) {
         const url = [this.basePath, 'findAllByTransactionAndModule', transactionUid, stageUid, index].join('/');
 
-        const result = (await this.fetch({ url })).data;
+        const result = (await this.request({ url })).data;
         return result;
     }
 }

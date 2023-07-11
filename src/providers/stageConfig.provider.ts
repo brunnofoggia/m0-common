@@ -8,7 +8,7 @@ export class StageConfigProvider extends M0ApiProvider {
 
     static async findNames() {
         const url = [this.basePath, 'findNames'].join('/');
-        const data = (await this.fetch({ url })).data;
+        const data = (await this.request({ url })).data;
 
         return data;
     }
@@ -16,7 +16,7 @@ export class StageConfigProvider extends M0ApiProvider {
     static async findConfig(transactionUid: string, stageUid: string) {
         if (!transactionUid) throwHttpException(ERROR.TRANSACTIONUID_EMPTY);
         const url = [this.basePath, 'findByTransactionAndTargetModuleAndStage', transactionUid, stageUid].join('/');
-        const data = (await this.fetch({ url })).data;
+        const data = (await this.request({ url })).data;
 
         return data;
     }

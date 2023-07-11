@@ -6,10 +6,12 @@ export class ScheduleQueueProvider extends M0ApiProvider {
     static async save(data = {}) {
         const url = [this.basePath].join('/');
 
-        return (await this.fetch({
-            method: 'post',
-            url,
-            data
-        })).data;
+        return (
+            await this.request({
+                method: 'post',
+                url,
+                data,
+            })
+        ).data;
     }
 }

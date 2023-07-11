@@ -9,7 +9,7 @@ export class ModuleConfigProvider extends M0ApiProvider {
     static async findConfig(transactionUid: string, moduleUid: string) {
         if (!transactionUid) throwHttpException(ERROR.TRANSACTIONUID_EMPTY);
         const url = [this.basePath, 'findByTransactionAndTargetModule', transactionUid, moduleUid].join('/');
-        const data = (await this.fetch({ url })).data;
+        const data = (await this.request({ url })).data;
 
         return data;
     }

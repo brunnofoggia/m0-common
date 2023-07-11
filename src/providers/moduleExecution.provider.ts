@@ -8,7 +8,7 @@ export class ModuleExecutionProvider extends M0ApiProvider {
 
     static async findIdByTransactionAndModuleUid(transactionUid: string, moduleUid: string) {
         const url = [this.basePath, 'findIdByTransactionAndModuleUid', transactionUid, moduleUid].join('/');
-        const result = (await this.fetch({ url })).data;
+        const result = (await this.request({ url })).data;
 
         return result;
     }
@@ -18,18 +18,20 @@ export class ModuleExecutionProvider extends M0ApiProvider {
         if (!projectUid && !transactionUid) throwHttpException(ERROR.NOT_ENOUGH_DATA);
 
         const _data = {
-            "moduleConfigId": moduleConfigId,
-            "moduleUid": moduleUid,
-            "projectUid": projectUid,
-            "date": (date ? new Date(date) : new Date()).toISOString(),
-            "transactionUid": transactionUid,
-            "data": data
+            moduleConfigId: moduleConfigId,
+            moduleUid: moduleUid,
+            projectUid: projectUid,
+            date: (date ? new Date(date) : new Date()).toISOString(),
+            transactionUid: transactionUid,
+            data: data,
         };
 
-        return (await this.fetch({
-            method: 'post',
-            url,
-            data: _data
-        })).data;
+        return (
+            await this.request({
+                method: 'post',
+                url,
+                data: _data,
+            })
+        ).data;
     }
 }
