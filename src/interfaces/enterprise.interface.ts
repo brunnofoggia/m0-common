@@ -1,4 +1,4 @@
-import { TimestampInterface } from 'node_common/dist/interfaces/timestamp.interface';
+import { TimestampInterface } from 'node-common/dist/interfaces/timestamp.interface';
 import { ProjectInterface } from './project.interface';
 
 export interface EnterpriseInterface extends TimestampInterface {

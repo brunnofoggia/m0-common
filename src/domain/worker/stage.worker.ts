@@ -3,7 +3,7 @@ import _debug from 'debug';
 const debug = _debug('worker:stage');
 
 import { StageExecutionProvider } from '../../providers/stageExecution.provider';
-import { exitRequest } from 'node_common/dist/utils/errors';
+import { exitRequest } from 'node-common/dist/utils/errors';
 
 import { StageStatusEnum } from '../../types/stageStatus.type';
 import { ModuleConfigInterface } from '../../interfaces/moduleConfig.interface';
@@ -16,7 +16,7 @@ import { ModuleExecutionInterface } from '../../interfaces/moduleExecution.inter
 import { ProjectInterface } from '../../interfaces/project.interface';
 import { ERROR } from '../../types/error.type';
 import { WorkerError } from './error';
-import { getDateForTimezone } from 'node_common/dist/utils';
+import { getDateForTimezone } from 'node-common/dist/utils';
 
 export class StageWorker {
     static getSolutions;

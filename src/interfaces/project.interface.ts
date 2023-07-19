@@ -1,4 +1,4 @@
-import { TimestampInterface } from 'node_common/dist/interfaces/timestamp.interface';
+import { TimestampInterface } from 'node-common/dist/interfaces/timestamp.interface';
 import { ModuleConfigInterface } from './moduleConfig.interface';
 import { ModuleExecutionInterface } from './moduleExecution.interface';
 import { EnterpriseInterface } from './enterprise.interface';

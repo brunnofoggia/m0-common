@@ -9,11 +9,11 @@ import { ModuleConfigInterface } from '../../interfaces/moduleConfig.interface';
 import { StageConfigInterface } from '../../interfaces/stageConfig.interface';
 import { SnapshotProvider } from '../../providers/snapshot.provider';
 import { BodyInterface } from '../../interfaces/body.interface';
-import { exitRequest, throwHttpException } from 'node_common/dist/utils/errors';
+import { exitRequest, throwHttpException } from 'node-common/dist/utils/errors';
 
 // let count = 0;
 import { SnapshotMixin } from './mixins/snapshot.mixin';
-import { applyMixins } from 'node_common/dist/utils/mixin';
+import { applyMixins } from 'node-common/dist/utils/mixin';
 import { ModuleConfigProvider } from '../../providers/moduleConfig.provider';
 import { ERROR } from '../../types/error.type';
 

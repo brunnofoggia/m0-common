@@ -1,7 +1,7 @@
 import _debug from 'debug';
 const debug = _debug('worker:stage:handler:importWorker');
 
-import { throwHttpException } from 'node_common/dist/utils/errors';
+import { throwHttpException } from 'node-common/dist/utils/errors';
 import { ERROR } from '../../types/error.type';
 
 let _import;

@@ -1,8 +1,7 @@
 import { Like } from 'typeorm';
-import { DynamicDatabase } from 'node_common/dist/services/dynamicDatabase.service';
+import { DynamicDatabase } from 'node-common/dist/services/dynamicDatabase.service';
 
 export class StateService<ENTITY> extends DynamicDatabase<ENTITY> {
-
     async _save(key, value) {
         return await this.getRepository().save({ key, value: value + '' });
     }
@@ -21,14 +20,16 @@ export class StateService<ENTITY> extends DynamicDatabase<ENTITY> {
     }
 
     async saveBy(key, valueTo, valueFrom) {
-        return (await this.getDataSource()
-            .createQueryBuilder()
-            .update(this.entity)
-            .set({
-                value: valueTo,
-            })
-            .where("key = :key AND value = :value", { key, value: valueFrom })
-            .execute()).affected;
+        return (
+            await this.getDataSource()
+                .createQueryBuilder()
+                .update(this.entity)
+                .set({
+                    value: valueTo,
+                })
+                .where('key = :key AND value = :value', { key, value: valueFrom })
+                .execute()
+        ).affected;
     }
 
     async increment(key) {
@@ -36,9 +37,9 @@ export class StateService<ENTITY> extends DynamicDatabase<ENTITY> {
             .createQueryBuilder()
             .update(this.entity)
             .set({
-                value: () => "CAST(value AS INTEGER) + 1",
+                value: () => 'CAST(value AS INTEGER) + 1',
             })
-            .where("key = :key", { key })
+            .where('key = :key', { key })
             .execute();
     }
 
@@ -47,19 +48,19 @@ export class StateService<ENTITY> extends DynamicDatabase<ENTITY> {
             .createQueryBuilder()
             .update(this.entity)
             .set({
-                value: () => "CAST(value AS INTEGER) - 1",
+                value: () => 'CAST(value AS INTEGER) - 1',
             })
-            .where("key = :key", { key })
+            .where('key = :key', { key })
             .execute();
     }
 
     async countSequence(key) {
-        return ((await this.getRepository().count({
+        return await this.getRepository().count({
             where: {
                 key: Like(key + '_%'),
-                value: '1'
-            }
-        })));
+                value: '1',
+            },
+        });
     }
 
     async clearSequence(key) {
@@ -80,8 +81,6 @@ export class StateService<ENTITY> extends DynamicDatabase<ENTITY> {
     }
 
     async getValue(key) {
-        return (
-            (await this.getRepository().find({ where: { key } }))[0] || {}
-        ).value;
+        return ((await this.getRepository().find({ where: { key } }))[0] || {}).value;
     }
 }

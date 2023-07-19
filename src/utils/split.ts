@@ -1,7 +1,7 @@
 import _debug from 'debug';
 const debug = _debug('worker:util:split');
 
-import { sleep } from 'node_common/dist/utils';
+import { sleep } from 'node-common/dist/utils';
 
 const copyContent = function (content) {
     let copy: any;

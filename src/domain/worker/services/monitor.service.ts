@@ -2,16 +2,16 @@ import _debug from 'debug';
 const debug = _debug('worker:stage:monitor');
 
 import { Like } from 'typeorm';
-import { DynamicDatabase } from 'node_common/dist/services/dynamicDatabase.service';
-import { MemoryUtil } from 'node_common/dist/utils/memory';
-import { ProcessUtil } from 'node_common/dist/utils/process';
+import { DynamicDatabase } from 'node-common/dist/services/dynamicDatabase.service';
+import { MemoryUtil } from 'node-common/dist/utils/memory';
+import { ProcessUtil } from 'node-common/dist/utils/process';
 
 export class MonitorService<ENTITY> extends DynamicDatabase<ENTITY> {
     protected idAttribute = 'key';
     protected _deleteRecords = true;
 
     static async _save(key, value) {
-        const service = new MonitorService;
+        const service = new MonitorService();
         return await service.save(key, value);
     }
 
@@ -20,8 +20,7 @@ export class MonitorService<ENTITY> extends DynamicDatabase<ENTITY> {
         try {
             result = await MonitorService._save(key, value);
         } catch (err) {
-            if (retry)
-                return await MonitorService.save(key, value, retry - 1);
+            if (retry) return await MonitorService.save(key, value, retry - 1);
             throw err;
         }
         return result;
@@ -32,9 +31,7 @@ export class MonitorService<ENTITY> extends DynamicDatabase<ENTITY> {
     }
 
     async getValue(key) {
-        return (
-            (await this.getRepository().find({ where: { key } }))[0] || {}
-        ).value;
+        return ((await this.getRepository().find({ where: { key } }))[0] || {}).value;
     }
 
     async clearByPrefix(prefix) {

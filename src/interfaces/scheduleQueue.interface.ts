@@ -1,4 +1,4 @@
-import { GenericInterface } from 'node_common/dist/interfaces/generic.interface';
+import { GenericInterface } from 'node-common/dist/interfaces/generic.interface';
 
 export interface ScheduleQueueInterface extends GenericInterface {
     queueName: string;

@@ -2,21 +2,16 @@ import { Global, Module } from '@nestjs/common';
 import { RouterModule } from '@nestjs/core';
 
 import { WorkerModule } from './worker/worker.module';
-import { router } from 'node_common/dist/utils/moduleRouter';
+import { router } from 'node-common/dist/utils/moduleRouter';
 import { MODULE } from '../types/module.type';
 
-const modules = [
-    WorkerModule,
-];
+const modules = [WorkerModule];
 
 @Global()
 @Module({
-    imports: [
-        RouterModule.register(router(MODULE.M0, modules)),
-        ...modules,
-    ],
+    imports: [RouterModule.register(router(MODULE.M0, modules)), ...modules],
     controllers: [],
     providers: [],
-    exports: []
+    exports: [],
 })
-export class M0Module { }
+export class M0Module {}
