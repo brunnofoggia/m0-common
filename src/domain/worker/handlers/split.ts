@@ -98,8 +98,8 @@ const splitItem = async ({ filePath, stageDir, worker, config, storage, splitNum
             const filename = splitNumber + splitNumberStartAt;
             debug('sending file');
             const filePath = [stageDir, filename].join('/');
-            const stream = storage.sendStream(filePath);
-            stream.write(content);
+            const stream = await storage.sendStream(filePath);
+            await stream.write(content);
             await stream.end();
             parts.finished++;
             debug(`sent file ${filePath}`);
