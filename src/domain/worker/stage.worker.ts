@@ -137,12 +137,20 @@ export class StageWorker {
             result = await this.execute();
         } catch (error) {
             this.logError(error);
-            result = {
-                statusUid: error.statusUid || StageStatusEnum.UNKNOWN,
-                errorCode: error.code || '',
-                errorMessage: error.message || '',
-            };
+            result = this.buildExecutionError(error);
         }
+
+        return result;
+    }
+
+    buildExecutionError(error) {
+        const result: any = {
+            statusUid: StageStatusEnum.UNKNOWN,
+            errorCode: error.code || '',
+            errorMessage: error.message || '',
+        };
+
+        if (error.statusUid) result.statusUid = error.statusUid;
 
         return result;
     }
