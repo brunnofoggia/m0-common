@@ -35,7 +35,7 @@ export class SplitMixin {
 
             return this.splitStagesResult({ stateService, lengthKeyPrefix });
         } catch (error) {
-            debug(error.message);
+            debug(error.message, error.stack);
             return { statusUid: StageStatusEnum.FAILED, errorMessage: error.message };
         }
     }
