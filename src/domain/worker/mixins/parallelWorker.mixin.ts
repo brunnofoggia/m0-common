@@ -19,6 +19,7 @@ export class ParallelWorkerGeneric {
     /* do not replace methods bellow */
     /* split lifecycle */
     public async afterSplitEnd(): Promise<void> {
+        this.prepareConfig(this['stageConfig'].config);
         await this.down();
     }
 
