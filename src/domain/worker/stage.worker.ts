@@ -227,7 +227,8 @@ export class StageWorker {
     }
 
     protected prepareConfig(_config) {
-        return defaultsDeep({}, this.defaultConfig, _config);
+        this.stageConfig.config = defaultsDeep({}, _config, this.defaultConfig);
+        return this.stageConfig.config;
     }
 
     protected mockStageExecution() {

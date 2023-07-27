@@ -6,9 +6,9 @@ import { M0ApiProvider } from './m0Api.provider';
 export class SnapshotProvider extends M0ApiProvider {
     static basePath = 'm0/snapshot';
 
-    static async find(transactionUid: string, stageUid: string) {
+    static async find(transactionUid: string, stageUid: string, forceUpdate = 0) {
         if (!transactionUid) throwHttpException(ERROR.TRANSACTIONUID_EMPTY);
-        const url = [this.basePath, transactionUid, stageUid].join('/');
+        const url = [this.basePath, transactionUid, stageUid].join('/') + '?forceUpdate=' + forceUpdate;
         const data = (
             await this.request({
                 method: 'get',

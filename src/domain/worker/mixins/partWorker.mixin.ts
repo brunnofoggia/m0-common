@@ -44,7 +44,7 @@ export class PartWorkerGeneric {
 
     /* variables */
     public async setupVariables() {
-        this['stageConfig'].config = this['prepareConfig'](this['stageConfig'].config);
+        this['prepareConfig'](this['stageConfig'].config);
         const index = this['getIndex']();
 
         return { index, instance: await this.instanceVariables(), loop: await this.loopVariables() };
