@@ -2,24 +2,29 @@ import { each, isNumber, uniqueId, size, indexOf, omit, defaultsDeep, pickBy } f
 import _debug from 'debug';
 const debug = _debug('worker:stage');
 
-import { StageExecutionProvider } from '../../providers/stageExecution.provider';
 import { exitRequest } from 'node-common/dist/utils/errors';
-
-import { StageStatusEnum } from '../../types/stageStatus.type';
-import { ModuleConfigInterface } from '../../interfaces/moduleConfig.interface';
-import { StageConfigInterface } from '../../interfaces/stageConfig.interface';
-import { StageExecutionInterface } from '../../interfaces/stageExecution.interface';
+import { getDateForTimezone } from 'node-common/dist/utils';
+import { applyMixins } from 'node-common/dist/utils/mixin';
 
 import { BodyInterface } from '../../interfaces/body.interface';
 import { ResultInterface } from '../../interfaces/result.interface';
 import { ModuleExecutionInterface } from '../../interfaces/moduleExecution.interface';
 import { ProjectInterface } from '../../interfaces/project.interface';
+import { ModuleConfigInterface } from '../../interfaces/moduleConfig.interface';
+import { StageConfigInterface } from '../../interfaces/stageConfig.interface';
+import { StageExecutionInterface } from '../../interfaces/stageExecution.interface';
+
+import { StageStatusEnum } from '../../types/stageStatus.type';
 import { ERROR } from '../../types/error.type';
 import { WorkerError } from './error';
-import { getDateForTimezone } from 'node-common/dist/utils';
+
+import { StageExecutionProvider } from '../../providers/stageExecution.provider';
+
+import { importMixin } from '../../utils/importWorker';
 
 export class StageWorker {
     static getSolutions;
+    static defaultWorker = 'index';
     public fakeResult = false;
     protected readonly worflowEventName = 'm0/workflow';
     protected defaultConfig: any = {};
@@ -376,7 +381,7 @@ export class StageWorker {
     }
 
     public getWorker() {
-        return this.stageConfig.config.worker || 'index';
+        return this.stageConfig.config.worker || StageWorker.defaultWorker;
     }
 
     public getBody() {
@@ -441,5 +446,24 @@ export class StageWorker {
 
     public async onDestroy(): Promise<void> {
         return;
+    }
+
+    /* mixins */
+    public async loadMixins(mixins, _class) {
+        const worker = this.getWorker();
+        for (const mixinName of mixins) {
+            const mixin = await this.loadMixin(mixinName, worker);
+            applyMixins(_class, [mixin]);
+        }
+    }
+
+    public async loadMixin(name, worker) {
+        try {
+            return await importMixin(`modules/${this.moduleUid}/stages/${this.stageName}`, name, worker);
+            // return (await import(`./${name}/${worker}`)).default;
+        } catch (err) {
+            if (worker != StageWorker.defaultWorker) return this.loadMixin(name, StageWorker.defaultWorker);
+            throw new Error(`mixin "${name}" not found`);
+        }
     }
 }

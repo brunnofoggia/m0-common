@@ -2,18 +2,18 @@ import _, { size } from 'lodash';
 import _debug from 'debug';
 const debug = _debug('worker:module');
 
-import importWorker from '../../utils/importWorker';
+import { applyMixins } from 'node-common/dist/utils/mixin';
+import { exitRequest, throwHttpException } from 'node-common/dist/utils/errors';
+
+import { importWorker } from '../../utils/importWorker';
 import { ModuleWorker } from './module.worker';
 import { StageWorker } from './stage.worker';
 import { ModuleConfigInterface } from '../../interfaces/moduleConfig.interface';
 import { StageConfigInterface } from '../../interfaces/stageConfig.interface';
 import { SnapshotProvider } from '../../providers/snapshot.provider';
 import { BodyInterface } from '../../interfaces/body.interface';
-import { exitRequest, throwHttpException } from 'node-common/dist/utils/errors';
 
-// let count = 0;
 import { SnapshotMixin } from './mixins/snapshot.mixin';
-import { applyMixins } from 'node-common/dist/utils/mixin';
 import { ModuleConfigProvider } from '../../providers/moduleConfig.provider';
 import { ERROR } from '../../types/error.type';
 
@@ -130,7 +130,7 @@ export class ModuleDomain {
     }
 
     private async locateBuilder(moduleUid, stageName, config: any): Promise<any> {
-        return await importWorker.get(`modules/${moduleUid}/stages`, stageName, config?.worker);
+        return await importWorker(`modules/${moduleUid}/stages`, stageName, config?.worker || StageWorker.defaultWorker);
     }
 
     private async snapshotConfig() {
