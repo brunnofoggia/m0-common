@@ -375,6 +375,10 @@ export class StageWorker {
         };
     }
 
+    public getWorker() {
+        return this.stageConfig.config.worker || 'index';
+    }
+
     public getBody() {
         return this.body;
     }
