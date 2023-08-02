@@ -1,15 +1,19 @@
 import _debug from 'debug';
-const debug = _debug('worker:mixin:PartWorker');
+const debug = _debug('worker:mixin:PartWorkerGeneric');
 
 import { queuelize } from 'node-common/dist/utils';
 
 import { ResultInterface } from '../../../interfaces/result.interface';
+import { defaultsDeep } from 'lodash';
 
-export class PartWorkerGeneric {
-    protected defaultConfig: any = {
-        totalLimit: 50000,
-        pageLimit: 1000,
-    };
+class PartWorkerGeneric {
+    public getDefaultConfig() {
+        const defaultConfig = defaultsDeep({}, this['defaultConfig'], {
+            totalLimit: 50000,
+            pageLimit: 1000,
+        });
+        return defaultConfig;
+    }
 
     /* execution */
     public async execute(): Promise<ResultInterface> {
@@ -25,7 +29,12 @@ export class PartWorkerGeneric {
         // loop counter lives inside this object and the object is passed on each execution
         const params: any = { page: -1 };
         // executions will run one at a time
-        await queuelize(condition, execute, { async: 0, params });
+        await queuelize(condition, execute, {
+            async: 0,
+            params,
+            before: (params) => this.beforeQueue(params),
+            after: (params) => this.afterQueue(params),
+        });
 
         return this['statusDone']();
     }
@@ -72,7 +81,7 @@ export class PartWorkerGeneric {
     protected loopLimitVariables() {
         const config = this['stageConfig'].config;
         const totalLimit = config.totalLimit;
-        const pageLimit = config.pageLimit >= totalLimit ? totalLimit / 10 : config.pageLimit;
+        const pageLimit = totalLimit && config.pageLimit >= totalLimit ? totalLimit / 10 : config.pageLimit;
         debug({ totalLimit, pageLimit });
         return { totalLimit, pageLimit };
     }
@@ -95,6 +104,24 @@ export class PartWorkerGeneric {
     }
 
     protected async processQueue({ page, skip, instance, loop, rows }) {
+        debug('processing page', page);
+        for (const index in rows) {
+            const row = rows[index];
+            await this.processRow({ page, instance, index, row });
+        }
+    }
+
+    protected async processRow({ page, instance, index, row }) {
+        null;
+    }
+
+    protected async beforeQueue(params) {
+        null;
+    }
+
+    protected async afterQueue(params) {
         null;
     }
 }
+
+export { PartWorkerGeneric };

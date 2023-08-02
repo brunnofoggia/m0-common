@@ -16,10 +16,14 @@ export class ParallelWorkerGeneric {
         lengthLimit: 0,
     };
 
+    public getDefaultConfig() {
+        return defaultsDeep(this.defaultConfig, ParallelWorkerGeneric.prototype.defaultConfig);
+    }
+
     /* do not replace methods bellow */
     /* split lifecycle */
     public async afterSplitEnd(): Promise<void> {
-        this.prepareConfig(this['stageConfig'].config);
+        this['prepareConfig'](this['stageConfig'].config);
         await this.down();
     }
 
@@ -56,7 +60,7 @@ export class ParallelWorkerGeneric {
 
     /* replace methods bellow if needed */
     protected async beforeSplitStart() {
-        const config = this.prepareConfig(this['stageConfig'].config);
+        const config = this['prepareConfig'](this['stageConfig'].config);
         await this.up();
         const { bulkLimit } = this.defineLimits(config);
 
@@ -82,10 +86,6 @@ export class ParallelWorkerGeneric {
     protected async count(options: any = {}) {
         const service = this.getLocalService();
         return await service.count(options);
-    }
-
-    protected prepareConfig(stageConfig) {
-        return (this['stageConfig'].config = defaultsDeep({}, this.defaultConfig, stageConfig, this['stageExecution'].data));
     }
 
     /* virtual */

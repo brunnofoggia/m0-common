@@ -231,8 +231,12 @@ export class StageWorker {
         events.sendToQueue(this.worflowEventName, body);
     }
 
+    public getDefaultConfig() {
+        return this.defaultConfig;
+    }
+
     protected prepareConfig(_config) {
-        this.stageConfig.config = defaultsDeep({}, _config, this.defaultConfig);
+        this.stageConfig.config = defaultsDeep({}, _config, this.getDefaultConfig(), this.stageExecution.data);
         return this.stageConfig.config;
     }
 
@@ -340,6 +344,7 @@ export class StageWorker {
     }
 
     getDate(date = undefined, keepLocalTime = false, _customTimezoneOffset = 0) {
+        typeof date === 'undefined' && (date = this.moduleExecution?.date || new Date());
         const timezoneOffset = this.getTimezoneOffset(_customTimezoneOffset);
         return getDateForTimezone(timezoneOffset, date, keepLocalTime);
     }
