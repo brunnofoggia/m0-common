@@ -9,4 +9,5 @@ export enum MODULE {
     M7 = 'm7',
     M8 = 'm8',
     M9 = 'm9',
+    BUSINESS = 'business',
 }
