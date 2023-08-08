@@ -331,7 +331,7 @@ export class StageWorker {
     }
 
     /* date */
-    getTimezoneOffset(_customTimezoneOffset = 0) {
+    getTimezoneOffset(_customTimezoneOffset = null) {
         const timezoneOffset = !_customTimezoneOffset && _customTimezoneOffset !== 0 ? this.project?._config?.timezoneOffset : _customTimezoneOffset;
         return +(timezoneOffset || 0);
     }
@@ -345,7 +345,7 @@ export class StageWorker {
     }
 
     getDate(date = undefined, keepLocalTime = false, _customTimezoneOffset = null) {
-        typeof date === 'undefined' && (date = this.moduleExecution?.date || new Date());
+        (typeof date === 'undefined' || date === null) && (date = this.moduleExecution?.date || new Date());
         const timezoneOffset = this.getTimezoneOffset(_customTimezoneOffset);
         return getDateForTimezone(timezoneOffset, date, keepLocalTime);
     }
