@@ -237,7 +237,7 @@ export class StageWorker {
 
     protected prepareConfig(_config = null) {
         _config === null && (_config = this.stageConfig.config);
-        this.stageConfig.config = defaultsDeep({}, _config, this.getDefaultConfig(), this.stageExecution.data);
+        this.stageConfig.config = defaultsDeep({}, this.stageExecution.data, _config, this.getDefaultConfig());
         return this.stageConfig.config;
     }
 
