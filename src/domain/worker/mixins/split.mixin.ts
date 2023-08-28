@@ -1,7 +1,7 @@
 import _debug from 'debug';
 const debug = _debug('worker:mixin:split');
 
-import { defaultsDeep, result } from 'lodash';
+import { defaultsDeep, result, omit } from 'lodash';
 
 import { exitRequest } from 'node-common/dist/utils/errors';
 import { StageStatusEnum } from '../../../types/stageStatus.type';
@@ -81,7 +81,7 @@ export class SplitMixin {
         return { lengthKey, processKey, nextKey };
     }
 
-    private async splitStagesTrigger({ stateService, lengthKeyPrefix }) {
+    private async splitStagesTrigger({ stateService, lengthKeyPrefix }, options: any = {}) {
         const { lengthKey, nextKey, processKey } = this.getKeys(lengthKeyPrefix);
 
         await stateService.save(processKey, 0);
@@ -95,21 +95,20 @@ export class SplitMixin {
         // TODO: review if is needed
         // run split stage after updating stage execution status
         // setTimeout(() =>
-        await this['splitStage'](length);
+        await this['splitStage'](length, options);
         // , 1000);
     }
 
     protected async splitStage(length = '0', options: any = {}) {
         // console.log(`will trigger ${length} events of ${this.stageConfig.config.splitStage}`);
-
-        if (!this['stageConfig'].config.splitStage) return;
+        if (!this['stageConfig'].config.splitStage || this['stageExecution'].data._triggerSplitStage === 0) return;
 
         const _body = this.splitStageGlobalOptions(options);
         debug(`length: ${length}`);
 
         for (let counter = 0; counter < +length; counter++) {
             const body = {
-                ..._body,
+                ...omit(_body, 'options'),
                 options: {
                     ..._body.options,
                     index: counter,
@@ -136,6 +135,13 @@ export class SplitMixin {
                 ...options,
                 ...this['fowardInternalOptions'](),
             },
+        };
+    }
+
+    protected splitExecuteOptions() {
+        return {
+            stateService: this['getStateService'](),
+            lengthKeyPrefix: this['getLengthKeyPrefix'](),
         };
     }
 }

@@ -29,10 +29,7 @@ export class ParallelWorkerGeneric {
 
     public async execute(): Promise<ResultInterface> {
         try {
-            return await this['splitExecute']({
-                stateService: this['getStateService'](),
-                lengthKeyPrefix: this.getLengthKeyPrefix(),
-            });
+            return await this['splitExecute'](this['splitExecuteOptions']());
         } catch (error) {
             this['logError'](error);
             return { statusUid: StageStatusEnum.FAILED, errorMessage: error.message };
