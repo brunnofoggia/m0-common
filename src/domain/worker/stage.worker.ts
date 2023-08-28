@@ -184,8 +184,15 @@ export class StageWorker {
             this.body.options.index,
         );
 
-        if (
-            stageExecution?.statusUid &&
+        if (!stageExecution || !size(stageExecution)) {
+            throw new WorkerError(
+                `stageExecution not found for
+                transactionUid:${this.transactionUid} , stageUid: ${this.stageConfig?.stageUid} , index: ${this.body.options.index}
+                ("${JSON.stringify(stageExecution)}")`,
+                StageStatusEnum.ERROR,
+            );
+        } else if (
+            stageExecution.statusUid &&
             indexOf(
                 [
                     // StageStatusEnum.DONE,
@@ -197,6 +204,13 @@ export class StageWorker {
         ) {
             return stageExecution;
         }
+
+        throw new WorkerError(
+            `invalid stageExecution for
+            transactionUid:${this.transactionUid} , stageUid: ${this.stageConfig?.stageUid} , index: ${this.body.options.index}
+            ("${JSON.stringify(stageExecution)}")`,
+            StageStatusEnum.ERROR,
+        );
     }
 
     protected async triggerStage(_name, body) {
