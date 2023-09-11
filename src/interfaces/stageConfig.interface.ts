@@ -6,4 +6,7 @@ export interface StageConfigInterface extends GenericInterface {
     config?: {
         [key: string]: any;
     };
+    options?: {
+        [key: string]: any;
+    };
 }

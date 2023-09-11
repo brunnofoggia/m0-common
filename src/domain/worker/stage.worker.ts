@@ -28,6 +28,7 @@ export class StageWorker {
     public fakeResult = false;
     protected readonly worflowEventName = 'm0/workflow';
     protected defaultConfig: any = {};
+    protected defaultOptions: any = {};
 
     protected uniqueId: string;
     protected body: BodyInterface;
@@ -76,22 +77,6 @@ export class StageWorker {
         this.set(options);
     }
 
-    protected defaultOptions = {
-        _attempts: 1,
-        _triggerNextStage: 1,
-        index: -1,
-    };
-
-    protected prepareOptions(): any {
-        const options = this.body.options || {};
-
-        each(this.defaultOptions, (value, key) => {
-            !(key in options) && (options[key] = value);
-        });
-
-        return options;
-    }
-
     private async checkExecution() {
         if (!this.stageExecution) exitRequest(ERROR.NO_STAGE_EXEC_DATA);
     }
@@ -109,6 +94,9 @@ export class StageWorker {
         this.__debug('find module+stage execution');
         this.stageExecution = await this.findLastStageExecution();
         this.moduleExecution = this.stageExecution.moduleExecution;
+
+        this.prepareConfig();
+        this.prepareOptions();
 
         if (!this.fakeResult) {
             const result = await this._execute();
@@ -249,10 +237,20 @@ export class StageWorker {
         return this.defaultConfig;
     }
 
+    public getDefaultOptions() {
+        return this.defaultOptions;
+    }
+
     protected prepareConfig(_config = null) {
         _config === null && (_config = this.stageConfig.config);
         this.stageConfig.config = defaultsDeep({}, this.stageExecution.data, _config, this.getDefaultConfig());
         return this.stageConfig.config;
+    }
+
+    protected prepareOptions(_options = null) {
+        _options === null && (_options = this.stageConfig.options);
+        this.stageConfig.options = defaultsDeep({}, this.stageExecution.data, _options, this.getDefaultOptions());
+        return this.stageConfig.options;
     }
 
     protected mockStageExecution() {

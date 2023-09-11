@@ -10,6 +10,7 @@ export interface StageExecutionInterface extends GenericInterface {
         [key: string]: any;
     };
     error?: any[];
+    result?: any[];
     statusUid: StageStatusEnum;
     moduleExecution?: ModuleExecutionInterface;
 }

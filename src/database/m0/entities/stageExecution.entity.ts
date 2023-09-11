@@ -1,0 +1,37 @@
+import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm';
+import { GenericEntity } from 'node-common/dist/entities/generic';
+import { set } from 'node-common/dist/utils/entities';
+
+import { ModuleExecutionEntity } from './moduleExecution.entity';
+import { StageConfigEntity } from './stageConfig.entity';
+import { MODULE } from '../../../types/module.type';
+import { StageStatusEnum } from '../../../types/stageStatus.type';
+
+@Entity({ name: 'stage_execution', schema: MODULE.M0 })
+export class StageExecutionEntity extends GenericEntity {
+    @Column({ name: 'module_execution_id' })
+    moduleExecutionId: number;
+
+    @Column(set({ name: 'data', type: 'jsonb', default: {} }))
+    data?: JSON;
+
+    @Column(set({ name: 'error', type: 'jsonb', default: [] }))
+    error?: JSON;
+
+    @Column(set({ name: 'result', type: 'jsonb', default: [] }))
+    result?: JSON;
+
+    @Column({ name: 'stage_config_id' })
+    stageConfigId: number;
+
+    @Column(set({ name: 'status_uid', type: 'enum', enum: StageStatusEnum, enumName: 'stage_status', default: StageStatusEnum.INITIAL }))
+    statusUid: StageStatusEnum;
+
+    @ManyToOne(() => ModuleExecutionEntity, (moduleExecution) => moduleExecution.stagesExecution)
+    @JoinColumn({ name: 'module_execution_id' })
+    moduleExecution: ModuleExecutionEntity;
+
+    @ManyToOne(() => StageConfigEntity, (stageConfig) => stageConfig.stagesExecution)
+    @JoinColumn({ name: 'stage_config_id' })
+    stageConfig: StageConfigEntity;
+}
