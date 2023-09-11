@@ -19,6 +19,9 @@ export class ModuleConfigEntity extends GenericEntity {
     @Column(set({ name: 'config', type: 'jsonb', default: {} }))
     config?: JSON;
 
+    @Column(set({ name: 'options', type: 'jsonb', default: {} }))
+    options?: JSON;
+
     @ManyToOne(() => ModuleEntity, (module) => module.modulesConfig)
     @JoinColumn({ name: 'module_uid' })
     module: ModuleEntity;

@@ -13,4 +13,7 @@ export interface ModuleConfigInterface extends GenericInterface {
     config?: {
         [key: string]: any;
     };
+    options?: {
+        [key: string]: any;
+    };
 }
