@@ -31,8 +31,9 @@ const split = async (worker: StageWorker, stateService = null, monitorService = 
     monitorService?.time(monitorTimeKey);
     monitorService?.memoryInterval();
 
-    const config = prepareConfig(stageConfig.config, worker);
-    const fromDir = [rootDir, config.input?.dir || config.prevStage].join('/');
+    const options = prepareConfig(stageConfig.options, worker);
+    const config = stageConfig.config;
+    const fromDir = [rootDir, options.input?.dir || config.prevStage].join('/');
 
     let splitLength = 0;
     let done = false;
@@ -49,7 +50,7 @@ const split = async (worker: StageWorker, stateService = null, monitorService = 
 
         for (const filePath of files) {
             if (filePath.endsWith('/')) continue;
-            splitLength += await splitItem({ filePath, stageDir, worker, config, storage, splitNumberStartAt: splitLength });
+            splitLength += await splitItem({ filePath, stageDir, worker, options, storage, splitNumberStartAt: splitLength });
         }
 
         await stateService?.save(lengthKey, splitLength);
@@ -75,7 +76,7 @@ const readStream = async (fromPath, storage) => {
     }
 };
 
-const splitItem = async ({ filePath, stageDir, worker, config, storage, splitNumberStartAt }) => {
+const splitItem = async ({ filePath, stageDir, worker, options, storage, splitNumberStartAt }) => {
     let splitLength = 0;
 
     const createFileStream = async () => await readStream(filePath, storage);
@@ -87,7 +88,7 @@ const splitItem = async ({ filePath, stageDir, worker, config, storage, splitNum
     debug('reading file', filePath);
     await splitFile(
         createFileStream,
-        config,
+        options,
         '',
         (content, lineNumber, lineCount, splitNumber, bulkLimit) => {
             const skip = limitRows && (lineCount >= worker['skipLimit'] || splitNumber >= worker['skipLimit']);

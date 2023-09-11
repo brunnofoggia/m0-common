@@ -7,7 +7,7 @@ import { StageWorker } from '../stage.worker';
 
 const prepareInsertOptions = (_options) => {
     const defaultOptions = {
-        bulkLimit: 5000
+        bulkLimit: 5000,
     };
 
     return _.defaults(_options, defaultOptions);
@@ -24,7 +24,7 @@ export const insert = async (worker: StageWorker, service, getData, monitorServi
     monitorService?.time(monitorTimeKey);
     monitorService?.memoryInterval();
 
-    const options = prepareInsertOptions(stageConfig.config);
+    const options = prepareInsertOptions(stageConfig.options);
     const { storage } = await StageWorker.getSolutions();
     const fromDir = [rootDir, options.input.dir].join('/');
     const fromPath = [fromDir, body.options.index].join('/');
@@ -35,7 +35,6 @@ export const insert = async (worker: StageWorker, service, getData, monitorServi
     const fileStream = await createFileStream();
     if (!fileStream) return;
 
-
     const queryRunner = service.getDataSource().createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
@@ -43,12 +42,10 @@ export const insert = async (worker: StageWorker, service, getData, monitorServi
     let done = false;
     let error;
     try {
-        await splitFile(createFileStream, options, [], getData,
-            async (splitNumber, content, parts) => {
-                await service.insertBulkData(content, queryRunner);
-                parts.finished++;
-            }
-        );
+        await splitFile(createFileStream, options, [], getData, async (splitNumber, content, parts) => {
+            await service.insertBulkData(content, queryRunner);
+            parts.finished++;
+        });
         await queryRunner.commitTransaction();
         done = true;
         debug(`commit`);
@@ -69,8 +66,7 @@ export const insert = async (worker: StageWorker, service, getData, monitorServi
     await monitorService?.memoryIntervalEnd(monitorMemKey);
     debug(`timer ${key}: `, timeSpent);
 
-    if (!done)
-        throw error;
+    if (!done) throw error;
     // return sendResponse(200, { message: `process ${uid} called` });
 };
 
