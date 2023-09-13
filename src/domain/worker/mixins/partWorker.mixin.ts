@@ -7,12 +7,12 @@ import { ResultInterface } from '../../../interfaces/result.interface';
 import { defaultsDeep } from 'lodash';
 
 class PartWorkerGeneric {
-    public getDefaultConfig() {
-        const defaultConfig = defaultsDeep({}, this['defaultConfig'], {
+    public getDefaultOptions() {
+        const defaultOptions = defaultsDeep({}, this['defaultOptions'], {
             totalLimit: 50000,
             pageLimit: 1000,
         });
-        return defaultConfig;
+        return defaultOptions;
     }
 
     /* execution */
@@ -53,7 +53,7 @@ class PartWorkerGeneric {
 
     /* variables */
     public async setupVariables() {
-        this['prepareConfig'](this['stageConfig'].config);
+        this['prepareOptions']();
         const index = this['getIndex']();
 
         return { index, instance: await this.instanceVariables(), loop: await this.loopVariables() };
@@ -79,9 +79,9 @@ class PartWorkerGeneric {
     }
 
     protected loopLimitVariables() {
-        const config = this['stageConfig'].config;
-        const totalLimit = config.totalLimit;
-        const pageLimit = totalLimit && config.pageLimit >= totalLimit ? totalLimit / 10 : config.pageLimit;
+        const options = this['stageConfig'].options;
+        const totalLimit = options.totalLimit;
+        const pageLimit = totalLimit && options.pageLimit >= totalLimit ? totalLimit / 10 : options.pageLimit;
         debug({ totalLimit, pageLimit });
         return { totalLimit, pageLimit };
     }

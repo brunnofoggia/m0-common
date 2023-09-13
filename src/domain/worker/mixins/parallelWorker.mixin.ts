@@ -11,19 +11,17 @@ export class ParallelWorkerGeneric {
     protected limitRows = 1000;
     protected splitStageOptions: any = {};
 
-    public defaultConfig = {
-        bulkLimit: 50000,
-        lengthLimit: 0,
-    };
-
-    public getDefaultConfig() {
-        return defaultsDeep(this.defaultConfig, ParallelWorkerGeneric.prototype.defaultConfig);
+    public getDefaultOptions() {
+        const defaultOptions = defaultsDeep({}, this['defaultOptions'], {
+            bulkLimit: 50000,
+            lengthLimit: 0,
+        });
+        return defaultOptions;
     }
 
     /* do not replace methods bellow */
     /* split lifecycle */
     public async afterSplitEnd(): Promise<void> {
-        this['prepareConfig'](this['stageConfig'].config);
         await this.down();
     }
 
@@ -50,16 +48,16 @@ export class ParallelWorkerGeneric {
         this.splitStageOptions = options;
     }
 
-    protected defineLimits(config) {
-        const bulkLimit = !this['isProjectConfigActivated']('limitRows') ? config.bulkLimit : this.limitRows;
+    protected defineLimits(options) {
+        const bulkLimit = !this['isProjectConfigActivated']('limitRows') ? options.bulkLimit : this.limitRows;
         return { bulkLimit };
     }
 
     /* replace methods bellow if needed */
     protected async beforeSplitStart() {
-        const config = this['prepareConfig'](this['stageConfig'].config);
+        const options = this['prepareOptions']();
         await this.up();
-        const { bulkLimit } = this.defineLimits(config);
+        const { bulkLimit } = this.defineLimits(options);
 
         let length = 0;
         let count = 0;
@@ -68,16 +66,16 @@ export class ParallelWorkerGeneric {
         // debug('count', count);
 
         length = Math.ceil(count / bulkLimit);
-        const options: any = {};
-        options.totalLimit = bulkLimit;
-        if (config.lengthLimit && length > config.lengthLimit) {
-            length = config.lengthLimit;
-            options.totalLimit = Math.ceil(count / length);
+        const params: any = {};
+        params.totalLimit = bulkLimit;
+        if (options.lengthLimit && length > options.lengthLimit) {
+            length = options.lengthLimit;
+            params.totalLimit = Math.ceil(count / length);
         }
 
-        debug(count, length, options);
+        debug(count, length, params);
         // length = 0;
-        await this.beforeSplitResult(length, options);
+        await this.beforeSplitResult(length, params);
     }
 
     protected async count(options: any = {}) {
