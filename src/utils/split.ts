@@ -56,8 +56,6 @@ export const splitFile = async function (createFileStream, options, splitContent
     const parts = { ordered: 0, finished: 0 };
 
     for await (const line of fileStream) {
-        const lineResult = formatLineFn(line, lineNumber, lineInsertedCount, splitNumber, bulkLimit);
-
         // debug('bulkPart', lineCount, bulkLimit);
         if (+bulkLimit > 0 && lineInsertedCount == bulkLimit) {
             await bulkPart(splitNumber, copyContent(splitContent), parts);
@@ -66,11 +64,16 @@ export const splitFile = async function (createFileStream, options, splitContent
             splitNumber++;
         }
 
+        const lineResult = await formatLineFn(line, lineNumber, lineInsertedCount, splitNumber, bulkLimit);
         if (lineResult !== null) {
             // skip null values returned by formatLineFn
-            const breakLine = !lineInsertedCount ? '' : '\n';
-            typeof splitContent === 'string' ? (splitContent += breakLine + lineResult) : splitContent.push(lineResult);
 
+            if (lineResult !== false) {
+                // skip false values but increase line inserted count
+                // used to write stream out of here
+                const breakLine = !lineInsertedCount ? '' : '\n';
+                typeof splitContent === 'string' ? (splitContent += breakLine + lineResult) : splitContent.push(lineResult);
+            }
             lineInsertedCount++;
         }
         lineNumber++;

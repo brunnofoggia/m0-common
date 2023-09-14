@@ -85,26 +85,46 @@ const splitItem = async ({ filePath, stageDir, worker, options, storage, splitNu
 
     const limitRows = worker.isProjectConfigActivated('limitRows');
 
+    // writestream
+    let writeStream;
+    let writeStreamPath;
+    let writeStreamIndex;
+    const createWriteStream = async (splitNumber) => {
+        writeStreamIndex = splitNumber;
+        const filename = splitNumber + splitNumberStartAt;
+        debug('sending file');
+        writeStreamPath = [stageDir, filename].join('/');
+        writeStream = await storage.sendStream(writeStreamPath);
+    };
+
     debug('reading file', filePath);
     await splitFile(
         createFileStream,
         options,
         '',
-        (content, lineNumber, lineCount, splitNumber, bulkLimit) => {
+        async (content, lineNumber, lineCount, splitNumber, bulkLimit) => {
             const skip = limitRows && (lineCount >= worker['skipLimit'] || splitNumber >= worker['skipLimit']);
+            if (content && lineNumber > 0 && !skip) {
+                // create next stream when number changes
+                if (!writeStream) {
+                    await createWriteStream(splitNumber);
+                }
+
+                await writeStream.writeLine(content);
+                return false; // empty but increase line inserted count
+            }
+
             // debug('skip test', lineCount, splitNumber);
-            return content && lineNumber > 0 && !skip ? content : null;
+            return null; // line skipped
         },
         async (splitNumber, content, parts) => {
-            const filename = splitNumber + splitNumberStartAt;
-            debug('sending file');
-            const filePath = [stageDir, filename].join('/');
-            const stream = await storage.sendStream(filePath);
-            await stream.write(content);
-            await stream.end();
+            // end stream
+            await writeStream.end();
+            writeStream = null;
             parts.finished++;
-            debug(`sent file ${filePath}`);
+            debug(`sent file ${writeStreamPath}`);
 
+            // get total of files to return
             parts.ordered > splitLength && (splitLength = parts.ordered);
         },
     );
