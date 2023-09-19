@@ -92,11 +92,7 @@ export class SplitMixin {
             exitRequest(`lenghKey not found to send parallel events`);
         }
 
-        // TODO: review if is needed
-        // run split stage after updating stage execution status
-        // setTimeout(() =>
         await this['splitStage'](length, options);
-        // , 1000);
     }
 
     protected async splitStage(length = '0', options: any = {}) {

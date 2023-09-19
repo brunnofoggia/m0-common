@@ -1,13 +1,13 @@
 import _debug from 'debug';
 const debug = _debug('worker:stage:ParallelWorker');
-import { defaultsDeep } from 'lodash';
+import { defaultsDeep, omit } from 'lodash';
 
 import { applyMixins } from 'node-common/dist/utils/mixin';
 import { StageStatusEnum } from '../../../types/stageStatus.type';
 import { ResultInterface } from '../../../interfaces/result.interface';
 import { SplitMixin } from './split.mixin';
 
-export class ParallelWorkerGeneric {
+export abstract class ParallelWorkerGeneric {
     protected limitRows = 1000;
     protected splitStageOptions: any = {};
 
@@ -42,10 +42,14 @@ export class ParallelWorkerGeneric {
         return [this.getLengthKeyPrefix(), 'length'].join('/');
     }
 
-    protected async beforeSplitResult(length: number, options: any = {}) {
+    protected async setLengthValue(value: number) {
         const stateService = this['getStateService']();
-        await stateService.save(this.getLengthKey(), +length);
-        this.splitStageOptions = options;
+        await stateService.save(this.getLengthKey(), value);
+    }
+
+    protected async beforeSplitResult(params: any = {}) {
+        await this.setLengthValue(+params.length);
+        this.splitStageOptions = omit(params, 'length', 'count');
     }
 
     protected defineLimits(options) {
@@ -59,23 +63,22 @@ export class ParallelWorkerGeneric {
         await this.up();
         const { bulkLimit } = this.defineLimits(options);
 
-        let length = 0;
         let count = 0;
 
         count = await this.count();
         // debug('count', count);
 
-        length = Math.ceil(count / bulkLimit);
-        const params: any = {};
+        const params: any = { count };
+        params.length = Math.ceil(count / bulkLimit);
         params.totalLimit = bulkLimit;
-        if (options.lengthLimit && length > options.lengthLimit) {
-            length = options.lengthLimit;
-            params.totalLimit = Math.ceil(count / length);
+        if (options.lengthLimit && params.length > options.lengthLimit) {
+            params.length = options.lengthLimit;
+            params.totalLimit = Math.ceil(count / params.length);
         }
 
-        debug(count, length, params);
+        debug(count, params.length, params);
         // length = 0;
-        await this.beforeSplitResult(length, params);
+        await this.beforeSplitResult(params);
     }
 
     protected async count(options: any = {}) {
@@ -83,7 +86,7 @@ export class ParallelWorkerGeneric {
         return await service.count(options);
     }
 
-    /* virtual */
+    /* optional */
     protected async up(): Promise<any> {
         return null;
     }
@@ -92,9 +95,7 @@ export class ParallelWorkerGeneric {
         return null;
     }
 
-    protected getLocalService(): any {
-        return null;
-    }
+    abstract getLocalService();
 }
 
 applyMixins(ParallelWorkerGeneric, [SplitMixin]);

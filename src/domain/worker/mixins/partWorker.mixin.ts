@@ -103,7 +103,7 @@ class PartWorkerGeneric {
         return [];
     }
 
-    protected async processQueue({ page, skip, instance, loop, rows }) {
+    protected async processQueue({ page, skip = null, instance, loop, rows }) {
         debug('processing page', page);
         for (const index in rows) {
             const row = rows[index];
