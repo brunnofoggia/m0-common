@@ -93,6 +93,8 @@ export class StageWorker {
         this.setUniqueId(uniqueId);
         this.__debug('find module+stage execution');
         this.stageExecution = await this.findLastStageExecution();
+        if (!size(this.stageExecution)) return;
+
         this.moduleExecution = this.stageExecution.moduleExecution;
 
         this.prepareConfig();
@@ -165,40 +167,45 @@ export class StageWorker {
     }
 
     protected async findLastStageExecution() {
-        if (this.body.mockStageExecution) return this.mockStageExecution();
-        const stageExecution = await StageExecutionProvider.findByTransactionAndModuleAndIndex(
-            this.transactionUid,
-            this.stageConfig.stageUid,
-            this.body.options.index,
-        );
+        try {
+            if (this.body.mockStageExecution) return this.mockStageExecution();
+            const stageExecution = await StageExecutionProvider.findByTransactionAndModuleAndIndex(
+                this.transactionUid,
+                this.stageConfig.stageUid,
+                this.body.options.index,
+            );
 
-        if (!stageExecution || !size(stageExecution)) {
-            throw new WorkerError(
-                `stageExecution not found for
+            if (!stageExecution || !size(stageExecution)) {
+                throw new WorkerError(
+                    `stageExecution not found for
                 transactionUid:${this.transactionUid} , stageUid: ${this.stageConfig?.stageUid} , index: ${this.body.options.index}
                 ("${JSON.stringify(stageExecution)}")`,
-                StageStatusEnum.ERROR,
-            );
-        } else if (
-            stageExecution.statusUid &&
-            indexOf(
-                [
-                    // StageStatusEnum.DONE,
-                    StageStatusEnum.FAILED,
-                    StageStatusEnum.UNKNOWN,
-                ],
-                stageExecution.statusUid,
-            ) === -1
-        ) {
-            return stageExecution;
-        }
+                    StageStatusEnum.ERROR,
+                );
+            } else if (
+                stageExecution.statusUid &&
+                indexOf(
+                    [
+                        // StageStatusEnum.DONE,
+                        StageStatusEnum.FAILED,
+                        StageStatusEnum.UNKNOWN,
+                    ],
+                    stageExecution.statusUid,
+                ) === -1
+            ) {
+                return stageExecution;
+            }
 
-        throw new WorkerError(
-            `invalid stageExecution for
+            throw new WorkerError(
+                `invalid stageExecution for
             transactionUid:${this.transactionUid} , stageUid: ${this.stageConfig?.stageUid} , index: ${this.body.options.index}
             ("${JSON.stringify(stageExecution)}")`,
-            StageStatusEnum.ERROR,
-        );
+                StageStatusEnum.FAILED,
+            );
+        } catch (err) {
+            debug(err);
+            return null;
+        }
     }
 
     protected async triggerStage(_name, body) {
