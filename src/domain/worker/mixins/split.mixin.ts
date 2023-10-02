@@ -100,13 +100,16 @@ export class SplitMixin {
         if (!this['stageConfig'].config.splitStage || this['stageExecution'].data._triggerSplitStage === 0) return;
 
         const _body = this.splitStageGlobalOptions(options);
+        const _indexTo = this.getSplitStageOptions()['_indexTo'] || [];
         debug(`length: ${length}`);
 
         for (let counter = 0; counter < +length; counter++) {
+            const indexTo = _indexTo[counter] || {};
             const body = {
                 ...omit(_body, 'options'),
                 options: {
                     ..._body.options,
+                    ...indexTo,
                     index: counter,
                 },
             };
@@ -119,9 +122,13 @@ export class SplitMixin {
         this['afterSplitStart'] && (await this['afterSplitStart']());
     }
 
+    protected getSplitStageOptions() {
+        return (this['splitStageOptions'] ? result(this, 'splitStageOptions') : {}) as object;
+    }
+
     protected splitStageGlobalOptions(options) {
         options = defaultsDeep(options, {
-            ...(this['splitStageOptions'] ? result(this, 'splitStageOptions') : {}),
+            ...omit(this.getSplitStageOptions(), '_indexTo'),
         });
 
         return {
