@@ -7,8 +7,10 @@ import { ResultInterface } from '../../../interfaces/result.interface';
 import { defaultsDeep } from 'lodash';
 
 class PartWorkerGeneric {
+    [x: string]: any;
+
     public getDefaultOptions() {
-        const defaultOptions = defaultsDeep({}, this['defaultOptions'], {
+        const defaultOptions = defaultsDeep({}, this.defaultOptions, {
             totalLimit: 50000,
             pageLimit: 1000,
         });
@@ -19,9 +21,10 @@ class PartWorkerGeneric {
     public async execute(): Promise<ResultInterface> {
         const { index, instance, loop } = await this.setupVariables();
 
+        this.setExecutionInfoValue('lines', 0);
         const execute = async (params) => {
             const page = params.page;
-            await this.processExecution({ index, instance, loop, page });
+            return await this.processExecution({ index, instance, loop, page });
         };
 
         // will execute while condition is true
@@ -36,7 +39,7 @@ class PartWorkerGeneric {
             after: (params) => this.afterQueue(params),
         });
 
-        return this['statusDone']();
+        return this.statusDone();
     }
 
     protected async processExecution({ index, instance, loop, page }) {
@@ -48,7 +51,8 @@ class PartWorkerGeneric {
             return;
         }
 
-        await this.processQueue({ page, skip, instance, loop, rows });
+        this.increaseExecutionInfoValue('lines', rows.length);
+        return await this.processQueue({ page, skip, instance, loop, rows });
     }
 
     /* variables */

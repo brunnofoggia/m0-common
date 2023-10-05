@@ -29,6 +29,7 @@ export class StageWorker {
     protected readonly worflowEventName = 'm0/workflow';
     protected defaultConfig: any = {};
     protected defaultOptions: any = {};
+    protected executionInfo: any = {};
 
     protected uniqueId: string;
     protected body: BodyInterface;
@@ -350,6 +351,24 @@ export class StageWorker {
         return await this.getSecret(name, basePath);
     }
 
+    /* execution info */
+    public getExecutionInfo() {
+        return this.executionInfo || {};
+    }
+
+    public getExecutionInfoValue(field) {
+        const info = this.getExecutionInfo();
+        return info[field];
+    }
+
+    public setExecutionInfoValue(field, value) {
+        this.executionInfo[field] = value;
+    }
+
+    public increaseExecutionInfoValue(field, value: number) {
+        this.executionInfo[field] = (this.executionInfo[field] || 0) + value;
+    }
+
     /* date */
     getTimezoneOffset(_customTimezoneOffset = null) {
         const timezoneOffset = !_customTimezoneOffset && _customTimezoneOffset !== 0 ? this.project?._config?.timezoneOffset : _customTimezoneOffset;
@@ -371,25 +390,24 @@ export class StageWorker {
     }
 
     /* results */
-    public statusDone(options: any = {}) {
+    _status(_options: any, statusUid: StageStatusEnum) {
+        const options = defaultsDeep(_options, { info: this.executionInfo });
         return {
             ...options,
-            statusUid: StageStatusEnum.DONE,
+            statusUid,
         };
+    }
+
+    public statusDone(options: any = {}) {
+        return this._status(options, StageStatusEnum.DONE);
     }
 
     public statusFailed(options: any = {}) {
-        return {
-            ...options,
-            statusUid: StageStatusEnum.FAILED,
-        };
+        return this._status(options, StageStatusEnum.FAILED);
     }
 
     public statusWaiting(options: any = {}) {
-        return {
-            ...options,
-            statusUid: StageStatusEnum.WAITING,
-        };
+        return this._status(options, StageStatusEnum.WAITING);
     }
 
     // getters
