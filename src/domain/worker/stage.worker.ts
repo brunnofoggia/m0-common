@@ -278,6 +278,12 @@ export class StageWorker {
         });
     }
 
+    omitInternalOptions() {
+        return pickBy(this.stageExecution.data, (value, key) => {
+            return !/^_[a-zA-Z]/.test(key);
+        });
+    }
+
     protected _isConfigActivated(configHolderKey, configName, configKey = 'config') {
         const value = this[configHolderKey][configKey][configName];
 
@@ -391,7 +397,8 @@ export class StageWorker {
 
     /* results */
     _status(_options: any, statusUid: StageStatusEnum) {
-        const options = defaultsDeep(_options, { info: this.executionInfo });
+        const info = size(this.executionInfo) ? { info: this.executionInfo } : {};
+        const options: any = defaultsDeep(_options, info);
         return {
             ...options,
             statusUid,

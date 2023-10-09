@@ -42,6 +42,11 @@ export abstract class ParallelWorkerGeneric {
         return [this.getLengthKeyPrefix(), 'length'].join('/');
     }
 
+    protected async getLengthValue() {
+        const stateService = this['getStateService']();
+        return await stateService.getValue(this.getLengthKey());
+    }
+
     protected async setLengthValue(value: number) {
         const stateService = this['getStateService']();
         await stateService.save(this.getLengthKey(), value);
