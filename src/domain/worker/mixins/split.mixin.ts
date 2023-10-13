@@ -127,17 +127,19 @@ export class SplitMixin {
     }
 
     protected splitStageGlobalOptions(options) {
-        options = defaultsDeep(options, {
-            ...omit(this.getSplitStageOptions(), '_indexTo'),
-        });
+        options = defaultsDeep(
+            options,
+            {
+                ...omit(this.getSplitStageOptions(), '_indexTo'),
+                _calledByStage: this['stageUid'],
+            },
+            this['fowardInternalOptions'](),
+        );
 
         return {
             transactionUid: this['transactionUid'],
             stageUid: this['stageConfig'].config.splitStage,
-            options: {
-                ...options,
-                ...this['fowardInternalOptions'](),
-            },
+            options,
         };
     }
 
