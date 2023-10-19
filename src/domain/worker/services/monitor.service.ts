@@ -60,11 +60,11 @@ export class MonitorService<ENTITY> extends DynamicDatabase<ENTITY> {
         return process.times[name];
     }
 
-    async timeEnd(name, persistent = false) {
+    async timeEnd(name, persistent = false, format = true) {
         const process = ProcessUtil.instance();
         if (persistent) process.times[name] = +(await this.getValue(this.getPersistentStartKey(name)));
 
-        const elapsedTime = process.timeEnd(name);
+        const elapsedTime = process.timeEnd(name, format);
 
         if (persistent) {
             name = this.getPersistentTotalKey(name);
