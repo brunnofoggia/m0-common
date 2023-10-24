@@ -9,5 +9,7 @@ export enum StageStatusEnum {
     // EXPECTED FAILS SHOULD NOT BE EXECUTED AGAIN
     FAILED = 'F',
     // UNEXPECTED FAILS SHOULD NOT BE EXECUTED AGAIN
-    UNKNOWN = 'U'
+    UNKNOWN = 'U',
 }
+
+export const StageStatusError = [StageStatusEnum.ERROR, StageStatusEnum.FAILED, StageStatusEnum.UNKNOWN];
