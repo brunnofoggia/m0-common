@@ -1,6 +1,8 @@
-import _, { size } from 'lodash';
 import _debug from 'debug';
 const debug = _debug('worker:module');
+
+import { size, uniqueId } from 'lodash';
+import { HttpStatusCode } from 'axios';
 
 import { applyMixins } from 'node-common/dist/utils/mixin';
 import { exitRequest, throwHttpException } from 'node-common/dist/utils/errors';
@@ -43,8 +45,8 @@ export class ModuleDomain {
     async check() {
         if (this.body.mockStageExecution) return;
         const config = await ModuleConfigProvider.findConfig(this.transactionUid, this.moduleUid);
-        if (!config || !_.size(config)) {
-            throwHttpException(ERROR.TRANSACTIONUID_NOT_INITIALIZED);
+        if (!config || !size(config)) {
+            throwHttpException(ERROR.TRANSACTIONUID_NOT_INITIALIZED, HttpStatusCode.Ok);
         }
     }
 
@@ -96,9 +98,9 @@ export class ModuleDomain {
         }
     }
 
-    private setUniqueId(uniqueId = '') {
-        !uniqueId && (uniqueId = [_.uniqueId('worker:'), new Date().toISOString()].join(':'));
-        return (this.uniqueId = uniqueId);
+    private setUniqueId(_uniqueId = '') {
+        !_uniqueId && (_uniqueId = [uniqueId('worker:'), new Date().toISOString()].join(':'));
+        return (this.uniqueId = _uniqueId);
     }
 
     private async builderFactory() {
