@@ -1,7 +1,8 @@
-import { CrudService } from 'node-common/dist/services/crud.service';
+import { DynamicDatabase } from 'node-common/dist/services/dynamicDatabase.service';
+
 import { ProjectEntity } from '../entities/project.entity';
 
-export class ProjectService extends CrudService<ProjectEntity> {
+export class ProjectService extends DynamicDatabase<ProjectEntity> {
     protected entity = ProjectEntity;
     protected idAttribute = 'uid';
 

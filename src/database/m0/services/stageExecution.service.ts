@@ -1,9 +1,9 @@
 import { MoreThanOrEqual } from 'typeorm';
-import { CrudService } from 'node-common/dist/services/crud.service';
+import { DynamicDatabase } from 'node-common/dist/services/dynamicDatabase.service';
 
 import { StageExecutionEntity } from '../entities/stageExecution.entity';
 
-export class StageExecutionService extends CrudService<StageExecutionEntity> {
+export class StageExecutionService extends DynamicDatabase<StageExecutionEntity> {
     protected entity = StageExecutionEntity;
 
     async queryBuilderByModuleExecutionAndStageUidAndIndex(queryBuilder, moduleExecutionId: number, stageUid: string, index = -1) {
@@ -24,7 +24,7 @@ export class StageExecutionService extends CrudService<StageExecutionEntity> {
         return await queryBuilder['getOne']();
     }
 
-    async findAllByModuleExecutionAndStageUidAndIndex(moduleExecutionId: number, stageUid: string, index = -1): Promise<StageExecutionEntity> {
+    async findAllByModuleExecutionAndStageUidAndIndex(moduleExecutionId: number, stageUid: string, index = -1): Promise<StageExecutionEntity[]> {
         const queryBuilder = this.getRepository()
             .createQueryBuilder('stageExecution')
             .innerJoinAndSelect('stageExecution.stageConfig', 'stageConfig')

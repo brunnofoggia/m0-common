@@ -1,7 +1,8 @@
-import { CrudService } from 'node-common/dist/services/crud.service';
+import { DynamicDatabase } from 'node-common/dist/services/dynamicDatabase.service';
+
 import { StageConfigEntity } from '../entities/stageConfig.entity';
 
-export class StageConfigService extends CrudService<StageConfigEntity> {
+export class StageConfigService extends DynamicDatabase<StageConfigEntity> {
     protected entity = StageConfigEntity;
 
     async findScheduleByConfig(config: any = {}): Promise<StageConfigEntity[]> {

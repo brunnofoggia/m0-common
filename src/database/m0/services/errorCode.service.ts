@@ -1,7 +1,8 @@
-import { CrudService } from 'node-common/dist/services/crud.service';
+import { DynamicDatabase } from 'node-common/dist/services/dynamicDatabase.service';
+
 import { ErrorCodeEntity } from '../entities/errorCode.entity';
 
-export class ErrorCodeService extends CrudService<ErrorCodeEntity> {
+export class ErrorCodeService extends DynamicDatabase<ErrorCodeEntity> {
     protected entity = ErrorCodeEntity;
     protected idAttribute = 'uid';
 }

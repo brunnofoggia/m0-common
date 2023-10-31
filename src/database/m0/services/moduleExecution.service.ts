@@ -1,9 +1,9 @@
 import { MoreThanOrEqual } from 'typeorm';
-import { CrudService } from 'node-common/dist/services/crud.service';
+import { DynamicDatabase } from 'node-common/dist/services/dynamicDatabase.service';
 
 import { ModuleExecutionEntity } from '../entities/moduleExecution.entity';
 
-export class ModuleExecutionService extends CrudService<ModuleExecutionEntity> {
+export class ModuleExecutionService extends DynamicDatabase<ModuleExecutionEntity> {
     protected entity = ModuleExecutionEntity;
 
     async findByTransactionAndModuleUid(transactionUid: string, moduleUid: string, options: any = {}): Promise<ModuleExecutionEntity> {

@@ -1,9 +1,9 @@
 import { LessThanOrEqual } from 'typeorm';
-import { CrudService } from 'node-common/dist/services/crud.service';
+import { DynamicDatabase } from 'node-common/dist/services/dynamicDatabase.service';
 
 import { ScheduleQueueEntity } from '../entities/scheduleQueue.entity';
 
-export class ScheduleQueueService extends CrudService<ScheduleQueueEntity> {
+export class ScheduleQueueService extends DynamicDatabase<ScheduleQueueEntity> {
     protected entity = ScheduleQueueEntity;
 
     async findByDate(date: Date, options: any = {}): Promise<ScheduleQueueEntity[]> {

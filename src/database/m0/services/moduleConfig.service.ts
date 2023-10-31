@@ -1,8 +1,8 @@
-import { CrudService } from 'node-common/dist/services/crud.service';
+import { DynamicDatabase } from 'node-common/dist/services/dynamicDatabase.service';
 
 import { ModuleConfigEntity } from '../entities/moduleConfig.entity';
 
-export class ModuleConfigService extends CrudService<ModuleConfigEntity> {
+export class ModuleConfigService extends DynamicDatabase<ModuleConfigEntity> {
     protected entity = ModuleConfigEntity;
 
     async findById(id: number | string, options: any = {}): Promise<ModuleConfigEntity> {

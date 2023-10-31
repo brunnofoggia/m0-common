@@ -8,6 +8,6 @@ export enum MODULE {
     M6 = 'm6',
     M7 = 'm7',
     M8 = 'm8',
-    M9 = 'm9',
+    M9 = 'bcard_m9',
     BUSINESS = 'business',
 }
