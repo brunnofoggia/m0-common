@@ -14,6 +14,7 @@ import { ModuleConfigInterface } from '../../interfaces/moduleConfig.interface';
 import { StageConfigInterface } from '../../interfaces/stageConfig.interface';
 import { SnapshotProvider } from '../../providers/snapshot.provider';
 import { BodyInterface } from '../../interfaces/body.interface';
+import { ProjectInterface } from '../../interfaces/project.interface';
 
 import { SnapshotMixin } from './mixins/snapshot.mixin';
 import { ModuleConfigProvider } from '../../providers/moduleConfig.provider';
@@ -36,6 +37,7 @@ export class ModuleDomain {
     // private moduleExecution: ModuleExecutionInterface;
     private moduleConfig: ModuleConfigInterface;
     private stageConfig: StageConfigInterface;
+    private project: ProjectInterface;
 
     static setSolutions(getSolutions) {
         ModuleDomain.getSolutions = getSolutions;
@@ -110,7 +112,7 @@ export class ModuleDomain {
 
         let builderClass;
         try {
-            const { _class, found } = await this.locateBuilder(moduleUid, stageName, this.stageConfig);
+            const { _class, found } = await this.locateBuilder(moduleUid, stageName);
             this.fakeResult = !found;
             builderClass = _class;
         } catch (error) {
@@ -131,8 +133,8 @@ export class ModuleDomain {
         return builder;
     }
 
-    private async locateBuilder(moduleUid, stageName, config: any): Promise<any> {
-        return await importWorker(`modules/${moduleUid}/stages`, stageName, config?.worker || StageWorker.defaultWorker);
+    private async locateBuilder(moduleUid, stageName): Promise<any> {
+        return await importWorker(`modules/${moduleUid}/stages`, stageName, StageWorker._getWorker(this.stageConfig, this.project));
     }
 
     private async snapshotConfig() {
@@ -140,6 +142,7 @@ export class ModuleDomain {
         this.moduleConfig = this['buildSnapshot'](this.moduleConfig || {}, this.body.mergeSnapshot);
 
         this.stageConfig = ModuleWorker.getConfig(this.stageUid, this.moduleConfig || {});
+        this.project = this.moduleConfig?.project;
     }
 }
 

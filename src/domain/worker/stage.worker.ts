@@ -15,6 +15,7 @@ import { StageConfigInterface } from '../../interfaces/stageConfig.interface';
 import { StageExecutionInterface } from '../../interfaces/stageExecution.interface';
 
 import { StageStatusEnum } from '../../types/stageStatus.type';
+import { Domain } from '../../types/domain.type';
 import { ERROR } from '../../types/error.type';
 import { WorkerError } from './error';
 
@@ -50,6 +51,9 @@ export class StageWorker {
     protected rootDir = '';
     protected moduleDir = '';
     protected stageDir = '';
+
+    protected moduleDomain: any = {};
+    protected stageDomain: any = {};
 
     private set({ transactionUid, moduleUid, stageUid, stageName, moduleConfig, stageConfig, body }) {
         this.transactionUid = transactionUid;
@@ -323,6 +327,38 @@ export class StageWorker {
         return this._isConfigDeactivated('project', configName, '_config');
     }
 
+    public isInheritedConfigActivated(configName) {
+        return (
+            this._isConfigActivated('stageConfig', configName) ||
+            this._isConfigActivated('moduleConfig', configName) ||
+            this._isConfigActivated('project', configName, '_config')
+        );
+    }
+
+    public isInheritedConfigDeactivated(configName) {
+        return (
+            this._isConfigDeactivated('stageConfig', configName) ||
+            this._isConfigDeactivated('moduleConfig', configName) ||
+            this._isConfigDeactivated('project', configName, '_config')
+        );
+    }
+
+    public isInheritedOptionActivated(configName) {
+        return (
+            this._isConfigActivated('stageConfig', configName, 'options') ||
+            this._isConfigActivated('moduleConfig', configName, 'options') ||
+            this._isConfigActivated('project', configName, '_config')
+        );
+    }
+
+    public isInheritedOptionDeactivated(configName) {
+        return (
+            this._isConfigDeactivated('stageConfig', configName, 'options') ||
+            this._isConfigDeactivated('moduleConfig', configName, 'options') ||
+            this._isConfigDeactivated('project', configName, '_config')
+        );
+    }
+
     async getSecret(name: string, basePath: any = null) {
         name = name.replace(/^\//, '').replace(/\/$/, '');
         const { secrets } = await StageWorker.getSolutions();
@@ -431,43 +467,47 @@ export class StageWorker {
         };
     }
 
-    public getWorker() {
-        return this.stageConfig.config.worker || StageWorker.defaultWorker;
+    static _getWorker(stageConfig, project) {
+        return stageConfig.config.worker || project._config.defaultWorker || StageWorker.defaultWorker;
     }
 
-    public getBody() {
+    getWorker() {
+        return StageWorker._getWorker(this.stageConfig, this.project);
+    }
+
+    getBody() {
         return this.body;
     }
 
-    public getTransactionUid() {
+    getTransactionUid() {
         return this.transactionUid;
     }
 
-    public getModuleConfig() {
+    getModuleConfig() {
         return this.moduleConfig;
     }
 
-    public getStageConfig() {
+    getStageConfig() {
         return this.stageConfig;
     }
 
-    public getStageExecution() {
+    getStageExecution() {
         return this.stageExecution;
     }
 
-    public getRootDir() {
+    getRootDir() {
         return this.rootDir;
     }
 
-    public getStageDir() {
+    getStageDir() {
         return this.stageDir;
     }
 
-    public getService(Service): any {
+    getService(Service): any {
         return new Service(this.uniqueId);
     }
 
-    public getIndex() {
+    getIndex() {
         const index = this.stageExecution?.data?.index || this.body.options.index;
         return typeof index === 'undefined' ? -1 : index;
     }
@@ -499,22 +539,58 @@ export class StageWorker {
         return;
     }
 
-    /* mixins */
-    public async loadMixins(mixins, _class) {
-        const worker = this.getWorker();
-        for (const mixinName of mixins) {
-            const mixin = await this.loadMixin(mixinName, worker);
-            applyMixins(_class, [mixin]);
+    /* domains */
+    async _loadDomains(domains, path, type: Domain) {
+        for (const name of domains) {
+            const Domain = await this.loadWorkerClass(name, path);
+            this[type + 'Domain'][name] = new Domain();
         }
     }
 
-    public async loadMixin(name, worker) {
+    async loadModuleDomains(domains) {
+        const path = this.buildWorkerClassStagePath();
+        await this._loadDomains(domains, path, Domain.module);
+    }
+
+    async loadStageDomains(domains) {
+        const path = this.buildWorkerClassStagePath();
+        await this._loadDomains(domains, path, Domain.stage);
+    }
+
+    /* mixins */
+    async loadMixins(mixins, _class) {
+        const path = this.buildWorkerClassStagePath();
+        for (const name of mixins) {
+            const Mixin = await this.loadWorkerClass(name, path);
+            applyMixins(_class, [Mixin]);
+        }
+    }
+
+    buildWorkerClassStagePath() {
+        return `modules/${this.moduleUid}/stages/${this.stageName}`;
+    }
+
+    buildWorkerClassModulePath() {
+        return `modules/${this.moduleUid}`;
+    }
+
+    async loadWorkerClass(name, path = null) {
+        !path && (path = this.buildWorkerClassStagePath());
+        const worker = this.getWorker();
+        return this._loadWorkerClass(name, path, worker);
+    }
+
+    async _loadWorkerClass(name, path, worker) {
+        // worker may be the name of some client located at stageConfig.config.worker
         try {
-            return await importMixin(`modules/${this.moduleUid}/stages/${this.stageName}`, name, worker);
-            // return (await import(`./${name}/${worker}`)).default;
+            return await importMixin(path, name, worker);
         } catch (err) {
-            if (worker != StageWorker.defaultWorker) return this.loadMixin(name, StageWorker.defaultWorker);
-            throw new Error(`mixin "${name}" not found`);
+            if (worker != StageWorker.defaultWorker) {
+                // if worker is the name of a client, but file is not found
+                // get default instead
+                return this._loadWorkerClass(name, path, StageWorker.defaultWorker);
+            }
+            throw new Error(`class "${name}" not found`);
         }
     }
 }
