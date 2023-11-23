@@ -1,4 +1,4 @@
-import { each, isNumber, uniqueId, size, indexOf, omit, defaultsDeep, pickBy } from 'lodash';
+import { isNumber, uniqueId, size, indexOf, omit, defaultsDeep, pickBy } from 'lodash';
 import _debug from 'debug';
 const debug = _debug('worker:stage');
 
@@ -8,11 +8,6 @@ import { applyMixins } from 'node-common/dist/utils/mixin';
 
 import { BodyInterface } from '../../interfaces/body.interface';
 import { ResultInterface } from '../../interfaces/result.interface';
-import { ModuleExecutionInterface } from '../../interfaces/moduleExecution.interface';
-import { ProjectInterface } from '../../interfaces/project.interface';
-import { ModuleConfigInterface } from '../../interfaces/moduleConfig.interface';
-import { StageConfigInterface } from '../../interfaces/stageConfig.interface';
-import { StageExecutionInterface } from '../../interfaces/stageExecution.interface';
 
 import { StageStatusEnum } from '../../types/stageStatus.type';
 import { Domain } from '../../types/domain.type';
@@ -22,8 +17,9 @@ import { WorkerError } from './error';
 import { StageExecutionProvider } from '../../providers/stageExecution.provider';
 
 import { importMixin } from '../../utils/importWorker';
+import { StageGeneric } from './stage.generic';
 
-export class StageWorker {
+export class StageWorker extends StageGeneric {
     static getSolutions;
     static defaultWorker = 'index';
     public fakeResult = false;
@@ -35,17 +31,6 @@ export class StageWorker {
     protected uniqueId: string;
     protected body: BodyInterface;
 
-    protected transactionUid: string;
-    protected moduleUid: string;
-    protected stageUid: string;
-    protected stageName: string;
-
-    protected moduleExecution: ModuleExecutionInterface;
-    protected moduleConfig: ModuleConfigInterface;
-    protected stageConfig: StageConfigInterface;
-    protected project: ProjectInterface;
-
-    protected stageExecution: StageExecutionInterface;
     protected stageExecutionMocked = false;
 
     protected rootDir = '';
@@ -55,7 +40,7 @@ export class StageWorker {
     protected moduleDomain: any = {};
     protected stageDomain: any = {};
 
-    private set({ transactionUid, moduleUid, stageUid, stageName, moduleConfig, stageConfig, body }) {
+    protected _set({ transactionUid, moduleUid, stageUid, stageName, moduleConfig, stageConfig, body }) {
         this.transactionUid = transactionUid;
         this.moduleUid = moduleUid;
         this.stageUid = stageUid;
@@ -76,10 +61,6 @@ export class StageWorker {
         this.rootDir = [this.getProjectUid(), this.transactionUid].join('/');
         this.moduleDir = [this.rootDir, this.moduleConfig.moduleUid].join('/');
         this.stageDir = [this.rootDir, this.stageConfig.stageUid].join('/');
-    }
-
-    constructor(options) {
-        this.set(options);
     }
 
     private async checkExecution() {
@@ -475,26 +456,6 @@ export class StageWorker {
         return StageWorker._getWorker(this.stageConfig, this.project);
     }
 
-    getBody() {
-        return this.body;
-    }
-
-    getTransactionUid() {
-        return this.transactionUid;
-    }
-
-    getModuleConfig() {
-        return this.moduleConfig;
-    }
-
-    getStageConfig() {
-        return this.stageConfig;
-    }
-
-    getStageExecution() {
-        return this.stageExecution;
-    }
-
     getRootDir() {
         return this.rootDir;
     }
@@ -505,11 +466,6 @@ export class StageWorker {
 
     getService(Service): any {
         return new Service(this.uniqueId);
-    }
-
-    getIndex() {
-        const index = this.stageExecution?.data?.index || this.body.options.index;
-        return typeof index === 'undefined' ? -1 : index;
     }
 
     /* lifecycle methods */
