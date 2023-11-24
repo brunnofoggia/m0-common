@@ -5,7 +5,7 @@ import { StageConfigInterface } from '../../interfaces/stageConfig.interface';
 import { StageExecutionInterface } from '../../interfaces/stageExecution.interface';
 
 import { StageStatusEnum } from '../../types/stageStatus.type';
-import { defaultsDeep, size } from 'lodash';
+import { defaultsDeep, isNumber, size } from 'lodash';
 
 export abstract class StageGeneric {
     protected body: any;
@@ -27,6 +27,20 @@ export abstract class StageGeneric {
     constructor(options) {
         this._set(options);
     }
+
+    protected _set({ transactionUid, moduleUid, stageUid, stageName, moduleConfig, stageConfig, body }) {
+        this.transactionUid = transactionUid;
+        this.moduleUid = moduleUid;
+        this.stageUid = stageUid;
+        this.stageName = stageName;
+        this.moduleConfig = moduleConfig;
+        this.stageConfig = stageConfig;
+        this.body = body;
+
+        this.project = this.moduleConfig.project;
+    }
+
+    // protected abstract _set(options);
 
     getBody() {
         return this.body;
@@ -57,12 +71,15 @@ export abstract class StageGeneric {
         return this.stageConfig.config.retryLimit || this.moduleConfig.config.retryLimit || this.project._config.retryLimit || 3;
     }
 
-    getRetryAttempt() {
-        return this.stageExecution.error?.length || 0;
+    getRetryAttempt(increaseByOne = false) {
+        return (this.stageExecution.error?.length || 0) + +increaseByOne;
     }
 
     isLastAttempt() {
-        return this.getRetryLimit() >= this.getRetryAttempt();
+        const attempt = this.getRetryAttempt();
+        const limit = this.getRetryLimit();
+
+        return attempt >= limit;
     }
 
     /* results */
@@ -95,5 +112,56 @@ export abstract class StageGeneric {
         return this._status(options, StageStatusEnum.WAITING);
     }
 
-    protected abstract _set(options);
+    /** config */
+
+    protected _isActivated(configHolderKey, configName, configKey = 'config') {
+        const value = this[configHolderKey][configKey][configName];
+
+        return (isNumber(value) && value > 0) || value === true || (size(value) > 0 && !this._isDeactivated(configHolderKey, configName, configKey));
+    }
+
+    protected _isDeactivated(configHolderKey, configName, configKey = 'config') {
+        const value = this[configHolderKey][configKey][configName];
+        return value === 0 || value === false;
+    }
+
+    public isStageConfigActivated(configName) {
+        return this._isActivated('stageConfig', configName);
+    }
+
+    public isStageConfigDeactivated(configName) {
+        return this._isDeactivated('stageConfig', configName);
+    }
+
+    public isModuleConfigActivated(configName) {
+        return this._isActivated('moduleConfig', configName);
+    }
+
+    public isModuleConfigDeactivated(configName) {
+        return this._isDeactivated('moduleConfig', configName);
+    }
+
+    public isProjectConfigActivated(configName) {
+        return this._isActivated('project', configName, '_config');
+    }
+
+    public isProjectConfigDeactivated(configName) {
+        return this._isDeactivated('project', configName, '_config');
+    }
+
+    public isInheritedConfigActivated(configName) {
+        return (
+            this._isActivated('stageConfig', configName) ||
+            this._isActivated('moduleConfig', configName) ||
+            this._isActivated('project', configName, '_config')
+        );
+    }
+
+    public isInheritedConfigDeactivated(configName) {
+        return (
+            this._isDeactivated('stageConfig', configName) ||
+            this._isDeactivated('moduleConfig', configName) ||
+            this._isDeactivated('project', configName, '_config')
+        );
+    }
 }

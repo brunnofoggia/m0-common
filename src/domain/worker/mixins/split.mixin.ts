@@ -36,11 +36,12 @@ export class SplitMixin {
             return this.splitStagesResult({ stateService, lengthKeyPrefix });
         } catch (error) {
             debug(error.message, error.stack);
+            if (error.statusUid) return error;
             return { statusUid: StageStatusEnum.FAILED, errorMessage: error.message };
         }
     }
 
-    private async splitStagesResult({ stateService, lengthKeyPrefix }): Promise<ResultInterface | null> {
+    async splitStagesResult({ stateService, lengthKeyPrefix }): Promise<ResultInterface | null> {
         this['beforeSplitEnd'] && (await this['beforeSplitEnd']());
         const { lengthKey, nextKey, processKey } = this.getKeys(lengthKeyPrefix);
 
@@ -81,8 +82,9 @@ export class SplitMixin {
         return { lengthKey, processKey, nextKey };
     }
 
-    private async splitStagesTrigger({ stateService, lengthKeyPrefix }, options: any = {}) {
+    async splitStagesTrigger({ stateService, lengthKeyPrefix }, options: any = {}) {
         const { lengthKey, nextKey, processKey } = this.getKeys(lengthKeyPrefix);
+        console.log('came here');
 
         await stateService.save(processKey, 0);
         await stateService.save(nextKey, 0);

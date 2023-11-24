@@ -32,23 +32,15 @@ export class StageWorker extends StageGeneric {
 
     protected stageExecutionMocked = false;
 
-    protected rootDir = '';
-    protected moduleDir = '';
-    protected stageDir = '';
+    protected rootDir: string;
+    protected moduleDir: string;
+    protected stageDir: string;
 
     protected moduleDomain: any = {};
     protected stageDomain: any = {};
 
-    protected _set({ transactionUid, moduleUid, stageUid, stageName, moduleConfig, stageConfig, body }) {
-        this.transactionUid = transactionUid;
-        this.moduleUid = moduleUid;
-        this.stageUid = stageUid;
-        this.stageName = stageName;
-        this.moduleConfig = moduleConfig;
-        this.stageConfig = stageConfig;
-        this.body = body;
-        this.project = this.moduleConfig.project;
-
+    protected _set(options) {
+        super._set(options);
         this.setDirs();
     }
 
@@ -56,17 +48,17 @@ export class StageWorker extends StageGeneric {
         return this.moduleConfig.projectUid || this.project.uid;
     }
 
-    private setDirs() {
+    protected setDirs() {
         this.rootDir = [this.getProjectUid(), this.transactionUid].join('/');
         this.moduleDir = [this.rootDir, this.moduleConfig.moduleUid].join('/');
         this.stageDir = [this.rootDir, this.stageConfig.stageUid].join('/');
     }
 
-    private async checkExecution() {
+    protected async checkExecution() {
         if (!this.stageExecution) exitRequest(ERROR.NO_STAGE_EXEC_DATA);
     }
 
-    private async __debug(...args) {
+    protected async __debug(...args) {
         if (!this.fakeResult) {
             debug(...args);
         }
@@ -100,12 +92,12 @@ export class StageWorker extends StageGeneric {
         return { done: true };
     }
 
-    private setUniqueId(_uniqueId = '') {
+    protected setUniqueId(_uniqueId = '') {
         !_uniqueId && (_uniqueId = [uniqueId('worker:'), new Date().toISOString()].join(':'));
         this.uniqueId = _uniqueId;
     }
 
-    private async _execute(): Promise<ResultInterface | null> {
+    protected async _execute(): Promise<ResultInterface | null> {
         await this.checkExecution();
         let result;
 
@@ -145,10 +137,19 @@ export class StageWorker extends StageGeneric {
     }
 
     public async result(result: ResultInterface) {
-        result.statusUid = result.statusUid || StageStatusEnum.UNKNOWN;
-        await this.triggerResult(result);
+        try {
+            result.statusUid = result.statusUid || StageStatusEnum.UNKNOWN;
 
-        result._options?.after && (await result._options.after());
+            // runs before trigger result to catch errors
+            result._options?.after && (await result._options.after());
+        } catch (error) {
+            this.logError(error);
+            result = this.buildExecutionError(error);
+
+            console.log('failing at result');
+        }
+
+        await this.triggerResult(result);
     }
 
     protected async findLastStageExecution() {
@@ -268,75 +269,30 @@ export class StageWorker extends StageGeneric {
         });
     }
 
-    protected _isConfigActivated(configHolderKey, configName, configKey = 'config') {
-        const value = this[configHolderKey][configKey][configName];
+    /** options */
 
-        return (
-            (isNumber(value) && value > 0) ||
-            value === true ||
-            (size(value) > 0 && !this._isConfigDeactivated(configHolderKey, configName, configKey))
-        );
+    public isStageOptionActivated(configName) {
+        return this._isActivated('stageConfig', configName, 'options');
     }
 
-    protected _isConfigDeactivated(configHolderKey, configName, configKey = 'config') {
-        const value = this[configHolderKey][configKey][configName];
-        return value === 0 || value === false;
+    public isStageOptionDeactivated(configName) {
+        return this._isDeactivated('stageConfig', configName, 'options');
     }
 
-    public isStageConfigActivated(configName) {
-        return this._isConfigActivated('stageConfig', configName);
+    public isModuleOptionActivated(configName) {
+        return this._isActivated('moduleConfig', configName, 'options');
     }
 
-    public isStageConfigDeactivated(configName) {
-        return this._isConfigDeactivated('stageConfig', configName);
-    }
-
-    public isModuleConfigActivated(configName) {
-        return this._isConfigActivated('moduleConfig', configName);
-    }
-
-    public isModuleConfigDeactivated(configName) {
-        return this._isConfigDeactivated('moduleConfig', configName);
-    }
-
-    public isProjectConfigActivated(configName) {
-        return this._isConfigActivated('project', configName, '_config');
-    }
-
-    public isProjectConfigDeactivated(configName) {
-        return this._isConfigDeactivated('project', configName, '_config');
-    }
-
-    public isInheritedConfigActivated(configName) {
-        return (
-            this._isConfigActivated('stageConfig', configName) ||
-            this._isConfigActivated('moduleConfig', configName) ||
-            this._isConfigActivated('project', configName, '_config')
-        );
-    }
-
-    public isInheritedConfigDeactivated(configName) {
-        return (
-            this._isConfigDeactivated('stageConfig', configName) ||
-            this._isConfigDeactivated('moduleConfig', configName) ||
-            this._isConfigDeactivated('project', configName, '_config')
-        );
+    public isModuleOptionDeactivated(configName) {
+        return this._isDeactivated('moduleConfig', configName, 'options');
     }
 
     public isInheritedOptionActivated(configName) {
-        return (
-            this._isConfigActivated('stageConfig', configName, 'options') ||
-            this._isConfigActivated('moduleConfig', configName, 'options') ||
-            this._isConfigActivated('project', configName, '_config')
-        );
+        return this._isActivated('stageConfig', configName, 'options') || this._isActivated('moduleConfig', configName, 'options');
     }
 
     public isInheritedOptionDeactivated(configName) {
-        return (
-            this._isConfigDeactivated('stageConfig', configName, 'options') ||
-            this._isConfigDeactivated('moduleConfig', configName, 'options') ||
-            this._isConfigDeactivated('project', configName, '_config')
-        );
+        return this._isDeactivated('stageConfig', configName, 'options') || this._isDeactivated('moduleConfig', configName, 'options');
     }
 
     async getSecret(name: string, basePath: any = null) {
@@ -446,7 +402,7 @@ export class StageWorker extends StageGeneric {
     }
 
     /* lifecycle methods */
-    private async _onInitialize(): Promise<void> {
+    protected async _onInitialize(): Promise<void> {
         try {
             await this.onInitialize();
         } catch (error) {
@@ -459,7 +415,7 @@ export class StageWorker extends StageGeneric {
         return;
     }
 
-    private async _onDestroy(): Promise<void> {
+    protected async _onDestroy(): Promise<void> {
         try {
             await this.onDestroy();
         } catch (error) {
@@ -525,5 +481,9 @@ export class StageWorker extends StageGeneric {
             }
             throw new Error(`class "${name}" not found`);
         }
+    }
+
+    getRetryAttempt(increaseByOne = true) {
+        return super.getRetryAttempt(increaseByOne);
     }
 }
