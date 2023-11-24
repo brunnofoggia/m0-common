@@ -4,6 +4,9 @@ import { ModuleConfigInterface } from '../../interfaces/moduleConfig.interface';
 import { StageConfigInterface } from '../../interfaces/stageConfig.interface';
 import { StageExecutionInterface } from '../../interfaces/stageExecution.interface';
 
+import { StageStatusEnum } from '../../types/stageStatus.type';
+import { defaultsDeep, size } from 'lodash';
+
 export abstract class StageGeneric {
     protected body: any;
 
@@ -18,6 +21,8 @@ export abstract class StageGeneric {
     protected project: ProjectInterface;
 
     protected stageExecution: StageExecutionInterface;
+
+    protected executionInfo: any = {};
 
     constructor(options) {
         this._set(options);
@@ -58,6 +63,36 @@ export abstract class StageGeneric {
 
     isLastAttempt() {
         return this.getRetryLimit() >= this.getRetryAttempt();
+    }
+
+    /* results */
+    _status(_options: any, statusUid: StageStatusEnum) {
+        const info = size(this.executionInfo) ? { info: this.executionInfo } : {};
+        const options: any = defaultsDeep(_options, info);
+        return {
+            ...options,
+            statusUid,
+        };
+    }
+
+    public statusDone(options: any = {}) {
+        return this._status(options, StageStatusEnum.DONE);
+    }
+
+    public statusFailed(options: any = {}) {
+        return this._status(options, StageStatusEnum.FAILED);
+    }
+
+    public statusError(options: any = {}) {
+        return this._status(options, StageStatusEnum.ERROR);
+    }
+
+    public statusUnknown(options: any = {}) {
+        return this._status(options, StageStatusEnum.UNKNOWN);
+    }
+
+    public statusWaiting(options: any = {}) {
+        return this._status(options, StageStatusEnum.WAITING);
     }
 
     protected abstract _set(options);

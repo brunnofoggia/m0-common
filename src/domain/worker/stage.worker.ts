@@ -26,7 +26,6 @@ export class StageWorker extends StageGeneric {
     protected readonly worflowEventName = 'm0/workflow';
     protected defaultConfig: any = {};
     protected defaultOptions: any = {};
-    protected executionInfo: any = {};
 
     protected uniqueId: string;
     protected body: BodyInterface;
@@ -410,28 +409,6 @@ export class StageWorker extends StageGeneric {
         (typeof date === 'undefined' || date === null) && (date = this.moduleExecution?.date || new Date());
         const timezoneOffset = this.getTimezoneOffset(_customTimezoneOffset);
         return getDateForTimezone(timezoneOffset, date, keepLocalTime);
-    }
-
-    /* results */
-    _status(_options: any, statusUid: StageStatusEnum) {
-        const info = size(this.executionInfo) ? { info: this.executionInfo } : {};
-        const options: any = defaultsDeep(_options, info);
-        return {
-            ...options,
-            statusUid,
-        };
-    }
-
-    public statusDone(options: any = {}) {
-        return this._status(options, StageStatusEnum.DONE);
-    }
-
-    public statusFailed(options: any = {}) {
-        return this._status(options, StageStatusEnum.FAILED);
-    }
-
-    public statusWaiting(options: any = {}) {
-        return this._status(options, StageStatusEnum.WAITING);
     }
 
     // getters
