@@ -52,5 +52,13 @@ export abstract class StageGeneric {
         return this.stageConfig.config.retryLimit || this.moduleConfig.config.retryLimit || this.project._config.retryLimit || 3;
     }
 
+    getRetryAttempt() {
+        return this.stageExecution.error?.length || 0;
+    }
+
+    isLastAttempt() {
+        return this.getRetryLimit() >= this.getRetryAttempt();
+    }
+
     protected abstract _set(options);
 }
