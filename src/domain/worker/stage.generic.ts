@@ -5,9 +5,10 @@ import { StageConfigInterface } from '../../interfaces/stageConfig.interface';
 import { StageExecutionInterface } from '../../interfaces/stageExecution.interface';
 
 import { StageStatusEnum } from '../../types/stageStatus.type';
-import { defaultsDeep, isNumber, size } from 'lodash';
+import { defaultsDeep, isNumber, size, uniqueId } from 'lodash';
 
 export abstract class StageGeneric {
+    protected uniqueId: string;
     protected body: any;
 
     protected transactionUid: string;
@@ -38,6 +39,11 @@ export abstract class StageGeneric {
         this.body = body;
 
         this.project = this.moduleConfig.project;
+    }
+
+    protected setUniqueId(_uniqueId = '') {
+        !_uniqueId && (_uniqueId = [uniqueId('worker:'), new Date().toISOString()].join(':'));
+        this.uniqueId = _uniqueId;
     }
 
     abstract initialize(uniqueId: string);

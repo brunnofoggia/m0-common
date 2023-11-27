@@ -27,7 +27,6 @@ export class StageWorker extends StageGeneric {
     protected defaultConfig: any = {};
     protected defaultOptions: any = {};
 
-    protected uniqueId: string;
     protected body: BodyInterface;
 
     protected stageExecutionMocked = false;
@@ -91,11 +90,6 @@ export class StageWorker extends StageGeneric {
             result = await this.result(this.statusDone());
         }
         return result;
-    }
-
-    protected setUniqueId(_uniqueId = '') {
-        !_uniqueId && (_uniqueId = [uniqueId('worker:'), new Date().toISOString()].join(':'));
-        this.uniqueId = _uniqueId;
     }
 
     protected async _execute(): Promise<ResultInterface | null> {
