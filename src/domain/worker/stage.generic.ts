@@ -40,7 +40,7 @@ export abstract class StageGeneric {
         this.project = this.moduleConfig.project;
     }
 
-    // protected abstract _set(options);
+    abstract initialize(uniqueId: string);
 
     getBody() {
         return this.body;

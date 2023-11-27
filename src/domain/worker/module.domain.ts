@@ -1,14 +1,13 @@
 import _debug from 'debug';
 const debug = _debug('worker:module');
 
-import { size, uniqueId } from 'lodash';
+import { defaultsDeep, find, size, uniqueId } from 'lodash';
 import { HttpStatusCode } from 'axios';
 
 import { applyMixins } from 'node-common/dist/utils/mixin';
 import { exitRequest, throwHttpException } from 'node-common/dist/utils/errors';
 
 import { importWorker } from '../../utils/importWorker';
-import { ModuleWorker } from './module.worker';
 import { StageWorker } from './stage.worker';
 import { ModuleConfigInterface } from '../../interfaces/moduleConfig.interface';
 import { StageConfigInterface } from '../../interfaces/stageConfig.interface';
@@ -21,32 +20,40 @@ import { ModuleConfigProvider } from '../../providers/moduleConfig.provider';
 import { ERROR } from '../../types/error.type';
 import { ResultInterface } from '../../interfaces/result.interface';
 import { StageStatusEnum } from '../../types/stageStatus.type';
+import { ModuleGeneric } from './module.generic';
+import { StageGeneric } from './stage.generic';
 
-export class ModuleDomain {
+export class ModuleDomain extends ModuleGeneric {
     static getSolutions;
+
     static skipQueues = false;
+    protected body: BodyInterface;
+    protected builder: StageGeneric;
 
-    private fakeResult = false;
-    private uniqueId: string;
-    private body: BodyInterface;
-    private builder: StageWorker;
+    protected transactionUid: string;
+    protected moduleUid: string;
+    protected stageUid: string;
+    protected stageName: string;
 
-    private transactionUid: string;
-    private moduleUid: string;
-    private stageUid: string;
-    private stageName: string;
+    protected moduleConfig: ModuleConfigInterface;
+    protected stageConfig: StageConfigInterface;
 
-    // private moduleExecution: ModuleExecutionInterface;
-    private moduleConfig: ModuleConfigInterface;
-    private stageConfig: StageConfigInterface;
-    private project: ProjectInterface;
+    protected fakeResult = false;
+    protected project: ProjectInterface;
+
+    // protected moduleExecution: ModuleExecutionInterface;
 
     static setSolutions(getSolutions) {
         ModuleDomain.getSolutions = getSolutions;
         StageWorker.getSolutions = getSolutions;
     }
 
-    async check() {
+    checkBody(body) {
+        this.checkBodyStageUid(body);
+        this.checkBodyTransaction(body);
+    }
+
+    async checkData() {
         if (this.body.mockStageExecution) return;
         const config = await ModuleConfigProvider.findConfig(this.transactionUid, this.moduleUid);
         if (!config || !size(config)) {
@@ -73,10 +80,11 @@ export class ModuleDomain {
         debug('set unique id:', this.uniqueId);
 
         // body
+        this.checkBody(body);
         debug('set body');
         this.set(body);
         debug('check body');
-        await this.check();
+        await this.checkData();
 
         // obtain config
         debug('obtain snapshot');
@@ -100,11 +108,6 @@ export class ModuleDomain {
         if (!this.fakeResult) {
             debug(...args);
         }
-    }
-
-    private setUniqueId(_uniqueId = '') {
-        !_uniqueId && (_uniqueId = [uniqueId('worker:'), new Date().toISOString()].join(':'));
-        return (this.uniqueId = _uniqueId);
     }
 
     private async builderFactory() {
@@ -143,8 +146,16 @@ export class ModuleDomain {
         if (!this.body.mockStageExecution) this.moduleConfig = await SnapshotProvider.find(this.transactionUid, this.body.stageUid);
         this.moduleConfig = this['buildSnapshot'](this.moduleConfig || {}, this.body.mergeSnapshot);
 
-        this.stageConfig = ModuleWorker.getConfig(this.stageUid, this.moduleConfig || {});
+        this.stageConfig = this.getStageConfigFromSnapshot(this.stageUid, this.moduleConfig || {});
         this.project = this.moduleConfig?.project;
+    }
+
+    getStageConfigFromSnapshot(stageUid, moduleConfig) {
+        const stageConfig = moduleConfig.stageConfig || {};
+        const foundStageConfig = find(moduleConfig.stagesConfig || [], (stage) => stage.stageUid === stageUid);
+
+        // allow to merge snapshot with stage config on worker
+        return defaultsDeep(foundStageConfig || {}, stageConfig);
     }
 }
 
