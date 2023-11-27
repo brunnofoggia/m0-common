@@ -64,7 +64,7 @@ export class StageWorker extends StageGeneric {
         }
     }
 
-    public async initialize(uniqueId: string): Promise<any> {
+    public async initialize(uniqueId: string): Promise<ResultInterface> {
         this.__debug('-------------------------\ninitialize');
         this.__debug('set unique id', uniqueId);
         this.setUniqueId(uniqueId);
@@ -77,19 +77,20 @@ export class StageWorker extends StageGeneric {
         this.prepareConfig();
         this.prepareOptions();
 
+        let result;
         if (!this.fakeResult) {
-            const result = await this._execute();
+            result = await this._execute();
 
             debug('check result');
-            if (result !== null) await this.result(result);
+            if (result !== null) result = await this.result(result);
 
             debug('on destroy');
             await this._onDestroy();
             debug('builder done\n-------------------------');
         } else {
-            await this.result(this.statusDone());
+            result = await this.result(this.statusDone());
         }
-        return { done: true };
+        return result;
     }
 
     protected setUniqueId(_uniqueId = '') {
@@ -136,7 +137,7 @@ export class StageWorker extends StageGeneric {
         return { statusUid: StageStatusEnum.DONE };
     }
 
-    public async result(result: ResultInterface) {
+    public async result(result: ResultInterface): Promise<ResultInterface> {
         try {
             result.statusUid = result.statusUid || StageStatusEnum.UNKNOWN;
 
@@ -148,6 +149,7 @@ export class StageWorker extends StageGeneric {
         }
 
         await this.triggerResult(result);
+        return result;
     }
 
     protected async findLastStageExecution() {
