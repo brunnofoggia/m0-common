@@ -84,7 +84,6 @@ export class SplitMixin {
 
     async splitStagesTrigger({ stateService, lengthKeyPrefix }, options: any = {}) {
         const { lengthKey, nextKey, processKey } = this.getKeys(lengthKeyPrefix);
-        console.log('came here');
 
         await stateService.save(processKey, 0);
         await stateService.save(nextKey, 0);
@@ -98,7 +97,6 @@ export class SplitMixin {
     }
 
     protected async splitStage(length = '0', options: any = {}) {
-        // console.log(`will trigger ${length} events of ${this.stageConfig.config.splitStage}`);
         if (!this['stageConfig'].config.splitStage || this['stageExecution'].data._triggerSplitStage === 0) return;
 
         const _body = this.splitStageGlobalOptions(options);

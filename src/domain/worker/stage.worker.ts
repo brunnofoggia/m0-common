@@ -145,8 +145,6 @@ export class StageWorker extends StageGeneric {
         } catch (error) {
             this.logError(error);
             result = this.buildExecutionError(error);
-
-            console.log('failing at result');
         }
 
         await this.triggerResult(result);
