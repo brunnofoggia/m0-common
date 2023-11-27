@@ -1,7 +1,7 @@
 import { uniqueId } from 'lodash';
 import { exitRequest, throwHttpException } from 'node-common/dist/utils/errors';
 
-export class ModuleGeneric {
+export abstract class ModuleGeneric {
     protected uniqueId: string;
 
     checkBodyStageUid(body) {
@@ -16,9 +16,7 @@ export class ModuleGeneric {
         if (!body.transactionUid && !body.projectUid) exitRequest('transactionUid or projectUid must be specified into message body');
     }
 
-    checkBody(body) {
-        this.checkBodyStageUid(body);
-    }
+    protected abstract checkBody(body);
 
     protected setUniqueId(_uniqueId = '') {
         !_uniqueId && (_uniqueId = [uniqueId('worker:'), new Date().toISOString()].join(':'));
