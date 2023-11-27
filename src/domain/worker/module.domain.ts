@@ -19,6 +19,8 @@ import { ProjectInterface } from '../../interfaces/project.interface';
 import { SnapshotMixin } from './mixins/snapshot.mixin';
 import { ModuleConfigProvider } from '../../providers/moduleConfig.provider';
 import { ERROR } from '../../types/error.type';
+import { ResultInterface } from '../../interfaces/result.interface';
+import { StageStatusEnum } from '../../types/stageStatus.type';
 
 export class ModuleDomain {
     static getSolutions;
@@ -63,9 +65,9 @@ export class ModuleDomain {
         this.body.options = this.body.options || {};
     }
 
-    async initialize(body: BodyInterface) {
+    async initialize(body: BodyInterface): Promise<ResultInterface> {
         debug('-------------------------\ninitialize');
-        if (ModuleDomain.skipQueues) return true;
+        if (ModuleDomain.skipQueues) return { statusUid: StageStatusEnum.DONE };
 
         this.setUniqueId();
         debug('set unique id:', this.uniqueId);
