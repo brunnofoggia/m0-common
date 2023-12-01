@@ -9,7 +9,7 @@ import { MODULE } from '../../../types/module.type';
 
 @Entity({ name: 'project', schema: MODULE.M0 })
 export class ProjectEntity extends TimestampEntity {
-    @PrimaryColumn({ name: 'uid', length: 30 })
+    @PrimaryColumn({ name: 'uid' })
     uid: string;
 
     @Column({ name: 'enterprise_uid' })

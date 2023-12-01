@@ -7,7 +7,7 @@ import { MODULE } from '../../../types/module.type';
 
 @Entity({ name: 'enterprise', schema: MODULE.M0 })
 export class EnterpriseEntity extends TimestampEntity {
-    @PrimaryColumn({ name: 'uid', length: 15 })
+    @PrimaryColumn({ name: 'uid' })
     uid: string;
 
     @Column({ name: 'name' })
