@@ -7,6 +7,10 @@ export class MXWorker extends StageWorker {
         return await DynamicDatabase.closeConnections(this.uniqueId);
     }
 
+    public getProductName() {
+        return this.moduleUid.split('_')[0];
+    }
+
     getTimezone() {
         return +this.project._config?.timezone || 0;
     }
