@@ -266,27 +266,27 @@ export class StageWorker extends StageGeneric {
     /** options */
 
     public isStageOptionActivated(configName) {
-        return this._isActivated('stageConfig', configName, 'options');
+        return this['_isActivated']('stageConfig', configName, 'options');
     }
 
     public isStageOptionDeactivated(configName) {
-        return this._isDeactivated('stageConfig', configName, 'options');
+        return this['_isDeactivated']('stageConfig', configName, 'options');
     }
 
     public isModuleOptionActivated(configName) {
-        return this._isActivated('moduleConfig', configName, 'options');
+        return this['_isActivated']('moduleConfig', configName, 'options');
     }
 
     public isModuleOptionDeactivated(configName) {
-        return this._isDeactivated('moduleConfig', configName, 'options');
+        return this['_isDeactivated']('moduleConfig', configName, 'options');
     }
 
     public isInheritedOptionActivated(configName) {
-        return this._isActivated('stageConfig', configName, 'options') || this._isActivated('moduleConfig', configName, 'options');
+        return this['_isActivated']('stageConfig', configName, 'options') || this['_isActivated']('moduleConfig', configName, 'options');
     }
 
     public isInheritedOptionDeactivated(configName) {
-        return this._isDeactivated('stageConfig', configName, 'options') || this._isDeactivated('moduleConfig', configName, 'options');
+        return this['_isDeactivated']('stageConfig', configName, 'options') || this['_isDeactivated']('moduleConfig', configName, 'options');
     }
 
     async getSecret(name: string, basePath: any = null) {

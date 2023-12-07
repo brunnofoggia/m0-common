@@ -1,5 +1,5 @@
 import { uniqueId } from 'lodash';
-import { exitRequest, throwHttpException } from 'node-common/dist/utils/errors';
+import { exitRequest } from 'node-common/dist/utils/errors';
 
 export abstract class ModuleGeneric {
     protected uniqueId: string;
