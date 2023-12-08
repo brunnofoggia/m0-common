@@ -70,6 +70,10 @@ export abstract class StageGeneric {
         return this.stageExecution;
     }
 
+    checkResult(result) {
+        return !!result;
+    }
+
     getIndex() {
         const index = this.stageExecution?.data?.index || this.body.options.index;
         return typeof index === 'undefined' ? -1 : index;

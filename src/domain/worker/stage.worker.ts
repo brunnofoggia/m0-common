@@ -81,7 +81,9 @@ export class StageWorker extends StageGeneric {
             result = await this._execute();
 
             debug('check result');
-            if (result !== null) result = await this.result(result);
+            if (this.checkResult(result)) {
+                result = await this.result(result);
+            }
 
             debug('on destroy');
             await this._onDestroy();
