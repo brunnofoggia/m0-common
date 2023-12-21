@@ -193,7 +193,7 @@ export class StageWorker extends StageGeneric {
     protected async triggerStage(_name, body) {
         const { events } = await StageWorker.getSolutions();
         // const name = _name.replace(/\//g, '-');
-        events.sendToQueue(_name, body);
+        return events.sendToQueue(_name, body);
     }
 
     protected async triggerResult(result: ResultInterface) {
