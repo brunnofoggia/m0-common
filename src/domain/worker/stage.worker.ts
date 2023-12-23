@@ -27,6 +27,7 @@ export class StageWorker extends StageGeneric {
     protected defaultConfig: any = {};
     protected defaultOptions: any = {};
 
+    protected startedAt: string;
     protected body: BodyInterface;
 
     protected stageExecutionMocked = false;
@@ -99,6 +100,7 @@ export class StageWorker extends StageGeneric {
         let result;
 
         try {
+            this.startedAt = new Date().toISOString();
             debug('on initialize');
             await this._onInitialize();
 
@@ -136,6 +138,7 @@ export class StageWorker extends StageGeneric {
     public async result(result: ResultInterface): Promise<ResultInterface> {
         try {
             result.statusUid = result.statusUid || StageStatusEnum.UNKNOWN;
+            result.startedAt = this.startedAt;
 
             // runs before trigger result to catch errors
             result._options?.after && (await result._options.after());

@@ -7,6 +7,7 @@ export class StageExecutionService extends DynamicDatabase<StageExecutionEntity>
     protected entity = StageExecutionEntity;
 
     async queryBuilderByModuleExecutionAndStageUidAndIndex(queryBuilder, moduleExecutionId: number, stageUid: string, index = -1) {
+        queryBuilder.andWhere(`stageExecution.deletedAt IS NULL`);
         queryBuilder.andWhere(`stageExecution.moduleExecutionId = :a`, { a: moduleExecutionId + '' });
         queryBuilder.andWhere(`stageConfig.stageUid = :b`, { b: stageUid });
 
