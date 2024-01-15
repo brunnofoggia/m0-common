@@ -436,7 +436,7 @@ export class StageWorker extends StageGeneric {
     }
 
     async loadModuleDomains(domains) {
-        const path = this.buildWorkerClassStagePath();
+        const path = this.buildWorkerClassModulePath();
         await this._loadDomains(domains, path, Domain.module);
     }
 
