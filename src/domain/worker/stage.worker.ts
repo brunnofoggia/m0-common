@@ -1,4 +1,4 @@
-import { isNumber, uniqueId, size, indexOf, omit, defaultsDeep, pickBy } from 'lodash';
+import { isNumber, uniqueId, size, indexOf, omit, defaultsDeep, pickBy, bind, defaults } from 'lodash';
 import _debug from 'debug';
 const debug = _debug('worker:stage');
 
@@ -270,27 +270,27 @@ export class StageWorker extends StageGeneric {
 
     /** options */
 
-    public isStageOptionActivated(configName) {
+    isStageOptionActivated(configName) {
         return this['_isActivated']('stageConfig', configName, 'options');
     }
 
-    public isStageOptionDeactivated(configName) {
+    isStageOptionDeactivated(configName) {
         return this['_isDeactivated']('stageConfig', configName, 'options');
     }
 
-    public isModuleOptionActivated(configName) {
+    isModuleOptionActivated(configName) {
         return this['_isActivated']('moduleConfig', configName, 'options');
     }
 
-    public isModuleOptionDeactivated(configName) {
+    isModuleOptionDeactivated(configName) {
         return this['_isDeactivated']('moduleConfig', configName, 'options');
     }
 
-    public isInheritedOptionActivated(configName) {
+    isInheritedOptionActivated(configName) {
         return this['_isActivated']('stageConfig', configName, 'options') || this['_isActivated']('moduleConfig', configName, 'options');
     }
 
-    public isInheritedOptionDeactivated(configName) {
+    isInheritedOptionDeactivated(configName) {
         return this['_isDeactivated']('stageConfig', configName, 'options') || this['_isDeactivated']('moduleConfig', configName, 'options');
     }
 
@@ -329,20 +329,20 @@ export class StageWorker extends StageGeneric {
     }
 
     /* execution info */
-    public getExecutionInfo() {
+    getExecutionInfo() {
         return this.executionInfo || {};
     }
 
-    public getExecutionInfoValue(field) {
+    getExecutionInfoValue(field) {
         const info = this.getExecutionInfo();
         return info[field];
     }
 
-    public setExecutionInfoValue(field, value) {
+    setExecutionInfoValue(field, value) {
         this.executionInfo[field] = value;
     }
 
-    public increaseExecutionInfoValue(field, value: number) {
+    increaseExecutionInfoValue(field, value: number) {
         this.executionInfo[field] = (this.executionInfo[field] || 0) + value;
     }
 
@@ -367,7 +367,7 @@ export class StageWorker extends StageGeneric {
     }
 
     // getters
-    public get() {
+    get() {
         return {
             body: this.body,
             transactionUid: this.transactionUid,
@@ -378,6 +378,40 @@ export class StageWorker extends StageGeneric {
             rootDir: this.rootDir,
             stageDir: this.stageDir,
         };
+    }
+
+    extractMethods() {
+        return {
+            // options
+            isStageOptionActivated: bind(this.isStageOptionActivated, this),
+            isStageOptionDeactivated: bind(this.isStageOptionDeactivated, this),
+            isModuleOptionActivated: bind(this.isModuleOptionActivated, this),
+            isModuleOptionDeactivated: bind(this.isModuleOptionDeactivated, this),
+            isInheritedOptionActivated: bind(this.isInheritedOptionActivated, this),
+            isInheritedOptionDeactivated: bind(this.isInheritedOptionDeactivated, this),
+            // service
+            getService: bind(this.getService, this),
+            // secrets
+            getGlobalSecret: bind(this.getGlobalSecret, this),
+            getModuleSecret: bind(this.getModuleSecret, this),
+            getStageSecret: bind(this.getStageSecret, this),
+            // date
+            getDate: bind(this.getDate, this),
+            getTimezoneString: bind(this.getTimezoneString, this),
+            getTimezoneOffset: bind(this.getTimezoneOffset, this),
+            // trace
+            logError: bind(this.logError, this),
+            getExecutionInfo: bind(this.getExecutionInfo, this),
+            getExecutionInfoValue: bind(this.getExecutionInfoValue, this),
+            setExecutionInfoValue: bind(this.setExecutionInfoValue, this),
+            increaseExecutionInfoValue: bind(this.increaseExecutionInfoValue, this),
+            getRetryAttempt: bind(this.getRetryAttempt, this),
+            getRetryLimit: bind(this.getRetryLimit, this),
+        };
+    }
+
+    getStageParts() {
+        return defaults(this.extractMethods(), this.get());
     }
 
     static _getWorker(stageConfig, project) {
@@ -429,9 +463,12 @@ export class StageWorker extends StageGeneric {
 
     /* domains */
     async _loadDomains(domains, path, type: Domain) {
+        const stageParts = this.getStageParts();
         for (const name of domains) {
             const Domain = await this.loadWorkerClass(name, path);
-            this[type + 'Domain'][name] = new Domain();
+            const instance = new Domain();
+            if (instance.setStageParts) instance.setStageParts(stageParts);
+            this[type + 'Domain'][name] = instance;
         }
     }
 
