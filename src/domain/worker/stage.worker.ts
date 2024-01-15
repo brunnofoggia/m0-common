@@ -455,11 +455,11 @@ export class StageWorker extends StageGeneric {
     }
 
     buildWorkerClassStagePath() {
-        return `modules/${this.moduleUid}/stages/${this.stageName}`;
+        return `modules/${this.moduleUid}/stages/${this.stageName}/domain`;
     }
 
     buildWorkerClassModulePath() {
-        return `modules/${this.moduleUid}`;
+        return `modules/${this.moduleUid}/domain`;
     }
 
     async loadWorkerClass(name, path = null) {
