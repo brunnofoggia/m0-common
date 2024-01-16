@@ -466,7 +466,7 @@ export class StageWorker extends StageGeneric {
         const stageParts = this.getStageParts();
         for (const name of domains) {
             const Domain = await this.loadWorkerClass(name, path);
-            const instance = new Domain();
+            const instance = !Domain.getInstance ? new Domain() : Domain.getInstance(stageParts);
             if (instance.setStageParts) instance.setStageParts(stageParts);
             this[type + 'Domain'][name] = instance;
         }
