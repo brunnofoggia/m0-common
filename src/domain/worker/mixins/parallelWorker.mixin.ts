@@ -54,7 +54,10 @@ export abstract class ParallelWorkerGeneric {
 
     protected async beforeSplitResult(params: any = {}) {
         await this.setLengthValue(+params.length);
-        this.splitStageOptions = omit(params, 'length', 'count');
+        this.splitStageOptions = {
+            ...(this.splitStageOptions || {}),
+            ...omit(params, 'length', 'count'),
+        };
     }
 
     protected defineLimits(options) {
