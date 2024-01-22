@@ -144,7 +144,7 @@ export class ModuleDomain extends ModuleGeneric {
 
     private async snapshotConfig() {
         if (!this.body.mockStageExecution) this.moduleConfig = await SnapshotProvider.find(this.transactionUid, this.body.stageUid);
-        this.moduleConfig = this['buildSnapshot'](this.moduleConfig || {}, this.body.mergeSnapshot);
+        this.moduleConfig = this.buildSnapshot((this.moduleConfig || {}) as never, this.body.mergeSnapshot);
 
         this.stageConfig = this.getStageConfigFromSnapshot(this.stageUid, this.moduleConfig || {});
         this.project = this.moduleConfig?.project;
@@ -158,5 +158,7 @@ export class ModuleDomain extends ModuleGeneric {
         return defaultsDeep(foundStageConfig || {}, stageConfig);
     }
 }
+
+export interface ModuleDomain extends SnapshotMixin {}
 
 applyMixins(ModuleDomain, [SnapshotMixin]);

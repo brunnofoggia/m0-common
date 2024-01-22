@@ -127,52 +127,54 @@ export abstract class StageGeneric {
     /** config */
 
     public isStageConfigActivated(configName) {
-        return this['_isActivated']('stageConfig', configName);
+        return this._isActivated('stageConfig', configName);
     }
 
     public isStageConfigDeactivated(configName) {
-        return this['_isDeactivated']('stageConfig', configName);
+        return this._isDeactivated('stageConfig', configName);
     }
 
     public isModuleConfigActivated(configName) {
-        return this['_isActivated']('moduleConfig', configName);
+        return this._isActivated('moduleConfig', configName);
     }
 
     public isModuleConfigDeactivated(configName) {
-        return this['_isDeactivated']('moduleConfig', configName);
+        return this._isDeactivated('moduleConfig', configName);
     }
 
     public isProjectConfigActivated(configName) {
-        return this['_isActivated']('project', configName, '_config');
+        return this._isActivated('project', configName, '_config');
     }
 
     public isProjectConfigDeactivated(configName) {
-        return this['_isDeactivated']('project', configName, '_config');
+        return this._isDeactivated('project', configName, '_config');
     }
 
     public isModuleStageConfigActivated(configName) {
-        return this['_isActivated']('stageConfig', configName) || this['_isActivated']('moduleConfig', configName);
+        return this._isActivated('stageConfig', configName) || this._isActivated('moduleConfig', configName);
     }
 
     public isModuleStageConfigDeactivated(configName) {
-        return this['_isDeactivated']('stageConfig', configName) || this['_isDeactivated']('moduleConfig', configName);
+        return this._isDeactivated('stageConfig', configName) || this._isDeactivated('moduleConfig', configName);
     }
 
     public isInheritedConfigActivated(configName) {
         return (
-            this['_isActivated']('stageConfig', configName) ||
-            this['_isActivated']('moduleConfig', configName) ||
-            this['_isActivated']('project', configName, '_config')
+            this._isActivated('stageConfig', configName) ||
+            this._isActivated('moduleConfig', configName) ||
+            this._isActivated('project', configName, '_config')
         );
     }
 
     public isInheritedConfigDeactivated(configName) {
         return (
-            this['_isDeactivated']('stageConfig', configName) ||
-            this['_isDeactivated']('moduleConfig', configName) ||
-            this['_isDeactivated']('project', configName, '_config')
+            this._isDeactivated('stageConfig', configName) ||
+            this._isDeactivated('moduleConfig', configName) ||
+            this._isDeactivated('project', configName, '_config')
         );
     }
 }
+
+export interface StageGeneric extends ConfigMixin {}
 
 applyMixins(StageGeneric, [ConfigMixin]);
