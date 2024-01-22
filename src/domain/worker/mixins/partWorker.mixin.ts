@@ -84,8 +84,8 @@ export abstract class PartWorkerGeneric {
 
     loopLimitVariables() {
         const options = this['stageConfig'].options;
-        const totalLimit = options.totalLimit;
-        const pageLimit = totalLimit && options.pageLimit >= totalLimit ? totalLimit / 10 : options.pageLimit;
+        const totalLimit = +options.totalLimit;
+        const pageLimit = +(totalLimit && options.pageLimit >= totalLimit ? totalLimit / 10 : options.pageLimit);
         debug({ totalLimit, pageLimit });
         return { totalLimit, pageLimit };
     }

@@ -88,7 +88,7 @@ export abstract class ParallelWorkerGeneric {
         await this.beforeSplitResult(params);
     }
 
-    async count(options: any = {}) {
+    async count(options: any = {}): Promise<any> {
         const service = this.getLocalService();
         return await service.count(options);
     }
