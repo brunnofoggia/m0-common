@@ -8,7 +8,7 @@ import { StageStatusEnum } from '../../../types/stageStatus.type';
 import { ResultInterface } from '../../../interfaces/result.interface';
 
 export class SplitMixin {
-    protected async splitExecute({ stateService, lengthKeyPrefix = '' }): Promise<ResultInterface | null> {
+    async splitExecute({ stateService, lengthKeyPrefix = '' }): Promise<ResultInterface | null> {
         try {
             const { nextKey } = this.getKeys(lengthKeyPrefix);
             const nextValue = await stateService.getValue(nextKey);
@@ -64,12 +64,12 @@ export class SplitMixin {
         return { statusUid: StageStatusEnum.WAITING };
     }
 
-    protected async splitStagesDone() {
+    async splitStagesDone() {
         this['afterSplitEnd'] && (await this['afterSplitEnd']());
         return { statusUid: StageStatusEnum.DONE };
     }
 
-    protected getKeys(lengthKeyPrefix = '') {
+    getKeys(lengthKeyPrefix = '') {
         if (!lengthKeyPrefix && this['stageConfig'].config.prevStage)
             lengthKeyPrefix = [this['rootDir'], this['stageConfig'].config.prevStage].join('/');
 
@@ -96,7 +96,7 @@ export class SplitMixin {
         await this['splitStage'](length, options);
     }
 
-    protected async splitStage(length = '0', options: any = {}) {
+    async splitStage(length = '0', options: any = {}) {
         if (!this['stageConfig'].config.splitStage || this['stageExecution'].data._triggerSplitStage === 0) return;
 
         const _body = this.splitStageGlobalOptions(options);
@@ -122,11 +122,11 @@ export class SplitMixin {
         this['afterSplitStart'] && (await this['afterSplitStart']());
     }
 
-    protected getSplitStageOptions() {
+    getSplitStageOptions() {
         return (this['splitStageOptions'] ? result(this, 'splitStageOptions') : {}) as object;
     }
 
-    protected splitStageGlobalOptions(options) {
+    splitStageGlobalOptions(options) {
         options = defaultsDeep(
             options,
             {
@@ -143,7 +143,7 @@ export class SplitMixin {
         };
     }
 
-    protected splitExecuteOptions() {
+    splitExecuteOptions() {
         return {
             stateService: this['getStateService'](),
             lengthKeyPrefix: this['getLengthKeyPrefix'](),

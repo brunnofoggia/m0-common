@@ -1,6 +1,6 @@
 {
     "name": "m0-common",
-    "version": "1.68.0",
+    "version": "1.69.0",
     "description": "",
     "license": "ISC",
     "author": "Bruno Foggia",
@@ -69,6 +69,7 @@
         "ts-node": "^10.0.0",
         "tsconfig-paths": "4.1.1",
         "typeorm": "^0.3.15",
+        "typeorm-cursor-pagination": "github:brunnofoggia/typeorm-cursor-pagination",
         "typescript": "^4.7.4",
         "uuid": "^9.0.0"
     },

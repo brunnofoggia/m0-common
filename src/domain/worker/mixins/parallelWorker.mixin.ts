@@ -8,8 +8,7 @@ import { ResultInterface } from '../../../interfaces/result.interface';
 import { SplitMixin } from './split.mixin';
 
 export abstract class ParallelWorkerGeneric {
-    protected limitRows = 1000;
-    protected splitStageOptions: any = {};
+    limitRows = 1000;
 
     public getDefaultOptions() {
         const defaultOptions = defaultsDeep({}, this['defaultOptions'], {
@@ -25,7 +24,7 @@ export abstract class ParallelWorkerGeneric {
         await this.down();
     }
 
-    public async execute(): Promise<ResultInterface> {
+    public async execute(): Promise<ResultInterface | null> {
         try {
             return await this['splitExecute'](this['splitExecuteOptions']());
         } catch (error) {
@@ -34,39 +33,39 @@ export abstract class ParallelWorkerGeneric {
         }
     }
 
-    protected getLengthKeyPrefix() {
+    getLengthKeyPrefix() {
         return [this['rootDir'], this['stageConfig'].config.splitStage].join('/');
     }
 
-    protected getLengthKey() {
+    getLengthKey() {
         return [this.getLengthKeyPrefix(), 'length'].join('/');
     }
 
-    protected async getLengthValue() {
+    async getLengthValue() {
         const stateService = this['getStateService']();
         return await stateService.getValue(this.getLengthKey());
     }
 
-    protected async setLengthValue(value: number) {
+    async setLengthValue(value: number) {
         const stateService = this['getStateService']();
         await stateService.save(this.getLengthKey(), value);
     }
 
-    protected async beforeSplitResult(params: any = {}) {
+    async beforeSplitResult(params: any = {}) {
         await this.setLengthValue(+params.length);
-        this.splitStageOptions = {
-            ...(this.splitStageOptions || {}),
+        this['splitStageOptions'] = {
+            ...(this['splitStageOptions'] || {}),
             ...omit(params, 'length', 'count'),
         };
     }
 
-    protected defineLimits(options) {
+    defineLimits(options) {
         const bulkLimit = !this['isProjectConfigActivated']('limitRows') ? options.bulkLimit : this.limitRows;
         return { bulkLimit };
     }
 
     /* replace methods bellow if needed */
-    protected async beforeSplitStart() {
+    async beforeSplitStart() {
         const options = this['prepareOptions']();
         await this.up();
         const { bulkLimit } = this.defineLimits(options);
@@ -89,17 +88,17 @@ export abstract class ParallelWorkerGeneric {
         await this.beforeSplitResult(params);
     }
 
-    protected async count(options: any = {}) {
+    async count(options: any = {}) {
         const service = this.getLocalService();
         return await service.count(options);
     }
 
     /* optional */
-    protected async up(): Promise<any> {
+    async up(): Promise<any> {
         return null;
     }
 
-    protected async down(): Promise<any> {
+    async down(): Promise<any> {
         return null;
     }
 
@@ -107,3 +106,5 @@ export abstract class ParallelWorkerGeneric {
 }
 
 applyMixins(ParallelWorkerGeneric, [SplitMixin]);
+
+export interface ParallelWorkerGeneric extends SplitMixin {}

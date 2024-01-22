@@ -44,21 +44,21 @@ export class StageWorker extends StageGeneric {
         this.setDirs();
     }
 
-    protected getProjectUid() {
+    getProjectUid() {
         return this.moduleConfig.projectUid || this.project.uid;
     }
 
-    protected setDirs() {
+    setDirs() {
         this.rootDir = [this.getProjectUid(), this.transactionUid].join('/');
         this.moduleDir = [this.rootDir, this.moduleConfig.moduleUid].join('/');
         this.stageDir = [this.rootDir, this.stageConfig.stageUid].join('/');
     }
 
-    protected async checkExecution() {
+    async checkExecution() {
         if (!this.stageExecution) exitRequest(ERROR.NO_STAGE_EXEC_DATA);
     }
 
-    protected async __debug(...args) {
+    async __debug(...args) {
         if (!this.fakeResult) {
             debug(...args);
         }
@@ -95,7 +95,7 @@ export class StageWorker extends StageGeneric {
         return result;
     }
 
-    protected async _execute(): Promise<ResultInterface | null> {
+    async _execute(): Promise<ResultInterface | null> {
         await this.checkExecution();
         let result;
 
@@ -130,7 +130,7 @@ export class StageWorker extends StageGeneric {
         console.log(this.stageDir, typeof error === 'string' ? error : error.stack);
     }
 
-    protected async execute(): Promise<ResultInterface | null> {
+    async execute(): Promise<ResultInterface | null> {
         console.log('stage.builder execute()', this.stageUid);
         return { statusUid: StageStatusEnum.DONE };
     }
@@ -151,7 +151,7 @@ export class StageWorker extends StageGeneric {
         return result;
     }
 
-    protected async findLastStageExecution() {
+    async findLastStageExecution() {
         try {
             if (this.body.mockStageExecution) return this.mockStageExecution();
             const stageExecution = await StageExecutionProvider.findByTransactionAndModuleAndIndex(
@@ -193,13 +193,13 @@ export class StageWorker extends StageGeneric {
         }
     }
 
-    protected async triggerStage(_name, body) {
+    async triggerStage(_name, body) {
         const { events } = await StageWorker.getSolutions();
         // const name = _name.replace(/\//g, '-');
         return events.sendToQueue(_name, body);
     }
 
-    protected async triggerResult(result: ResultInterface) {
+    async triggerResult(result: ResultInterface) {
         const index = this.stageExecution.data.index;
         debug(`result:`, result, '; stage:', this.stageUid, '; index: ', index);
         if (typeof result === 'undefined' || result === null || this.stageExecutionMocked) return;
@@ -233,19 +233,19 @@ export class StageWorker extends StageGeneric {
         return this.defaultOptions;
     }
 
-    protected prepareConfig(_config = null) {
+    prepareConfig(_config = null) {
         _config === null && (_config = this.stageConfig.config);
         this.stageConfig.config = defaultsDeep({}, this.stageExecution.data, _config, this.getDefaultConfig());
         return this.stageConfig.config;
     }
 
-    protected prepareOptions(_options = null) {
+    prepareOptions(_options = null) {
         _options === null && (_options = this.stageConfig.options);
         this.stageConfig.options = defaultsDeep({}, this.stageExecution.data, _options, this.getDefaultOptions());
         return this.stageConfig.options;
     }
 
-    protected mockStageExecution() {
+    mockStageExecution() {
         this.stageExecutionMocked = true;
         const mock = typeof this.body.mockStageExecution === 'object' ? this.body.mockStageExecution : {};
         return defaultsDeep(mock, {
@@ -256,7 +256,7 @@ export class StageWorker extends StageGeneric {
         });
     }
 
-    protected fowardInternalOptions() {
+    fowardInternalOptions() {
         return pickBy(this.stageExecution.data, (value, key) => {
             return /^_[a-zA-Z]/.test(key);
         });

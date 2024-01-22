@@ -6,7 +6,7 @@ import { queuelize } from 'node-common/dist/utils';
 import { ResultInterface } from '../../../interfaces/result.interface';
 import { defaultsDeep } from 'lodash';
 
-class PartWorkerGeneric {
+export abstract class PartWorkerGeneric {
     [x: string]: any;
 
     public getDefaultOptions() {
@@ -42,7 +42,7 @@ class PartWorkerGeneric {
         return this.statusDone();
     }
 
-    protected async processExecution({ index, instance, loop, page }) {
+    async processExecution({ index, instance, loop, page }): Promise<boolean | void> {
         const skip = this.loopCalcSkip({ index, page, loop });
         debug('page', page, 'skip: ', skip);
 
@@ -63,7 +63,7 @@ class PartWorkerGeneric {
         return { index, instance: await this.instanceVariables(), loop: await this.loopVariables() };
     }
 
-    protected instanceVariables(): any {
+    instanceVariables(): any {
         const localService = this.getLocalService();
 
         return { localService };
@@ -82,7 +82,7 @@ class PartWorkerGeneric {
         return { totalLimit, pageLimit, count, totalPages };
     }
 
-    protected loopLimitVariables() {
+    loopLimitVariables() {
         const options = this['stageConfig'].options;
         const totalLimit = options.totalLimit;
         const pageLimit = totalLimit && options.pageLimit >= totalLimit ? totalLimit / 10 : options.pageLimit;
@@ -90,42 +90,41 @@ class PartWorkerGeneric {
         return { totalLimit, pageLimit };
     }
 
-    protected loopCalcSkip({ index, page, loop }) {
+    loopCalcSkip({ index, page, loop }) {
         return +index * loop.totalLimit + page * loop.pageLimit;
     }
 
     /* virtual methods */
-    protected getLocalService(): any {
+    getLocalService(): any {
         return null;
     }
 
-    protected async count(skip, take) {
+    async count(skip, take) {
         return 0;
     }
 
-    protected async paginateRecords(service, skip, take) {
+    async paginateRecords(service, skip, take) {
         return [];
     }
 
-    protected async processQueue({ page, skip = null, instance, loop, rows }) {
+    async processQueue({ page, skip = null, instance, loop, rows }) {
         debug('processing page', page);
         for (const index in rows) {
             const row = rows[index];
             await this.processRow({ page, instance, index, row });
         }
+        return true;
     }
 
-    protected async processRow({ page, instance, index, row }) {
+    async processRow({ page, instance, index, row }) {
         null;
     }
 
-    protected async beforeQueue(params) {
+    async beforeQueue(params) {
         null;
     }
 
-    protected async afterQueue(params) {
+    async afterQueue(params) {
         null;
     }
 }
-
-export { PartWorkerGeneric };
