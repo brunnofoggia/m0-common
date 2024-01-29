@@ -1,7 +1,7 @@
 import _debug from 'debug';
 const debug = _debug('worker:stage:CursorPartWorker');
 
-import { bind } from 'lodash';
+import { bind, size } from 'lodash';
 import { Order, PaginatorJoin, PaginatorUtil } from 'typeorm-cursor-pagination';
 
 import { ObjectLiteral } from 'typeorm';
@@ -30,7 +30,7 @@ export abstract class CursorPartGeneric {
     }
 
     public async loopVariables() {
-        const index = this['getIndex']();
+        const index = this.getIndex();
 
         // loop variables
         const { totalLimit, pageLimit } = this.loopLimitVariables();
@@ -56,7 +56,7 @@ export abstract class CursorPartGeneric {
         if (!rows.length) return result();
 
         this.increaseExecutionInfoValue('lines', rows.length);
-        await this['processQueue']({ page, instance, loop, rows });
+        if (!(await this.processQueue({ page, instance, loop, rows }))) _break = true;
 
         // paginator.data;
         debug('page', page, 'records: ', paginator.data.length);
@@ -113,6 +113,10 @@ export abstract class CursorPartGeneric {
         if (!firstRow) throw new WorkerError('invalid page. no first row', StageStatusEnum.FAILED);
 
         const queryBuilder = this.paginateRecordsQueryBuilder(this.getLocalService());
+
+        if (size(firstRow) && firstRow[cursorKey] === undefined)
+            throw new WorkerError('invalid initial cursor value or cursor key field not present', StageStatusEnum.FAILED);
+
         const where = `${pk} >= ${firstRow[cursorKey]}`;
         // const splitDelimiters = this.getSplitDelimiters();
         // const where = `${pk} >= ${splitDelimiters[0]} AND ${pk} <= ${splitDelimiters[1]}`;

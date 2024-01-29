@@ -18,6 +18,7 @@ import { StageExecutionProvider } from '../../providers/stageExecution.provider'
 
 import { importMixin } from '../../utils/importWorker';
 import { StageGeneric } from './stage.generic';
+import { ConfigMixin } from './mixins/config.mixin';
 
 export class StageWorker extends StageGeneric {
     static getSolutions;
@@ -415,7 +416,7 @@ export class StageWorker extends StageGeneric {
     }
 
     static _getWorker(stageConfig, project) {
-        return stageConfig.config.worker || project._config.defaultWorker || StageWorker.defaultWorker;
+        return stageConfig?.config?.worker || project?._config?.defaultWorker || StageWorker.defaultWorker;
     }
 
     getWorker() {

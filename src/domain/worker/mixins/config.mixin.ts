@@ -6,7 +6,9 @@ export class ConfigMixin {
     }
 
     _getConfigValue(configHolder, configName, configKey = 'config') {
-        return this._getConfigHolder(configHolder)[configKey][configName];
+        const holder = this._getConfigHolder(configHolder) || {};
+        const config = holder[configKey] || {};
+        return config[configName] || undefined;
     }
 
     _isActivated(configHolder, configName, configKey = 'config') {
