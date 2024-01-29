@@ -5,19 +5,16 @@ import { BodyInterface } from '../../interfaces/body.interface';
 
 @Controller('worker')
 export class WorkerController {
-    constructor(private readonly domain: ModuleDomain) { }
+    constructor(private readonly domain: ModuleDomain) {}
 
     @Post()
-    async initialize(
-        @Body() body: BodyInterface
-    ): Promise<any> {
-        return await this.domain.initialize(body);
+    async initialize(@Body() body: BodyInterface): Promise<any> {
+        this.domain.initialize(body);
+        return { status: 'executing' };
     }
 
     @Get('skipQueues/:value')
-    async skipQueues(
-        @Param('value') value: string
-    ): Promise<any> {
+    async skipQueues(@Param('value') value: string): Promise<any> {
         ModuleDomain.skipQueues = value === '1' ? true : false;
     }
 }

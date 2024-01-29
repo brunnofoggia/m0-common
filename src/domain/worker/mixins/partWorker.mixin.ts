@@ -109,11 +109,21 @@ export abstract class PartWorkerGeneric {
 
     async processQueue({ page, skip = null, instance, loop, rows }) {
         debug('processing page', page);
+        rows = await this.composeRowsData({ instance, rows });
         for (const index in rows) {
-            const row = rows[index];
-            await this.processRow({ page, instance, index, row });
+            // const row = rows[index];
+            const data = await this.transformRow({ page, instance, index, row: rows[index] });
+            await this.processRow({ page, instance, index, row: data });
         }
         return true;
+    }
+
+    async composeRowsData({ instance, rows }) {
+        return rows;
+    }
+
+    async transformRow({ page, instance, index, row }) {
+        return row;
     }
 
     async processRow({ page, instance, index, row }) {
