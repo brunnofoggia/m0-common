@@ -40,9 +40,12 @@ export class SnapshotMixin {
     }
 
     async createSnapshot({ transactionUid, stageUid, forceUpdate = false, mergeSnapshot = {} }) {
+        const forceUpdate_ = +forceUpdate;
         const moduleUid = stageUid.split('/')[0];
-        let moduleConfig = await SnapshotProvider.find(transactionUid, stageUid, +forceUpdate);
-        if (!moduleConfig || !size(moduleConfig) || forceUpdate) {
+        let moduleConfig;
+
+        if (!forceUpdate_) moduleConfig = await SnapshotProvider.find(transactionUid, stageUid, forceUpdate_);
+        if (!moduleConfig || !size(moduleConfig) || forceUpdate_) {
             // create / update a snapshot
             moduleConfig = await ModuleConfigProvider.findConfig(transactionUid, moduleUid);
             await SnapshotProvider.save(transactionUid, moduleUid, this['buildSnapshot'](moduleConfig, mergeSnapshot));
@@ -53,7 +56,7 @@ export class SnapshotMixin {
         // if a new stage is registered manually, config is reloaded
         if (!stageConfig || !size(stageConfig)) {
             // does not force twice
-            if (!forceUpdate) {
+            if (!forceUpdate_) {
                 return this.createSnapshot({ transactionUid, stageUid, forceUpdate: true, mergeSnapshot });
             }
         } else {
