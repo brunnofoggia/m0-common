@@ -74,9 +74,9 @@ export abstract class StageGeneric {
         return !!result;
     }
 
-    getIndex() {
-        const index = this.stageExecution?.data?.index || this.body.options.index;
-        return typeof index === 'undefined' ? -1 : index;
+    getIndex(): number {
+        const index = !isNaN(this.stageExecution?.data?.index) ? this.stageExecution?.data?.index : this.body.options.index;
+        return index === undefined || index === null ? -1 : +index;
     }
 
     getRetryLimit() {

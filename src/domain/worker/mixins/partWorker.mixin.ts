@@ -57,8 +57,8 @@ export abstract class PartWorkerGeneric {
 
     /* variables */
     public async setupVariables() {
-        this['prepareOptions']();
-        const index = this['getIndex']();
+        this.prepareOptions();
+        const index = this.getIndex();
 
         return { index, instance: await this.instanceVariables(), loop: await this.loopVariables() };
     }
@@ -70,7 +70,7 @@ export abstract class PartWorkerGeneric {
     }
 
     public async loopVariables() {
-        const index = this['getIndex']();
+        const index = this.getIndex();
 
         // loop variables
         const { totalLimit, pageLimit } = this.loopLimitVariables();
@@ -83,7 +83,7 @@ export abstract class PartWorkerGeneric {
     }
 
     loopLimitVariables() {
-        const options = this['stageConfig'].options;
+        const options = this.stageConfig.options;
         const totalLimit = +options.totalLimit;
         const pageLimit = +(totalLimit && options.pageLimit >= totalLimit ? totalLimit / 10 : options.pageLimit);
         debug({ totalLimit, pageLimit });

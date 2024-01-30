@@ -37,6 +37,8 @@ export abstract class CursorPartGeneric {
         // will keep total in mind but stop after reaching 0 or less then pageLimit
         const count = totalLimit;
         debug('total records available', count);
+        if (count % pageLimit > 0) throw new WorkerError('invalid totalLimit/pageLimit. one must be multiple of the other', StageStatusEnum.FAILED);
+
         const totalPages = Math.ceil(count / pageLimit);
         debug('totalLimit', totalLimit, 'count', count, 'pageLimit', pageLimit, 'totalPages', totalPages);
 

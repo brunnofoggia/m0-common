@@ -1,6 +1,7 @@
 import { DynamicDatabase } from 'node-common/dist/services/dynamicDatabase.service';
 
 import { StageWorker } from './stage.worker';
+import { isArray } from 'lodash';
 
 export class MXWorker extends StageWorker {
     public async closeConnections() {
@@ -17,6 +18,15 @@ export class MXWorker extends StageWorker {
 
     getParentStage() {
         return this.stageConfig.config.parentStage || this.stageExecution.data._calledByStage;
+    }
+
+    getPrevStage() {
+        return this.stageConfig.config.prevStage || this.stageExecution.data._calledByStage;
+    }
+
+    getPrevStageList() {
+        const prevStage_ = this.getPrevStage();
+        return isArray(prevStage_) ? prevStage_ : [prevStage_];
     }
 
     getParentStageDir() {

@@ -485,11 +485,16 @@ export class StageWorker extends StageGeneric {
 
     /* mixins */
     async loadMixins(mixins, _class) {
-        const path = this.buildWorkerClassStagePath();
+        const path = this.buildWorkerMixinStagePath();
+
         for (const name of mixins) {
             const Mixin = await this.loadWorkerClass(name, path);
             applyMixins(_class, [Mixin]);
         }
+    }
+
+    buildWorkerMixinStagePath() {
+        return `modules/${this.moduleUid}/stages/${this.stageName}`;
     }
 
     buildWorkerClassStagePath() {
