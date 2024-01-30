@@ -474,18 +474,18 @@ export class StageWorker extends StageGeneric {
     }
 
     async loadModuleDomains(domains) {
-        const path = this.buildWorkerClassModulePath();
+        const path = this.buildWorkerModuleDomainsPath();
         await this._loadDomains(domains, path, Domain.module);
     }
 
     async loadStageDomains(domains) {
-        const path = this.buildWorkerClassStagePath();
+        const path = this.buildWorkerStageDomainsPath();
         await this._loadDomains(domains, path, Domain.stage);
     }
 
     /* mixins */
     async loadMixins(mixins, _class) {
-        const path = this.buildWorkerMixinStagePath();
+        const path = this.buildWorkerStagePath();
 
         for (const name of mixins) {
             const Mixin = await this.loadWorkerClass(name, path);
@@ -493,20 +493,24 @@ export class StageWorker extends StageGeneric {
         }
     }
 
-    buildWorkerMixinStagePath() {
-        return `modules/${this.moduleUid}/stages/${this.stageName}`;
+    buildWorkerModulePath() {
+        return `modules/${this.moduleUid}`;
     }
 
-    buildWorkerClassStagePath() {
-        return `modules/${this.moduleUid}/stages/${this.stageName}/domain`;
+    buildWorkerStagePath() {
+        return `${this.buildWorkerModulePath()}/stages/${this.stageName}`;
     }
 
-    buildWorkerClassModulePath() {
-        return `modules/${this.moduleUid}/domain`;
+    buildWorkerModuleDomainsPath() {
+        return `${this.buildWorkerModulePath()}/domain`;
+    }
+
+    buildWorkerStageDomainsPath() {
+        return `${this.buildWorkerStagePath()}/domain`;
     }
 
     async loadWorkerClass(name, path = null) {
-        !path && (path = this.buildWorkerClassStagePath());
+        !path && (path = this.buildWorkerStageDomainsPath());
         const worker = this.getWorker();
         return this._loadWorkerClass(name, path, worker);
     }
