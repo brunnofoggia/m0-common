@@ -6,17 +6,21 @@ import { StageExecutionEntity } from '../entities/stageExecution.entity';
 export class StageExecutionService extends DynamicDatabase<StageExecutionEntity> {
     protected entity = StageExecutionEntity;
 
-    async queryBuilderByModuleExecutionAndStageUidAndIndex(queryBuilder, moduleExecutionId: number, stageUid: string, index = -1) {
+    async queryBuilderByModuleExecutionAndStageUidAndIndex(queryBuilder, moduleExecutionId: number, stageUid: string, index: string | number = -1) {
         queryBuilder.andWhere(`stageExecution.deletedAt IS NULL`);
         queryBuilder.andWhere(`stageExecution.moduleExecutionId = :a`, { a: moduleExecutionId + '' });
         queryBuilder.andWhere(`stageConfig.stageUid = :b`, { b: stageUid });
 
-        if (index > -1) queryBuilder.andWhere(`stageExecution.data ::jsonb @> :c`, { c: { index: index } });
+        if (index !== -1) queryBuilder.andWhere(`stageExecution.data ::jsonb @> :c`, { c: { index: index } });
 
         queryBuilder.orderBy('stageExecution.id', 'DESC');
     }
 
-    async findByModuleExecutionAndStageUidAndIndex(moduleExecutionId: number, stageUid: string, index = -1): Promise<StageExecutionEntity> {
+    async findByModuleExecutionAndStageUidAndIndex(
+        moduleExecutionId: number,
+        stageUid: string,
+        index: string | number = -1,
+    ): Promise<StageExecutionEntity> {
         const queryBuilder = this.getRepository()
             .createQueryBuilder('stageExecution')
             .innerJoinAndSelect('stageExecution.stageConfig', 'stageConfig')
@@ -25,7 +29,11 @@ export class StageExecutionService extends DynamicDatabase<StageExecutionEntity>
         return await queryBuilder['getOne']();
     }
 
-    async findAllByModuleExecutionAndStageUidAndIndex(moduleExecutionId: number, stageUid: string, index = -1): Promise<StageExecutionEntity[]> {
+    async findAllByModuleExecutionAndStageUidAndIndex(
+        moduleExecutionId: number,
+        stageUid: string,
+        index: string | number = -1,
+    ): Promise<StageExecutionEntity[]> {
         const queryBuilder = this.getRepository()
             .createQueryBuilder('stageExecution')
             .innerJoinAndSelect('stageExecution.stageConfig', 'stageConfig')

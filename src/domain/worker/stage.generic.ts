@@ -74,10 +74,15 @@ export abstract class StageGeneric {
         return !!result;
     }
 
-    getIndex(): number {
-        const index = !isNaN(this.stageExecution?.data?.index) ? this.stageExecution?.data?.index : this.body.options.index;
-        return index === undefined || index === null ? -1 : +index;
+    getIndex(): string | number {
+        const index = this.stageExecution?.data?.index !== undefined ? this.stageExecution?.data?.index : this.body.options.index;
+        return index === undefined ? -1 : index;
     }
+
+    // getIndex(): number {
+    //     const index = !isNaN(this.stageExecution?.data?.index) ? this.stageExecution?.data?.index : this.body.options.index;
+    //     return index === undefined || index === null ? -1 : +index;
+    // }
 
     getRetryLimit() {
         return this.stageConfig.config.retryLimit || this.moduleConfig.config.retryLimit || this.project._config.retryLimit || 3;

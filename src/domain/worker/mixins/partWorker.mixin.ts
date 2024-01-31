@@ -58,7 +58,7 @@ export abstract class PartWorkerGeneric {
     /* variables */
     public async setupVariables() {
         this.prepareOptions();
-        const index = this.getIndex();
+        const index = +this.getIndex();
 
         return { index, instance: await this.instanceVariables(), loop: await this.loopVariables() };
     }
@@ -70,11 +70,11 @@ export abstract class PartWorkerGeneric {
     }
 
     public async loopVariables() {
-        const index = this.getIndex();
+        const index = +this.getIndex();
 
         // loop variables
         const { totalLimit, pageLimit } = this.loopLimitVariables();
-        const count = await this.count(+index * totalLimit, totalLimit);
+        const count = await this.count(index * totalLimit, totalLimit);
         debug('total records available', count);
         const totalPages = Math.ceil(count / pageLimit);
         debug('totalLimit', totalLimit, 'count', count, 'pageLimit', pageLimit, 'totalPages', totalPages);

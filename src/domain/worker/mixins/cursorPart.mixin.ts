@@ -30,8 +30,6 @@ export abstract class CursorPartGeneric {
     }
 
     public async loopVariables() {
-        const index = this.getIndex();
-
         // loop variables
         const { totalLimit, pageLimit } = this.loopLimitVariables();
         // will keep total in mind but stop after reaching 0 or less then pageLimit
@@ -74,7 +72,7 @@ export abstract class CursorPartGeneric {
         const queryBuilder = this.paginateRecordsQueryBuilder(this.getLocalService());
         queryBuilder.limit(1);
         queryBuilder.orderBy(pk, Order.ASC);
-        queryBuilder.offset(this.getIndex() * loop.totalLimit);
+        queryBuilder.offset(+this.getIndex() * loop.totalLimit);
 
         const row = (await queryBuilder.getRawMany())?.shift() || null;
         debug('first row', row);

@@ -8,6 +8,7 @@ import { applyMixins } from 'node-common/dist/utils/mixin';
 
 import { BodyInterface } from '../../interfaces/body.interface';
 import { ResultInterface } from '../../interfaces/result.interface';
+import { StageExtractProperties, StageExtractMethods, StageParts } from '../../interfaces/stageParts.interface';
 
 import { StageStatusEnum } from '../../types/stageStatus.type';
 import { Domain } from '../../types/domain.type';
@@ -368,7 +369,7 @@ export class StageWorker extends StageGeneric {
     }
 
     // getters
-    get() {
+    get(): StageExtractProperties {
         return {
             body: this.body,
             transactionUid: this.transactionUid,
@@ -381,7 +382,7 @@ export class StageWorker extends StageGeneric {
         };
     }
 
-    extractMethods() {
+    extractMethods(): StageExtractMethods {
         return {
             // options
             isStageOptionActivated: bind(this.isStageOptionActivated, this),
@@ -411,7 +412,7 @@ export class StageWorker extends StageGeneric {
         };
     }
 
-    getStageParts() {
+    getStageParts(): StageParts {
         return defaults(this.extractMethods(), this.get());
     }
 
