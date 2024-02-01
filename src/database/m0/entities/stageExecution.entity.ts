@@ -21,6 +21,9 @@ export class StageExecutionEntity extends GenericEntity {
     @Column(set({ name: 'result', type: 'jsonb', default: [] }))
     result?: JSON;
 
+    @Column(set({ name: 'system', type: 'jsonb', default: {} }))
+    system?: JSON;
+
     @Column({ name: 'stage_config_id' })
     stageConfigId: number;
 
