@@ -1,8 +1,8 @@
 import { BeforeInsert, Column, Entity, Index, JoinColumn, ManyToOne, OneToMany } from 'typeorm';
 import { v4 as uuidv4 } from 'uuid';
 
-import { GenericEntity } from 'node-common/dist/entities/generic';
-import { set } from 'node-common/dist/utils/entities';
+import { GenericEntity } from 'node-labs/lib/entities/generic';
+import { set } from 'node-labs/lib/utils/entities';
 
 import { ModuleConfigEntity } from './moduleConfig.entity';
 import { StageExecutionEntity } from './stageExecution.entity';

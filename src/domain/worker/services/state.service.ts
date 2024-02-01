@@ -1,5 +1,5 @@
 import { Like } from 'typeorm';
-import { DynamicDatabase } from 'node-common/dist/services/dynamicDatabase.service';
+import { DynamicDatabase } from 'node-labs/lib/services/dynamicDatabase.service';
 
 export class StateService<ENTITY> extends DynamicDatabase<ENTITY> {
     async _save(key, value) {

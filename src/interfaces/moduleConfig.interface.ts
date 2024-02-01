@@ -1,4 +1,4 @@
-import { GenericInterface } from 'node-common/dist/interfaces/generic.interface';
+import { GenericInterface } from 'node-labs/lib/interfaces/generic.interface';
 import { ModuleExecutionInterface } from './moduleExecution.interface';
 import { StageConfigInterface } from './stageConfig.interface';
 import { ProjectInterface } from './project.interface';

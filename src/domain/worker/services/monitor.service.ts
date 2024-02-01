@@ -2,9 +2,9 @@ import _debug from 'debug';
 const debug = _debug('worker:stage:monitor');
 
 import { Like } from 'typeorm';
-import { DynamicDatabase } from 'node-common/dist/services/dynamicDatabase.service';
-import { MemoryUtil } from 'node-common/dist/utils/memory';
-import { ProcessUtil } from 'node-common/dist/utils/process';
+import { DynamicDatabase } from 'node-labs/lib/services/dynamicDatabase.service';
+import { MemoryUtil } from 'node-labs/lib/utils/memory';
+import { ProcessUtil } from 'node-labs/lib/utils/process';
 
 export class MonitorService<ENTITY> extends DynamicDatabase<ENTITY> {
     protected idAttribute = 'key';

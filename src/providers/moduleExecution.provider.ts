@@ -1,4 +1,4 @@
-import { throwHttpException } from 'node-common/dist/utils/errors';
+import { throwHttpException } from 'node-labs/lib/utils/errors';
 
 import { ERROR } from '../types/error.type';
 import { M0ApiProvider } from './m0Api.provider';

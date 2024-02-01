@@ -1,6 +1,6 @@
 import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm';
-import { GenericEntity } from 'node-common/dist/entities/generic';
-import { set } from 'node-common/dist/utils/entities';
+import { GenericEntity } from 'node-labs/lib/entities/generic';
+import { set } from 'node-labs/lib/utils/entities';
 
 import { ModuleExecutionEntity } from './moduleExecution.entity';
 import { StageConfigEntity } from './stageConfig.entity';

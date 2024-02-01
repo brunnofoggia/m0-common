@@ -1,4 +1,4 @@
-import { ApiMasterKeyProvider } from 'node-common/dist/providers/apiMasterKey.provider';
+import { ApiMasterKeyProvider } from 'node-labs/lib/providers/apiMasterKey.provider';
 
 export class M0ApiProvider extends ApiMasterKeyProvider {
     static baseUrl = process.env.M0_API;

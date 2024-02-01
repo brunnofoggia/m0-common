@@ -2,7 +2,7 @@ import _debug from 'debug';
 const debug = _debug('worker:stage:ParallelWorker');
 import { defaultsDeep, omit } from 'lodash';
 
-import { applyMixins } from 'node-common/dist/utils/mixin';
+import { applyMixins } from 'node-labs/lib/utils/mixin';
 import { StageStatusEnum } from '../../../types/stageStatus.type';
 import { ResultInterface } from '../../../interfaces/result.interface';
 import { SplitMixin } from './split.mixin';

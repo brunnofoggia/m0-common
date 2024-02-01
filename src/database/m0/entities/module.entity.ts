@@ -1,5 +1,5 @@
 import { Column, Entity, OneToMany, PrimaryColumn } from 'typeorm';
-import { TimestampEntity } from 'node-common/dist/entities/timestamp';
+import { TimestampEntity } from 'node-labs/lib/entities/timestamp';
 
 import { StageEntity } from './stage.entity';
 import { ModuleConfigEntity } from './moduleConfig.entity';

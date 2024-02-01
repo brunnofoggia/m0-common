@@ -3,7 +3,7 @@ const debug = _debug('worker:mixin:split');
 
 import { defaultsDeep, result, omit } from 'lodash';
 
-import { exitRequest } from 'node-common/dist/utils/errors';
+import { exitRequest } from 'node-labs/lib/utils/errors';
 import { StageStatusEnum } from '../../../types/stageStatus.type';
 import { ResultInterface } from '../../../interfaces/result.interface';
 

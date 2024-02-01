@@ -4,8 +4,8 @@ const debug = _debug('worker:module');
 import { defaultsDeep, find, size, uniqueId } from 'lodash';
 import { HttpStatusCode } from 'axios';
 
-import { applyMixins } from 'node-common/dist/utils/mixin';
-import { exitRequest, throwHttpException } from 'node-common/dist/utils/errors';
+import { applyMixins } from 'node-labs/lib/utils/mixin';
+import { exitRequest, throwHttpException } from 'node-labs/lib/utils/errors';
 
 import { importWorker } from '../../utils/importWorker';
 import { StageWorker } from './stage.worker';

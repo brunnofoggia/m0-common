@@ -1,5 +1,5 @@
 import { LessThanOrEqual } from 'typeorm';
-import { DynamicDatabase } from 'node-common/dist/services/dynamicDatabase.service';
+import { DynamicDatabase } from 'node-labs/lib/services/dynamicDatabase.service';
 
 import { ScheduleQueueEntity } from '../entities/scheduleQueue.entity';
 

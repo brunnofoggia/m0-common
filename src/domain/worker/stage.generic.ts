@@ -6,7 +6,7 @@ import { StageExecutionInterface } from '../../interfaces/stageExecution.interfa
 
 import { StageStatusEnum } from '../../types/stageStatus.type';
 import { defaultsDeep, isNumber, isString, size, uniqueId } from 'lodash';
-import { applyMixins } from 'node-common/dist/utils/mixin';
+import { applyMixins } from 'node-labs/lib/utils/mixin';
 import { ConfigMixin } from './mixins/config.mixin';
 
 export abstract class StageGeneric {

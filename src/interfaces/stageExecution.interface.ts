@@ -1,4 +1,4 @@
-import { GenericInterface } from 'node-common/dist/interfaces/generic.interface';
+import { GenericInterface } from 'node-labs/lib/interfaces/generic.interface';
 
 import { StageStatusEnum } from '../types/stageStatus.type';
 import { ModuleExecutionInterface } from './moduleExecution.interface';

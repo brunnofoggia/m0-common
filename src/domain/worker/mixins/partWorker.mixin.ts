@@ -1,7 +1,7 @@
 import _debug from 'debug';
 const debug = _debug('worker:mixin:PartWorkerGeneric');
 
-import { queuelize } from 'node-common/dist/utils';
+import { queuelize } from 'node-labs/lib/utils';
 
 import { ResultInterface } from '../../../interfaces/result.interface';
 import { defaultsDeep } from 'lodash';

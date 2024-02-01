@@ -1,6 +1,6 @@
 import { Column, Entity, OneToMany, PrimaryColumn } from 'typeorm';
-import { TimestampEntity } from 'node-common/dist/entities/timestamp';
-import { set } from 'node-common/dist/utils/entities';
+import { TimestampEntity } from 'node-labs/lib/entities/timestamp';
+import { set } from 'node-labs/lib/utils/entities';
 
 import { ProjectEntity } from './project.entity';
 import { MODULE } from '../../../types/module.type';

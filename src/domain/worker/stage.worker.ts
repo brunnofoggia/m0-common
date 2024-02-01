@@ -2,9 +2,9 @@ import { isNumber, uniqueId, size, indexOf, omit, defaultsDeep, pickBy, bind, de
 import _debug from 'debug';
 const debug = _debug('worker:stage');
 
-import { exitRequest } from 'node-common/dist/utils/errors';
-import { getDateForTimezone } from 'node-common/dist/utils';
-import { applyMixins } from 'node-common/dist/utils/mixin';
+import { exitRequest } from 'node-labs/lib/utils/errors';
+import { getDateForTimezone } from 'node-labs/lib/utils';
+import { applyMixins } from 'node-labs/lib/utils/mixin';
 
 import { BodyInterface } from '../../interfaces/body.interface';
 import { ResultInterface } from '../../interfaces/result.interface';

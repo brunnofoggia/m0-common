@@ -1,7 +1,7 @@
 import { Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryColumn } from 'typeorm';
-import { set } from 'node-common/dist/utils/entities';
+import { set } from 'node-labs/lib/utils/entities';
 
-import { TimestampEntity } from 'node-common/dist/entities/timestamp';
+import { TimestampEntity } from 'node-labs/lib/entities/timestamp';
 import { EnterpriseEntity } from './enterprise.entity';
 import { ModuleConfigEntity } from './moduleConfig.entity';
 import { ModuleExecutionEntity } from './moduleExecution.entity';

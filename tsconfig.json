@@ -12,7 +12,7 @@
         "allowSyntheticDefaultImports": true,
         "target": "es2020",
         "sourceMap": true,
-        "outDir": "./dist",
+        "outDir": "./lib",
         "baseUrl": "./src",
         "incremental": true,
         "skipLibCheck": true,
@@ -28,9 +28,6 @@
             "./node_modules/@types"
         ],
         "paths": {
-            "@/*": [
-                "*"
-            ],
         }
     }
 }

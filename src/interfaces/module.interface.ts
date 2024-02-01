@@ -1,4 +1,4 @@
-import { TimestampInterface } from 'node-common/dist/interfaces/timestamp.interface';
+import { TimestampInterface } from 'node-labs/lib/interfaces/timestamp.interface';
 import { ModuleConfigInterface } from './moduleConfig.interface';
 import { StageInterface } from './stage.interface';
 
