@@ -25,7 +25,7 @@ export const insert = async (worker: StageWorker, service, getData, monitorServi
     monitorService?.memoryInterval();
 
     const options = prepareInsertOptions(stageConfig.options);
-    const { storage } = await StageWorker.getSolutions();
+    const { storage } = await worker._getSolutions();
     const fromDir = [rootDir, options.input.dir].join('/');
     const fromPath = [fromDir, body.options.index].join('/');
 

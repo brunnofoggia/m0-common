@@ -23,7 +23,7 @@ const prepareConfig = (_config, worker) => {
 const split = async (worker: StageWorker, stateService = null, monitorService = null) => {
     const { stageConfig, rootDir, stageDir } = worker.get();
 
-    const { storage } = await StageWorker.getSolutions();
+    const { storage } = await worker._getSolutions();
     const key = stageConfig.stageUid;
     const monitorTimeKey = [stageDir, 'time'].join('/');
     const monitorMemKey = [stageDir, 'memory'].join('/');

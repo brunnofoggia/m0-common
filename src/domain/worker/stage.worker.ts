@@ -1,49 +1,54 @@
-import { isNumber, uniqueId, size, indexOf, omit, defaultsDeep, pickBy, bind, defaults } from 'lodash';
+import { size, indexOf, omit, defaultsDeep, pickBy, bind, defaults } from 'lodash';
 import _debug from 'debug';
 const debug = _debug('worker:stage');
 
 import { exitRequest } from 'node-labs/lib/utils/errors';
-import { getDateForTimezone } from 'node-labs/lib/utils';
 import { applyMixins } from 'node-labs/lib/utils/mixin';
 
 import { BodyInterface } from '../../interfaces/body.interface';
-import { ResultInterface } from '../../interfaces/result.interface';
-import { StageExtractProperties, StageExtractMethods, StageParts } from '../../interfaces/stageParts.interface';
+import { ResultInterface, SystemInterface } from '../../interfaces/result.interface';
+import { StageFeatureMethods, StageParts, StageAllProperties, StageFeatureProperties } from '../../interfaces/stageParts.interface';
 
 import { StageStatusEnum } from '../../types/stageStatus.type';
-import { Domain } from '../../types/domain.type';
 import { ERROR } from '../../types/error.type';
 import { WorkerError } from './error';
 
+import { DynamicWorkerMixin } from './mixins/system/dynamicWorker.mixin';
+import { InjectionMixin } from './mixins/system/injection.mixin';
+import { LifeCycleMixin } from './mixins/system/lifecycle.mixin';
+import { SecretsMixin } from './mixins/system/secrets.mixin';
+import { DateMixin } from './mixins/system/date.mixin';
+import { ExecutionInfoMixin } from './mixins/system/executionInfo';
+
+import { StageGeneric } from './stage.generic';
 import { StageExecutionProvider } from '../../providers/stageExecution.provider';
 
-import { importMixin } from '../../utils/importWorker';
-import { StageGeneric } from './stage.generic';
-import { ConfigMixin } from './mixins/config.mixin';
-
-export class StageWorker extends StageGeneric {
+export class StageWorker extends StageGeneric implements StageParts {
     static getSolutions;
-    static defaultWorker = 'index';
-    public fakeResult = false;
-    protected readonly worflowEventName = 'm0/workflow';
-    protected defaultConfig: any = {};
-    protected defaultOptions: any = {};
 
-    protected startedAt: string;
-    protected body: BodyInterface;
+    fakeResult = false;
+    defaultConfig: any = {};
+    defaultOptions: any = {};
 
-    protected stageExecutionMocked = false;
+    body: BodyInterface;
+    system: Partial<SystemInterface> = {};
 
-    protected rootDir: string;
-    protected moduleDir: string;
-    protected stageDir: string;
+    stageExecutionMocked = false;
 
-    protected moduleDomain: any = {};
-    protected stageDomain: any = {};
+    rootDir: string;
+    moduleDir: string;
+    stageDir: string;
 
-    protected _set(options) {
+    moduleDomain: any = {};
+    stageDomain: any = {};
+
+    _set(options) {
         super._set(options);
         this.setDirs();
+    }
+
+    _getSolutions() {
+        return StageWorker.getSolutions();
     }
 
     getProjectUid() {
@@ -69,7 +74,7 @@ export class StageWorker extends StageGeneric {
     public async initialize(uniqueId: string): Promise<ResultInterface> {
         this.__debug('-------------------------\ninitialize');
         this.__debug('set unique id', uniqueId);
-        this.setUniqueId(uniqueId);
+        this._setUniqueId(uniqueId);
         this.__debug('find module+stage execution');
         this.stageExecution = await this.findLastStageExecution();
         if (!size(this.stageExecution)) return;
@@ -84,7 +89,7 @@ export class StageWorker extends StageGeneric {
             result = await this._execute();
 
             debug('check result');
-            if (this.checkResult(result)) {
+            if (this._checkResult(result)) {
                 result = await this.result(result);
             }
 
@@ -101,8 +106,8 @@ export class StageWorker extends StageGeneric {
         await this.checkExecution();
         let result;
 
+        this.system.startedAt = new Date().toISOString();
         try {
-            this.startedAt = new Date().toISOString();
             debug('on initialize');
             await this._onInitialize();
 
@@ -112,6 +117,7 @@ export class StageWorker extends StageGeneric {
             this.logError(error);
             result = this.buildExecutionError(error);
         }
+        this.system.finishedAt = new Date().toISOString();
 
         return result;
     }
@@ -140,7 +146,6 @@ export class StageWorker extends StageGeneric {
     public async result(result: ResultInterface): Promise<ResultInterface> {
         try {
             result.statusUid = result.statusUid || StageStatusEnum.UNKNOWN;
-            result.startedAt = this.startedAt;
 
             // runs before trigger result to catch errors
             result._options?.after && (await result._options.after());
@@ -149,23 +154,24 @@ export class StageWorker extends StageGeneric {
             result = this.buildExecutionError(error);
         }
 
-        await this.triggerResult(result);
+        await this.triggerExecutionResult(result);
         return result;
     }
 
     async findLastStageExecution() {
         try {
+            const index = this.getIndex();
             if (this.body.mockStageExecution) return this.mockStageExecution();
             const stageExecution = await StageExecutionProvider.findByTransactionAndModuleAndIndex(
                 this.transactionUid,
                 this.stageConfig.stageUid,
-                this.body.options.index,
+                index,
             );
 
             if (!stageExecution || !size(stageExecution)) {
                 throw new WorkerError(
                     `stageExecution not found for
-                transactionUid:${this.transactionUid} , stageUid: ${this.stageConfig?.stageUid} , index: ${this.body.options.index}
+                transactionUid:${this.transactionUid} , stageUid: ${this.stageConfig?.stageUid} , index: ${index}
                 ("${JSON.stringify(stageExecution)}")`,
                     StageStatusEnum.ERROR,
                 );
@@ -185,7 +191,7 @@ export class StageWorker extends StageGeneric {
 
             throw new WorkerError(
                 `invalid stageExecution for
-            transactionUid:${this.transactionUid} , stageUid: ${this.stageConfig?.stageUid} , index: ${this.body.options.index}
+            transactionUid:${this.transactionUid} , stageUid: ${this.stageConfig?.stageUid} , index: ${index}
             ("${JSON.stringify(stageExecution)}")`,
                 StageStatusEnum.FAILED,
             );
@@ -196,13 +202,13 @@ export class StageWorker extends StageGeneric {
     }
 
     async triggerStage(_name, body) {
-        const { events } = await StageWorker.getSolutions();
+        const { events } = await this._getSolutions();
         // const name = _name.replace(/\//g, '-');
         return events.sendToQueue(_name, body);
     }
 
-    async triggerResult(result: ResultInterface) {
-        const index = this.stageExecution.data.index;
+    async triggerExecutionResult(result: ResultInterface) {
+        const index = this.getIndex();
         debug(`result:`, result, '; stage:', this.stageUid, '; index: ', index);
         if (typeof result === 'undefined' || result === null || this.stageExecutionMocked) return;
 
@@ -211,7 +217,7 @@ export class StageWorker extends StageGeneric {
         // but with this waiting status never is saved
         // if (result.status === StageStatusEnum.WAITING) return;
 
-        const { events } = await StageWorker.getSolutions();
+        const { events } = await this._getSolutions();
         const body = {
             transactionUid: this.transactionUid,
             stageUid: this.stageUid,
@@ -270,119 +276,29 @@ export class StageWorker extends StageGeneric {
         });
     }
 
-    /** options */
-
-    isStageOptionActivated(configName) {
-        return this['_isActivated']('stageConfig', configName, 'options');
-    }
-
-    isStageOptionDeactivated(configName) {
-        return this['_isDeactivated']('stageConfig', configName, 'options');
-    }
-
-    isModuleOptionActivated(configName) {
-        return this['_isActivated']('moduleConfig', configName, 'options');
-    }
-
-    isModuleOptionDeactivated(configName) {
-        return this['_isDeactivated']('moduleConfig', configName, 'options');
-    }
-
-    isInheritedOptionActivated(configName) {
-        return this['_isActivated']('stageConfig', configName, 'options') || this['_isActivated']('moduleConfig', configName, 'options');
-    }
-
-    isInheritedOptionDeactivated(configName) {
-        return this['_isDeactivated']('stageConfig', configName, 'options') || this['_isDeactivated']('moduleConfig', configName, 'options');
-    }
-
-    async getSecret(name: string, basePath: any = null) {
-        name = name.replace(/^\//, '').replace(/\/$/, '');
-        const { secrets } = await StageWorker.getSolutions();
-
-        if (this.body.options.clearSecrets || !!process.env.IS_TS_NODE) secrets.clearCache();
-
-        const env = process.env.NODE_ENV || 'dev';
-        const path = ['', env];
-        basePath === null && (basePath = [this.getProjectUid()].join('/'));
-        path.push(basePath);
-        path.push(name);
-
-        const secretPath = path.join('/');
-        const value = await secrets.getSecretValue(secretPath);
-        if (!value) throw new WorkerError(`secret value not found for ${secretPath}`, StageStatusEnum.FAILED);
-
-        return value;
-    }
-
-    async getGlobalSecret(name: string, basePath: any = null) {
-        basePath === null && (basePath = ['mx'].join('/'));
-        return await this.getSecret(name, basePath);
-    }
-
-    async getModuleSecret(name: string, basePath: any = null) {
-        basePath === null && (basePath = [this.getProjectUid(), this.moduleUid].join('/'));
-        return await this.getSecret(name, basePath);
-    }
-
-    async getStageSecret(name: string, basePath: any = null) {
-        basePath === null && (basePath = [this.getProjectUid(), this.stageUid].join('/'));
-        return await this.getSecret(name, basePath);
-    }
-
-    /* execution info */
-    getExecutionInfo() {
-        return this.executionInfo || {};
-    }
-
-    getExecutionInfoValue(field) {
-        const info = this.getExecutionInfo();
-        return info[field];
-    }
-
-    setExecutionInfoValue(field, value) {
-        this.executionInfo[field] = value;
-    }
-
-    increaseExecutionInfoValue(field, value: number) {
-        this.executionInfo[field] = (this.executionInfo[field] || 0) + value;
-    }
-
-    /* date */
-    getTimezoneOffset(_customTimezoneOffset = null) {
-        const timezoneOffset = !_customTimezoneOffset && _customTimezoneOffset !== 0 ? this.project?._config?.timezoneOffset : _customTimezoneOffset;
-        return +(timezoneOffset || 0);
-    }
-
-    getTimezoneString(_customTimezoneOffset = null, addMinutes = false) {
-        const timezoneOffset = this.getTimezoneOffset(_customTimezoneOffset);
-        const timezoneData = (timezoneOffset + '').split('');
-        timezoneData[1] = timezoneData[1].padStart(2, '0');
-        const timezoneString = timezoneData.join('');
-        return timezoneString + (addMinutes ? ':00' : '');
-    }
-
-    getDate(date = undefined, keepLocalTime = false, _customTimezoneOffset = null) {
-        (typeof date === 'undefined' || date === null) && (date = this.moduleExecution?.date || new Date());
-        const timezoneOffset = this.getTimezoneOffset(_customTimezoneOffset);
-        return getDateForTimezone(timezoneOffset, date, keepLocalTime);
-    }
-
     // getters
-    get(): StageExtractProperties {
+    get(): StageAllProperties {
         return {
             body: this.body,
+
             transactionUid: this.transactionUid,
+            moduleUid: this.moduleUid,
+            stageUid: this.stageUid,
+            stageName: this.stageName,
+
             moduleConfig: this.moduleConfig,
             stageConfig: this.stageConfig,
-            stageExecution: this.stageExecution,
             project: this.project,
+
+            moduleExecution: this.moduleExecution,
+            stageExecution: this.stageExecution,
+
             rootDir: this.rootDir,
             stageDir: this.stageDir,
         };
     }
 
-    extractMethods(): StageExtractMethods {
+    extractMethods(): StageFeatureMethods {
         return {
             // options
             isStageOptionActivated: bind(this.isStageOptionActivated, this),
@@ -417,11 +333,19 @@ export class StageWorker extends StageGeneric {
     }
 
     static _getWorker(stageConfig, project) {
-        return stageConfig?.config?.worker || project?._config?.defaultWorker || StageWorker.defaultWorker;
+        return stageConfig?.config?.worker || project?._config?.defaultWorker;
     }
 
     getWorker() {
-        return StageWorker._getWorker(this.stageConfig, this.project);
+        return StageWorker._getWorker(this.stageConfig, this.project) || this.getDefaultWorker();
+    }
+
+    getDefaultWorker() {
+        return StageGeneric._getDefaultWorker();
+    }
+
+    getEnv() {
+        return process.env.NODE_ENV || 'dev';
     }
 
     getRootDir() {
@@ -436,101 +360,18 @@ export class StageWorker extends StageGeneric {
         return new Service(this.uniqueId);
     }
 
-    /* lifecycle methods */
-    protected async _onInitialize(): Promise<void> {
-        try {
-            await this.onInitialize();
-        } catch (error) {
-            debug('error on initialize');
-            throw error;
-        }
-    }
-
-    public async onInitialize(): Promise<void> {
-        return;
-    }
-
-    protected async _onDestroy(): Promise<void> {
-        try {
-            await this.onDestroy();
-        } catch (error) {
-            debug('error on destroy');
-            this.logError(error);
-        }
-    }
-
-    public async onDestroy(): Promise<void> {
-        return;
-    }
-
-    /* domains */
-    async _loadDomains(domains, path, type: Domain) {
-        const stageParts = this.getStageParts();
-        for (const name of domains) {
-            const Domain = await this.loadWorkerClass(name, path);
-            const instance = !Domain.getInstance ? new Domain() : await Domain.getInstance(stageParts);
-            if (instance.setStageParts) instance.setStageParts(stageParts);
-            this[type + 'Domain'][name] = instance;
-        }
-    }
-
-    async loadModuleDomains(domains) {
-        const path = this.buildWorkerModuleDomainsPath();
-        await this._loadDomains(domains, path, Domain.module);
-    }
-
-    async loadStageDomains(domains) {
-        const path = this.buildWorkerStageDomainsPath();
-        await this._loadDomains(domains, path, Domain.stage);
-    }
-
-    /* mixins */
-    async loadMixins(mixins, _class) {
-        const path = this.buildWorkerStagePath();
-
-        for (const name of mixins) {
-            const Mixin = await this.loadWorkerClass(name, path);
-            applyMixins(_class, [Mixin]);
-        }
-    }
-
-    buildWorkerModulePath() {
-        return `modules/${this.moduleUid}`;
-    }
-
-    buildWorkerStagePath() {
-        return `${this.buildWorkerModulePath()}/stages/${this.stageName}`;
-    }
-
-    buildWorkerModuleDomainsPath() {
-        return `${this.buildWorkerModulePath()}/domain`;
-    }
-
-    buildWorkerStageDomainsPath() {
-        return `${this.buildWorkerStagePath()}/domain`;
-    }
-
-    async loadWorkerClass(name, path = null) {
-        !path && (path = this.buildWorkerStageDomainsPath());
-        const worker = this.getWorker();
-        return this._loadWorkerClass(name, path, worker);
-    }
-
-    async _loadWorkerClass(name, path, worker) {
-        // worker may be the name of some client located at stageConfig.config.worker
-        try {
-            return await importMixin(path, name, worker);
-        } catch (err) {
-            if (worker != StageWorker.defaultWorker) {
-                // if worker is the name of a client, but file is not found
-                // get default instead
-                return this._loadWorkerClass(name, path, StageWorker.defaultWorker);
-            }
-            throw new Error(`class "${name}" not found`);
-        }
-    }
-
     getRetryAttempt(increaseByOne = true) {
         return super.getRetryAttempt(increaseByOne);
     }
 }
+
+export interface StageWorker
+    extends StageFeatureProperties,
+        LifeCycleMixin,
+        DynamicWorkerMixin,
+        InjectionMixin,
+        DateMixin,
+        SecretsMixin,
+        ExecutionInfoMixin {}
+
+applyMixins(StageGeneric, [LifeCycleMixin, DynamicWorkerMixin, InjectionMixin, DateMixin, SecretsMixin, ExecutionInfoMixin]);

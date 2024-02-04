@@ -3,19 +3,32 @@ import { ModuleConfigInterface } from './moduleConfig.interface';
 import { StageConfigInterface } from './stageConfig.interface';
 import { StageExecutionInterface } from './stageExecution.interface';
 import { ProjectInterface } from './project.interface';
+import { ModuleExecutionInterface } from './moduleExecution.interface';
 
-export interface StageExtractProperties {
+export interface StageStructureProperties {
     body: BodyInterface;
+
     transactionUid: string;
+    moduleUid: string;
+    stageUid: string;
+    stageName: string;
+
     moduleConfig: ModuleConfigInterface;
     stageConfig: StageConfigInterface;
-    stageExecution: StageExecutionInterface;
     project: ProjectInterface;
+
+    moduleExecution: ModuleExecutionInterface;
+    stageExecution: StageExecutionInterface;
+}
+
+export interface StageFeatureProperties {
     rootDir: string;
     stageDir: string;
 }
 
-export interface StageExtractMethods {
+export interface StageAllProperties extends StageFeatureProperties, StageStructureProperties {}
+
+export interface StageFeatureMethods {
     // options
     isStageOptionActivated: (...args: any[]) => boolean;
     isStageOptionDeactivated: (...args: any[]) => boolean;
@@ -43,4 +56,4 @@ export interface StageExtractMethods {
     getRetryLimit: any;
 }
 
-export interface StageParts extends StageExtractProperties, StageExtractMethods {}
+export interface StageParts extends StageAllProperties, StageFeatureMethods {}

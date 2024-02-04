@@ -7,15 +7,28 @@ import { exitRequest } from 'node-labs/lib/utils/errors';
 import { StageStatusEnum } from '../../../types/stageStatus.type';
 import { ResultInterface } from '../../../interfaces/result.interface';
 
-export class SplitMixin {
+import { StageWorker } from '../stage.worker';
+
+export abstract class SplitMixin {
+    abstract splitStageOptions;
+
+    abstract beforeSplitStart();
+    abstract beforeSplitEnd();
+
+    abstract afterSplitStart();
+    // this method will be called when all child stages are done
+    abstract afterSplitEnd();
+
+    abstract getLengthKeyPrefix();
+
     async splitExecute({ stateService, lengthKeyPrefix = '' }): Promise<ResultInterface | null> {
         try {
             const { nextKey } = this.getKeys(lengthKeyPrefix);
             const nextValue = await stateService.getValue(nextKey);
 
             // or its a new stage or a stage that required some stages before (requiredStage: results in stage waiting)
-            if (this['stageExecution'].statusUid !== StageStatusEnum.WAITING || typeof nextValue === 'undefined') {
-                this['beforeSplitStart'] && (await this['beforeSplitStart']());
+            if (this.stageExecution.statusUid !== StageStatusEnum.WAITING || typeof nextValue === 'undefined') {
+                this.beforeSplitStart && (await this.beforeSplitStart());
 
                 const { lengthKey } = this.getKeys(lengthKeyPrefix);
                 const length = await stateService.getValue(lengthKey);
@@ -42,7 +55,7 @@ export class SplitMixin {
     }
 
     async splitStagesResult({ stateService, lengthKeyPrefix }): Promise<ResultInterface | null> {
-        this['beforeSplitEnd'] && (await this['beforeSplitEnd']());
+        this.beforeSplitEnd && (await this.beforeSplitEnd());
         const { lengthKey, nextKey, processKey } = this.getKeys(lengthKeyPrefix);
 
         await stateService.increment(processKey);
@@ -64,16 +77,17 @@ export class SplitMixin {
         return { statusUid: StageStatusEnum.WAITING };
     }
 
+    // this method will be called when all child stages are done
     async splitStagesDone() {
-        this['afterSplitEnd'] && (await this['afterSplitEnd']());
+        this.afterSplitEnd && (await this.afterSplitEnd());
         return { statusUid: StageStatusEnum.DONE };
     }
 
     getKeys(lengthKeyPrefix = '') {
-        if (!lengthKeyPrefix && this['stageConfig'].config.prevStage)
-            lengthKeyPrefix = [this['rootDir'], this['stageConfig'].config.prevStage].join('/');
+        if (!lengthKeyPrefix && this.stageConfig.config.prevStage)
+            lengthKeyPrefix = [this.rootDir, this.stageConfig.config.prevStage].join('/');
 
-        const stageDir = this['stageDir'];
+        const stageDir = this.stageDir;
 
         const lengthKey = [lengthKeyPrefix, 'length'].join('/');
         const processKey = [stageDir, 'process'].join('/');
@@ -93,11 +107,11 @@ export class SplitMixin {
             exitRequest(`lenghKey not found to send parallel events`);
         }
 
-        await this['splitStage'](length, options);
+        await this.splitStage(length, options);
     }
 
     async splitStage(length = '0', options: any = {}) {
-        if (!this['stageConfig'].config.splitStage || this['stageExecution'].data._triggerSplitStage === 0) return;
+        if (!this.stageConfig.config.splitStage || this.stageExecution.data._triggerSplitStage === 0) return;
 
         const _body = this.splitStageGlobalOptions(options);
         const _indexTo = this.getSplitStageOptions()['_indexTo'] || [];
@@ -114,16 +128,16 @@ export class SplitMixin {
                 },
             };
 
-            // debug('new event will be created', this['worflowEventName'], body);
-            await this['triggerStage'](this['worflowEventName'], body);
+            // debug('new event will be created', this.worflowEventName, body);
+            await this.triggerStage(this.worflowEventName, body);
             // break;
         }
 
-        this['afterSplitStart'] && (await this['afterSplitStart']());
+        this.afterSplitStart && (await this.afterSplitStart());
     }
 
     getSplitStageOptions() {
-        return (this['splitStageOptions'] ? result(this, 'splitStageOptions') : {}) as object;
+        return (this.splitStageOptions ? result(this, 'splitStageOptions') : {}) as any;
     }
 
     splitStageGlobalOptions(options) {
@@ -131,14 +145,14 @@ export class SplitMixin {
             options,
             {
                 ...omit(this.getSplitStageOptions(), '_indexTo'),
-                _calledByStage: this['stageUid'],
+                _calledByStage: this.stageUid,
             },
-            this['fowardInternalOptions'](),
+            this.fowardInternalOptions(),
         );
 
         return {
-            transactionUid: this['transactionUid'],
-            stageUid: this['stageConfig'].config.splitStage,
+            transactionUid: this.transactionUid,
+            stageUid: this.stageConfig.config.splitStage,
             options,
         };
     }
@@ -146,7 +160,9 @@ export class SplitMixin {
     splitExecuteOptions() {
         return {
             stateService: this['getStateService'](),
-            lengthKeyPrefix: this['getLengthKeyPrefix'](),
+            lengthKeyPrefix: this.getLengthKeyPrefix(),
         };
     }
 }
+
+export interface SplitMixin extends StageWorker {}

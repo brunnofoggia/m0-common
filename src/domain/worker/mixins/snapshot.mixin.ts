@@ -3,14 +3,15 @@ import { size, pick, defaultsDeep, omit, keyBy, toArray, find } from 'lodash';
 import { ModuleConfigInterface } from '../../../interfaces/moduleConfig.interface';
 import { SnapshotProvider } from '../../../providers/snapshot.provider';
 import { ModuleConfigProvider } from '../../../providers/moduleConfig.provider';
+import { StageStructureProperties } from '../../../interfaces/stageParts.interface';
 
-export class SnapshotMixin {
+export abstract class SnapshotMixin {
     buildSnapshot(moduleConfig: ModuleConfigInterface, mergeSnapshot: any = {}) {
         const snapshot: any = {
             ...this.mergeSnapshotModuleConfig(moduleConfig, mergeSnapshot),
             stagesConfig: this.mergeSnapshotStagesConfig(moduleConfig, mergeSnapshot),
             moduleExecution: {
-                ...pick(this['moduleExecution'], 'id', 'date'),
+                ...pick(this.moduleExecution, 'id', 'date'),
             },
         };
 
@@ -48,8 +49,13 @@ export class SnapshotMixin {
         if (!moduleConfig || !size(moduleConfig) || forceUpdate_) {
             // create / update a snapshot
             moduleConfig = await ModuleConfigProvider.findConfig(transactionUid, moduleUid);
-            await SnapshotProvider.save(transactionUid, moduleUid, this['buildSnapshot'](moduleConfig, mergeSnapshot));
+            await SnapshotProvider.save(transactionUid, moduleUid, this.buildSnapshot(moduleConfig, mergeSnapshot));
         }
+
+        if (!moduleConfig) {
+            throw new Error(`Module config not found (${moduleUid})`);
+        }
+
         // get stageConfig for current stage
         const stageConfig = this.getStageConfigFromModule(stageUid, moduleConfig);
 
@@ -59,8 +65,11 @@ export class SnapshotMixin {
             if (!forceUpdate_) {
                 return this.createSnapshot({ transactionUid, stageUid, forceUpdate: true, mergeSnapshot });
             }
-        } else {
-            return { moduleConfig, stageConfig };
+
+            throw new Error(`Stage config not found (${stageUid})`);
         }
+        return { moduleConfig, stageConfig };
     }
 }
+
+export interface SnapshotMixin extends StageStructureProperties {}

@@ -18,6 +18,7 @@ module.exports = {
         '@typescript-eslint/no-explicit-any': 0,
         'security/detect-object-injection': 0,
         '@typescript-eslint/no-empty-interface': 0,
+        '@typescript-eslint/no-unsafe-declaration-merging': 0,
         // '@typescript-eslint/explicit-function-return-type': 0,
         // '@typescript-eslint/explicit-module-boundary-types': 0,
         // '@typescript-eslint/no-floating-promises': 0,

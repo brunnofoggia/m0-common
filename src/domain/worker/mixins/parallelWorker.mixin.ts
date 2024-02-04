@@ -9,6 +9,7 @@ import { SplitMixin } from './split.mixin';
 
 export abstract class ParallelWorkerGeneric {
     limitRows = 1000;
+    splitStageOptions = {};
 
     public getDefaultOptions() {
         const defaultOptions = defaultsDeep({}, this['defaultOptions'], {
@@ -34,7 +35,7 @@ export abstract class ParallelWorkerGeneric {
     }
 
     getLengthKeyPrefix() {
-        return [this['rootDir'], this['stageConfig'].config.splitStage].join('/');
+        return [this.rootDir, this.stageConfig.config.splitStage].join('/');
     }
 
     getLengthKey() {
@@ -53,20 +54,20 @@ export abstract class ParallelWorkerGeneric {
 
     async beforeSplitResult(params: any = {}) {
         await this.setLengthValue(+params.length);
-        this['splitStageOptions'] = {
-            ...(this['splitStageOptions'] || {}),
+        this.splitStageOptions = {
+            ...(this.splitStageOptions || {}),
             ...omit(params, 'length', 'count'),
         };
     }
 
     defineLimits(options) {
-        const bulkLimit = !this['isProjectConfigActivated']('limitRows') ? options.bulkLimit : this.limitRows;
+        const bulkLimit = !this.isProjectConfigActivated('limitRows') ? options.bulkLimit : this.limitRows;
         return { bulkLimit };
     }
 
     /* replace methods bellow if needed */
     async beforeSplitStart() {
-        const options = this['prepareOptions']();
+        const options = this.stageConfig.options;
         await this.up();
         const { bulkLimit } = this.defineLimits(options);
 
@@ -86,6 +87,14 @@ export abstract class ParallelWorkerGeneric {
         debug(count, params.length, params);
         // length = 0;
         await this.beforeSplitResult(params);
+    }
+
+    async afterSplitStart() {
+        null;
+    }
+
+    async beforeSplitEnd() {
+        null;
     }
 
     async count(options: any = {}): Promise<any> {
