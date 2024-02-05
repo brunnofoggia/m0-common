@@ -36,6 +36,7 @@ export abstract class StageGeneric {
     stageExecution: StageExecutionInterface;
 
     executionInfo: any = {};
+    fakeResult = false;
 
     constructor(options) {
         this._set(options);
@@ -125,7 +126,7 @@ export abstract class StageGeneric {
     }
 
     separateStageUidAndExecutionUid(stageUidAndExecUid) {
-        const [stageUid, executionUid] = stageUidAndExecUid.split('#');
+        const [stageUid, executionUid = ''] = stageUidAndExecUid.split('#');
         return { stageUid, executionUid };
     }
 

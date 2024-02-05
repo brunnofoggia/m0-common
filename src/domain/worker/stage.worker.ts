@@ -23,7 +23,6 @@ import { ExecutionInfoMixin } from './mixins/system/executionInfo';
 import { StageGeneric } from './stage.generic';
 
 export class StageWorker extends StageGeneric implements StageParts {
-    fakeResult = false;
     defaultConfig: any = {};
     defaultOptions: any = {};
 

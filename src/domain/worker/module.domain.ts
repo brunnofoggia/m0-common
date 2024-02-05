@@ -4,46 +4,30 @@ const debug = _debug('worker:module');
 import { defaultsDeep, find, size } from 'lodash';
 import { HttpStatusCode } from 'axios';
 
-import { applyMixins } from 'node-labs/lib/utils/mixin';
 import { exitRequest, throwHttpException } from 'node-labs/lib/utils/errors';
 
 import { ModuleGeneric } from './module.generic';
 import { StageGeneric } from './stage.generic';
 import { StageWorker } from './stage.worker';
 
-import { ModuleConfigInterface } from '../../interfaces/moduleConfig.interface';
-import { StageConfigInterface } from '../../interfaces/stageConfig.interface';
 import { BodyInterface } from '../../interfaces/body.interface';
-import { ProjectInterface } from '../../interfaces/project.interface';
 import { ResultInterface } from '../../interfaces/result.interface';
 
 import { SnapshotProvider } from '../../providers/snapshot.provider';
 import { ModuleConfigProvider } from '../../providers/moduleConfig.provider';
 
 import { importWorker } from '../../utils/importWorker';
-import { SnapshotMixin } from './mixins/snapshot.mixin';
 import { ERROR } from '../../types/error.type';
 import { StageStatusEnum } from '../../types/stageStatus.type';
 
 export class ModuleDomain extends ModuleGeneric {
     static skipQueues = false;
-    body: BodyInterface;
     builder: StageGeneric;
 
-    transactionUid: string;
-    moduleUid: string;
-    stageUid: string;
-    stageName: string;
-
-    moduleConfig: ModuleConfigInterface;
-    stageConfig: StageConfigInterface;
-
     fakeResult = false;
-    project: ProjectInterface;
-
     // protected moduleExecution: ModuleExecutionInterface;
 
-    checkBody(body) {
+    _checkBody(body) {
         this.checkBodyStageUid(body);
         this.checkBodyTransaction(body);
     }
@@ -56,17 +40,6 @@ export class ModuleDomain extends ModuleGeneric {
         }
     }
 
-    set(body: BodyInterface) {
-        const [moduleUid, stageKey] = body.stageUid.split('/');
-        this.transactionUid = body.transactionUid || '';
-        this.moduleUid = moduleUid;
-        this.stageName = stageKey;
-        this.stageUid = body.stageUid;
-
-        this.body = body;
-        this.body.options = this.body.options || {};
-    }
-
     async initialize(body: BodyInterface): Promise<ResultInterface> {
         debug('-------------------------\ninitialize');
         if (ModuleDomain.skipQueues) return { statusUid: StageStatusEnum.DONE };
@@ -75,7 +48,7 @@ export class ModuleDomain extends ModuleGeneric {
         debug('set unique id:', this.uniqueId);
 
         // body
-        this.checkBody(body);
+        this._checkBody(body);
         debug('set body');
         this.set(body);
         debug('check body');
@@ -83,7 +56,7 @@ export class ModuleDomain extends ModuleGeneric {
 
         // obtain config
         debug('obtain snapshot');
-        await this.snapshotConfig();
+        await this.getSnapshotConfig();
 
         debug('check stage config existence');
         if (!this.stageConfig || !size(this.stageConfig)) {
@@ -92,7 +65,8 @@ export class ModuleDomain extends ModuleGeneric {
 
         // instantiate the builder
         debug('instantiate builder');
-        this.builder = await this.builderFactory();
+        this.builder = await this._builderFactory();
+        this.builder.fakeResult = this.fakeResult;
 
         // builder initialize
         this.__debug('initialize builder');
@@ -105,39 +79,27 @@ export class ModuleDomain extends ModuleGeneric {
         }
     }
 
-    private async builderFactory() {
+    async _getBuilderClass() {
         const fakeStageUid = (this.body.options?._fakeStageUid || '').split('/');
         const moduleUid = fakeStageUid[0] || this.moduleUid;
         const stageName = fakeStageUid[1] || this.stageName;
 
-        let builderClass;
+        let BuilderClass;
         try {
-            const { _class, found } = await this.locateBuilder(moduleUid, stageName);
+            const { _class, found } = await this._locateBuilder(moduleUid, stageName);
             this.fakeResult = !found;
-            builderClass = _class;
+            BuilderClass = _class;
+            return BuilderClass;
         } catch (error) {
             exitRequest(error);
         }
-
-        const builder = new builderClass({
-            transactionUid: this.transactionUid,
-            moduleUid: this.moduleUid,
-            stageUid: this.stageUid,
-            stageName: this.stageName,
-            body: this.body,
-            moduleConfig: this.moduleConfig,
-            stageConfig: this.stageConfig,
-        });
-        builder.fakeResult = this.fakeResult;
-
-        return builder;
     }
 
-    private async locateBuilder(moduleUid, stageName): Promise<any> {
+    async _locateBuilder(moduleUid, stageName): Promise<any> {
         return await importWorker(`modules/${moduleUid}/stages`, stageName, StageWorker._getWorker(this.stageConfig, this.project));
     }
 
-    private async snapshotConfig() {
+    async getSnapshotConfig() {
         if (!this.body.mockStageExecution) this.moduleConfig = await SnapshotProvider.find(this.transactionUid, this.body.stageUid);
         this.moduleConfig = this.buildSnapshot((this.moduleConfig || {}) as never, this.body.mergeSnapshot);
 
