@@ -13,6 +13,8 @@ import { StageStructureProperties } from 'interfaces/stageParts.interface';
 
 export abstract class StageGeneric {
     static defaultWorker = 'index';
+    static getSolutions;
+
     readonly worflowEventName = 'm0/workflow';
 
     uniqueId: string;
@@ -46,6 +48,10 @@ export abstract class StageGeneric {
         this.body = body;
 
         this.project = this.moduleConfig.project;
+    }
+
+    _getSolutions() {
+        return StageGeneric.getSolutions();
     }
 
     _setUniqueId(_uniqueId = '') {
@@ -86,6 +92,11 @@ export abstract class StageGeneric {
     getIndex(): number {
         const index = !isNaN(this.stageExecution?.data?.index) ? this.stageExecution?.data?.index : this.body.options.index;
         return index === undefined || index === null ? -1 : +index;
+    }
+
+    async triggerStageToDefaultProvider(_name, body) {
+        const { events } = await StageGeneric.getSolutions();
+        return this._sendEventMessage(_name, body, events);
     }
 
     _sendEventMessage(_name, body, events) {

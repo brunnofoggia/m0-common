@@ -24,8 +24,6 @@ import { StageGeneric } from './stage.generic';
 import { StageExecutionProvider } from '../../providers/stageExecution.provider';
 
 export class StageWorker extends StageGeneric implements StageParts {
-    static getSolutions;
-
     fakeResult = false;
     defaultConfig: any = {};
     defaultOptions: any = {};
@@ -45,10 +43,6 @@ export class StageWorker extends StageGeneric implements StageParts {
     _set(options) {
         super._set(options);
         this.setDirs();
-    }
-
-    _getSolutions() {
-        return StageWorker.getSolutions();
     }
 
     getProjectUid() {
@@ -90,14 +84,14 @@ export class StageWorker extends StageGeneric implements StageParts {
 
             debug('check result');
             if (this._checkResult(result)) {
-                result = await this.result(result);
+                result = await this.sendResultAsMessage(result);
             }
 
             debug('on destroy');
             await this._onDestroy();
             debug('builder done\n-------------------------');
         } else {
-            result = await this.result(this.statusDone());
+            result = await this.sendResultAsMessage(this.statusDone());
         }
         return result;
     }
@@ -143,10 +137,15 @@ export class StageWorker extends StageGeneric implements StageParts {
         return { statusUid: StageStatusEnum.DONE };
     }
 
-    public async result(result: ResultInterface): Promise<ResultInterface> {
-        try {
-            result.statusUid = result.statusUid || StageStatusEnum.UNKNOWN;
+    public async sendResultAsMessage(result: ResultInterface): Promise<ResultInterface> {
+        debug(`result:`, result, '; stage:', this.stageUid, '; index: ', this.getIndex());
+        if (typeof result === 'undefined' || result === null || this.stageExecutionMocked) return;
 
+        result.statusUid = result.statusUid || StageStatusEnum.UNKNOWN;
+        result.system.startedAt = this.system.startedAt;
+        result.system.finishedAt = this.system.finishedAt;
+
+        try {
             // runs before trigger result to catch errors
             result._options?.after && (await result._options.after());
         } catch (error) {
@@ -209,10 +208,6 @@ export class StageWorker extends StageGeneric implements StageParts {
 
     async triggerExecutionResult(result: ResultInterface) {
         const index = this.getIndex();
-        debug(`result:`, result, '; stage:', this.stageUid, '; index: ', index);
-        if (typeof result === 'undefined' || result === null || this.stageExecutionMocked) return;
-
-        result.statusUid = result.statusUid || StageStatusEnum.UNKNOWN;
         // avoid infinity loop when waiting multiple child process
         // but with this waiting status never is saved
         // if (result.status === StageStatusEnum.WAITING) return;

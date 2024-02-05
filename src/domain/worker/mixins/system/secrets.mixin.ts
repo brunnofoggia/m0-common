@@ -25,8 +25,8 @@ export abstract class SecretsMixin {
         return this.body.options.clearSecrets || !!process.env.IS_TS_NODE;
     }
 
-    clearSecretsCache() {
-        const { secrets } = this._getSolutions();
+    async clearSecretsCache() {
+        const { secrets } = await this._getSolutions();
         if (this.shouldClearSecrets()) secrets.clearCache();
     }
 
@@ -34,7 +34,7 @@ export abstract class SecretsMixin {
         name = this.stripSlashesFromSecretName(name);
         const { secrets } = await this._getSolutions();
 
-        this.clearSecretsCache();
+        await this.clearSecretsCache();
 
         const secretPath = this.buildSecretPath(name, basePath);
         const value = await secrets.getSecretValue(secretPath);

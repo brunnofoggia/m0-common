@@ -1,52 +1,47 @@
 import _debug from 'debug';
 const debug = _debug('worker:module');
 
-import { defaultsDeep, find, size, uniqueId } from 'lodash';
+import { defaultsDeep, find, size } from 'lodash';
 import { HttpStatusCode } from 'axios';
 
 import { applyMixins } from 'node-labs/lib/utils/mixin';
 import { exitRequest, throwHttpException } from 'node-labs/lib/utils/errors';
 
-import { importWorker } from '../../utils/importWorker';
-import { StageWorker } from './stage.worker';
-import { ModuleConfigInterface } from '../../interfaces/moduleConfig.interface';
-import { StageConfigInterface } from '../../interfaces/stageConfig.interface';
-import { SnapshotProvider } from '../../providers/snapshot.provider';
-import { BodyInterface } from '../../interfaces/body.interface';
-import { ProjectInterface } from '../../interfaces/project.interface';
-
-import { SnapshotMixin } from './mixins/snapshot.mixin';
-import { ModuleConfigProvider } from '../../providers/moduleConfig.provider';
-import { ERROR } from '../../types/error.type';
-import { ResultInterface } from '../../interfaces/result.interface';
-import { StageStatusEnum } from '../../types/stageStatus.type';
 import { ModuleGeneric } from './module.generic';
 import { StageGeneric } from './stage.generic';
+import { StageWorker } from './stage.worker';
+
+import { ModuleConfigInterface } from '../../interfaces/moduleConfig.interface';
+import { StageConfigInterface } from '../../interfaces/stageConfig.interface';
+import { BodyInterface } from '../../interfaces/body.interface';
+import { ProjectInterface } from '../../interfaces/project.interface';
+import { ResultInterface } from '../../interfaces/result.interface';
+
+import { SnapshotProvider } from '../../providers/snapshot.provider';
+import { ModuleConfigProvider } from '../../providers/moduleConfig.provider';
+
+import { importWorker } from '../../utils/importWorker';
+import { SnapshotMixin } from './mixins/snapshot.mixin';
+import { ERROR } from '../../types/error.type';
+import { StageStatusEnum } from '../../types/stageStatus.type';
 
 export class ModuleDomain extends ModuleGeneric {
-    static getSolutions;
-
     static skipQueues = false;
-    protected body: BodyInterface;
-    protected builder: StageGeneric;
+    body: BodyInterface;
+    builder: StageGeneric;
 
-    protected transactionUid: string;
-    protected moduleUid: string;
-    protected stageUid: string;
-    protected stageName: string;
+    transactionUid: string;
+    moduleUid: string;
+    stageUid: string;
+    stageName: string;
 
-    protected moduleConfig: ModuleConfigInterface;
-    protected stageConfig: StageConfigInterface;
+    moduleConfig: ModuleConfigInterface;
+    stageConfig: StageConfigInterface;
 
-    protected fakeResult = false;
-    protected project: ProjectInterface;
+    fakeResult = false;
+    project: ProjectInterface;
 
     // protected moduleExecution: ModuleExecutionInterface;
-
-    static setSolutions(getSolutions) {
-        ModuleDomain.getSolutions = getSolutions;
-        StageWorker.getSolutions = getSolutions;
-    }
 
     checkBody(body) {
         this.checkBodyStageUid(body);

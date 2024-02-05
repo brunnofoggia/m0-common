@@ -88,9 +88,9 @@ const splitItem = async ({ filePath, stageDir, worker, options, storage, splitNu
     // writestream
     let writeStream;
     let writeStreamPath;
-    let writeStreamIndex;
+    // let writeStreamIndex;
     const createWriteStream = async (splitNumber) => {
-        writeStreamIndex = splitNumber;
+        // writeStreamIndex = splitNumber;
         const filename = splitNumber + splitNumberStartAt;
         debug('sending file');
         writeStreamPath = [stageDir, filename].join('/');

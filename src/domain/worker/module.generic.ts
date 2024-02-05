@@ -1,8 +1,15 @@
 import { uniqueId } from 'lodash';
 import { exitRequest } from 'node-labs/lib/utils/errors';
+import { StageGeneric } from './stage.generic';
 
 export abstract class ModuleGeneric {
+    static getSolutions;
     protected uniqueId: string;
+
+    static setSolutions(getSolutions) {
+        ModuleGeneric.getSolutions = getSolutions;
+        StageGeneric.getSolutions = getSolutions;
+    }
 
     checkBodyStageUid(body) {
         if (!body.stageUid) exitRequest('stageUid not found into message body');
