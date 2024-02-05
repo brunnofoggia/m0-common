@@ -68,18 +68,22 @@ export abstract class ModuleGeneric {
         return bind(StageGeneric.prototype.separateStageUidAndExecutionUid, this)(stageUid);
     }
 
-    async _builderFactory() {
-        const BuilderClass = await this._getBuilderClass();
-        const builder = new BuilderClass({
+    _getBuilderOptions() {
+        return {
             transactionUid: this.transactionUid,
             moduleUid: this.moduleUid,
             stageUid: this.stageUid,
-            executionUid: this.executionUid,
             stageName: this.stageName,
+            executionUid: this.executionUid,
             body: this.body,
             moduleConfig: this.moduleConfig,
             stageConfig: this.stageConfig,
-        });
+        };
+    }
+
+    async _builderFactory() {
+        const BuilderClass = await this._getBuilderClass();
+        const builder = new BuilderClass(this._getBuilderOptions());
 
         return builder;
     }
