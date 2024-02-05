@@ -1,15 +1,18 @@
+import { uniqueId } from 'lodash';
+import { applyMixins } from 'node-labs/lib/utils/mixin';
+
 import { ModuleExecutionInterface } from '../../interfaces/moduleExecution.interface';
 import { ProjectInterface } from '../../interfaces/project.interface';
 import { ModuleConfigInterface } from '../../interfaces/moduleConfig.interface';
 import { StageConfigInterface } from '../../interfaces/stageConfig.interface';
 import { StageExecutionInterface } from '../../interfaces/stageExecution.interface';
+import { StageStructureProperties } from '../../interfaces/stageParts.interface';
 
-import { uniqueId } from 'lodash';
-import { applyMixins } from 'node-labs/lib/utils/mixin';
+import { StageExecutionProvider } from '../../providers/stageExecution.provider';
+
 import { ConfigMixin } from './mixins/system/config.mixin';
 import { StatusMixin } from './mixins/system/status.mixin';
 import { RetryMixin } from './mixins/system/retry.mixin';
-import { StageStructureProperties } from 'interfaces/stageParts.interface';
 
 export abstract class StageGeneric {
     static defaultWorker = 'index';
@@ -90,8 +93,17 @@ export abstract class StageGeneric {
     }
 
     getIndex(): number {
-        const index = !isNaN(this.stageExecution?.data?.index) ? this.stageExecution?.data?.index : this.body.options.index;
+        const index =
+            this.stageExecution && !isNaN(this.stageExecution?.data?.index) ? this.stageExecution?.data?.index : this.body.options.index;
         return index === undefined || index === null ? -1 : +index;
+    }
+
+    getExecutionUid() {
+        const executionUid =
+            this.stageExecution && this.stageExecution?.system?.executionUid
+                ? this.stageExecution?.system?.executionUid
+                : this.body.executionUid;
+        return executionUid;
     }
 
     async triggerStageToDefaultProvider(_name, body) {
@@ -101,6 +113,20 @@ export abstract class StageGeneric {
 
     _sendEventMessage(_name, body, events) {
         return events.sendToQueue(_name, body);
+    }
+
+    async _findLastExecution() {
+        return await StageExecutionProvider.findByTransactionAndModuleAndIndex(
+            this.transactionUid,
+            this.stageConfig.stageUid,
+            this.getExecutionUid(),
+            this.getIndex(),
+        );
+    }
+
+    separateStageUidAndExecutionUid(stageUidAndExecUid) {
+        const [stageUid, executionUid] = stageUidAndExecUid.split('#');
+        return { stageUid, executionUid };
     }
 
     // getIndex(): string | number {

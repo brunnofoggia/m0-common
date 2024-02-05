@@ -161,11 +161,7 @@ export class StageWorker extends StageGeneric implements StageParts {
         try {
             const index = this.getIndex();
             if (this.body.mockStageExecution) return this.mockStageExecution();
-            const stageExecution = await StageExecutionProvider.findByTransactionAndModuleAndIndex(
-                this.transactionUid,
-                this.stageConfig.stageUid,
-                index,
-            );
+            const stageExecution = await this._findLastExecution();
 
             if (!stageExecution || !size(stageExecution)) {
                 throw new WorkerError(
