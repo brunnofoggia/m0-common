@@ -140,11 +140,11 @@ export class StageWorker extends StageGeneric implements StageParts {
         debug(`result:`, result, '; stage:', this.stageUid, '; index: ', this.getIndex());
         if (typeof result === 'undefined' || result === null || this.stageExecutionMocked) return;
 
-        result.statusUid = result.statusUid || StageStatusEnum.UNKNOWN;
-        result.system.startedAt = this.system.startedAt;
-        result.system.finishedAt = this.system.finishedAt;
-
         try {
+            result.statusUid = result.statusUid || StageStatusEnum.UNKNOWN;
+            !result.system && (result.system = {});
+            result.system.startedAt = this.system.startedAt;
+            result.system.finishedAt = this.system.finishedAt;
             // runs before trigger result to catch errors
             result._options?.after && (await result._options.after());
         } catch (error) {

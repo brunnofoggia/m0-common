@@ -15,5 +15,5 @@ export interface ResultInterface {
         [key: string]: any;
     };
     //
-    system?: SystemInterface;
+    system?: Partial<SystemInterface>;
 }

@@ -153,7 +153,3 @@ export class ModuleDomain extends ModuleGeneric {
         return defaultsDeep(foundStageConfig || {}, stageConfig);
     }
 }
-
-export interface ModuleDomain extends SnapshotMixin {}
-
-applyMixins(ModuleDomain, [SnapshotMixin]);

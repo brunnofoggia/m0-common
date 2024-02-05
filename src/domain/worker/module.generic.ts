@@ -1,6 +1,8 @@
-import { uniqueId } from 'lodash';
+import { bind, uniqueId } from 'lodash';
 import { exitRequest } from 'node-labs/lib/utils/errors';
 import { StageGeneric } from './stage.generic';
+import { SnapshotMixin } from './mixins/snapshot.mixin';
+import { applyMixins } from 'node-labs/lib/utils/mixin';
 
 export abstract class ModuleGeneric {
     static getSolutions;
@@ -29,4 +31,12 @@ export abstract class ModuleGeneric {
         !_uniqueId && (_uniqueId = [uniqueId('worker:'), new Date().toISOString()].join(':'));
         return (this.uniqueId = _uniqueId);
     }
+
+    separateStageUidAndExecutionUid(stageUid) {
+        return bind(StageGeneric.prototype.separateStageUidAndExecutionUid, this)(stageUid);
+    }
 }
+
+export interface ModuleGeneric extends SnapshotMixin {}
+
+applyMixins(ModuleGeneric, [SnapshotMixin]);
