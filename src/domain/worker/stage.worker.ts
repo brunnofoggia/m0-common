@@ -21,7 +21,6 @@ import { DateMixin } from './mixins/system/date.mixin';
 import { ExecutionInfoMixin } from './mixins/system/executionInfo';
 
 import { StageGeneric } from './stage.generic';
-import { StageExecutionProvider } from '../../providers/stageExecution.provider';
 
 export class StageWorker extends StageGeneric implements StageParts {
     fakeResult = false;

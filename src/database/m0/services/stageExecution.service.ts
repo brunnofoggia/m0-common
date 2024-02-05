@@ -17,8 +17,6 @@ export class StageExecutionService extends DynamicDatabase<StageExecutionEntity>
         queryBuilder.andWhere(`stageExecution.moduleExecutionId = :a`, { a: moduleExecutionId + '' });
         queryBuilder.andWhere(`stageConfig.stageUid = :b`, { b: stageUid });
 
-        console.log('testing query builder', moduleExecutionId, stageUid, executionUid, index);
-
         if (executionUid) queryBuilder.andWhere(`stageExecution.system ::jsonb @> :c`, { c: { executionUid } });
         if (index + '' !== '-1') queryBuilder.andWhere(`stageExecution.data ::jsonb @> :d`, { d: { index: +index } });
 
