@@ -1,10 +1,11 @@
 import _debug from 'debug';
 const debug = _debug('worker:stage:ParallelWorker');
-import { defaultsDeep, omit } from 'lodash';
+import { defaultsDeep, filter, map, omit, reduce, sortBy } from 'lodash';
 
 import { applyMixins } from 'node-labs/lib/utils/mixin';
 import { StageStatusEnum } from '../../../types/stageStatus.type';
 import { ResultInterface } from '../../../interfaces/result.interface';
+import { StageExecutionProvider } from '../../../providers/stageExecution.provider';
 import { SplitMixin } from './split.mixin';
 
 export abstract class ParallelWorkerGeneric {
@@ -63,6 +64,28 @@ export abstract class ParallelWorkerGeneric {
     defineLimits(options) {
         const bulkLimit = !this.isProjectConfigActivated('limitRows') ? options.bulkLimit : this.limitRows;
         return { bulkLimit };
+    }
+
+    async findSplitStageExecutionList() {
+        const stageExecutionList = await StageExecutionProvider.findAllByTransactionAndModule(
+            this.transactionUid,
+            this.stageConfig.config.splitStage,
+        );
+        const filteredStageExecutionList = sortBy(
+            filter(stageExecutionList, (stageExecution) => stageExecution.id > this.stageExecution.id),
+            'id',
+        );
+        const length = await this.getLengthValue();
+        return filteredStageExecutionList.slice(0, length);
+    }
+
+    async calcInfoField(stageExecutionList, infoField) {
+        const valueList = map(stageExecutionList, (stageExecution) => {
+            const data = stageExecution.result.pop();
+            return (data && data.info && data.info[infoField]) || 0;
+        });
+
+        return reduce(valueList, (prev, curr) => prev + curr);
     }
 
     /* replace methods bellow if needed */
