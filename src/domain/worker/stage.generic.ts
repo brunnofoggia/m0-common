@@ -116,7 +116,7 @@ export abstract class StageGeneric {
             this.stageExecution && this.stageExecution?.system?.executionUid
                 ? this.stageExecution?.system?.executionUid
                 : this.executionUid;
-        return executionUid;
+        return executionUid || '_';
     }
 
     async triggerStageToDefaultProvider(_name, body) {
