@@ -9,12 +9,14 @@ import { BodyInterface } from '../../interfaces/body.interface';
 import { ModuleConfigInterface } from '../../interfaces/moduleConfig.interface';
 import { StageConfigInterface } from '../../interfaces/stageConfig.interface';
 import { ProjectInterface } from '../../interfaces/project.interface';
+import { MultipleExecutionMixin } from './mixins/system/multipleExecution.mixin';
 
 export abstract class ModuleGeneric {
     static getSolutions;
     protected uniqueId: string;
 
     body: BodyInterface;
+
     transactionUid: string;
     moduleUid: string;
     stageUid: string;
@@ -64,10 +66,6 @@ export abstract class ModuleGeneric {
         this.body.options = this.body.options || {};
     }
 
-    separateStageUidAndExecutionUid(stageUid) {
-        return bind(StageGeneric.prototype.separateStageUidAndExecutionUid, this)(stageUid);
-    }
-
     _getBuilderOptions() {
         return {
             transactionUid: this.transactionUid,
@@ -89,6 +87,6 @@ export abstract class ModuleGeneric {
     }
 }
 
-export interface ModuleGeneric extends SnapshotMixin {}
+export interface ModuleGeneric extends SnapshotMixin, MultipleExecutionMixin {}
 
-applyMixins(ModuleGeneric, [SnapshotMixin]);
+applyMixins(ModuleGeneric, [SnapshotMixin, MultipleExecutionMixin]);

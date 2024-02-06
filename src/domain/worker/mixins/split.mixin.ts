@@ -152,7 +152,7 @@ export abstract class SplitMixin {
 
         return {
             transactionUid: this.transactionUid,
-            stageUid: this.stageConfig.config.splitStage,
+            stageUid: this.buildStageUidWithCurrentExecutionUid(this.stageConfig.config.splitStage),
             options,
         };
     }

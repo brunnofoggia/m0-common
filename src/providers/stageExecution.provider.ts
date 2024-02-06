@@ -53,6 +53,7 @@ export class StageExecutionProvider extends M0ApiProvider {
         index = -1,
     ) {
         const url = [this.basePath, 'findByTransactionAndModule', transactionUid, stageUid, index, executionUid].join('/');
+        console.log(url);
 
         const result = (await this.request({ url })).data;
         return result;

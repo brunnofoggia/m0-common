@@ -20,29 +20,30 @@ const prepareConfig = (_config, worker) => {
     return _.defaultsDeep(source, _config, defaultOptions);
 };
 
-const split = async (worker: StageWorker, stateService = null, monitorService = null) => {
-    const { stageConfig, rootDir, stageDir } = worker.get();
+const split = async (worker: StageWorker, stateService = null, monitorService = null, fromDir = '', toDir = '') => {
+    const { stageConfig, rootDir, executionDir } = worker.get();
+    if (!toDir) toDir = executionDir;
 
     const { storage } = await worker._getSolutions();
     const key = stageConfig.stageUid;
-    const monitorTimeKey = [stageDir, 'time'].join('/');
-    const monitorMemKey = [stageDir, 'memory'].join('/');
-    const lengthKey = [stageDir, 'length'].join('/');
+    const monitorTimeKey = [toDir, 'time'].join('/');
+    const monitorMemKey = [toDir, 'memory'].join('/');
+    const lengthKey = [toDir, 'length'].join('/');
     monitorService?.time(monitorTimeKey);
     monitorService?.memoryInterval();
 
     const options = prepareConfig(stageConfig.options, worker);
     const config = stageConfig.config;
-    const fromDir = [rootDir, options.input?.dir || config.prevStage].join('/');
+    if (!fromDir) fromDir = [rootDir, options.input?.dir || config.prevStage].join('/');
 
     let splitLength = 0;
     let done = false;
     let error;
     try {
         debug('deleting directory');
-        if (await storage.checkDirectoryExists(stageDir + '/')) {
+        if (await storage.checkDirectoryExists(toDir + '/')) {
             debug('directory found');
-            await storage.deleteDirectory(stageDir + '/');
+            await storage.deleteDirectory(toDir + '/');
         }
 
         const files = await storage.readDirectory(fromDir);
@@ -50,7 +51,7 @@ const split = async (worker: StageWorker, stateService = null, monitorService = 
 
         for (const filePath of files) {
             if (filePath.endsWith('/')) continue;
-            splitLength += await splitItem({ filePath, stageDir, worker, options, storage, splitNumberStartAt: splitLength });
+            splitLength += await splitItem({ filePath, toDir, worker, options, storage, splitNumberStartAt: splitLength });
         }
 
         await stateService?.save(lengthKey, splitLength);
@@ -76,7 +77,7 @@ const readStream = async (fromPath, storage) => {
     }
 };
 
-const splitItem = async ({ filePath, stageDir, worker, options, storage, splitNumberStartAt }) => {
+const splitItem = async ({ filePath, toDir, worker, options, storage, splitNumberStartAt }) => {
     let splitLength = 0;
 
     const createFileStream = async () => await readStream(filePath, storage);
@@ -93,7 +94,7 @@ const splitItem = async ({ filePath, stageDir, worker, options, storage, splitNu
         // writeStreamIndex = splitNumber;
         const filename = splitNumber + splitNumberStartAt;
         debug('sending file');
-        writeStreamPath = [stageDir, filename].join('/');
+        writeStreamPath = [toDir, filename].join('/');
         writeStream = await storage.sendStream(writeStreamPath);
     };
 

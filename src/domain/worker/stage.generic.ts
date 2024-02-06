@@ -13,6 +13,7 @@ import { StageExecutionProvider } from '../../providers/stageExecution.provider'
 import { ConfigMixin } from './mixins/system/config.mixin';
 import { StatusMixin } from './mixins/system/status.mixin';
 import { RetryMixin } from './mixins/system/retry.mixin';
+import { MultipleExecutionMixin } from './mixins/system/multipleExecution.mixin';
 
 export abstract class StageGeneric {
     static defaultWorker = 'index';
@@ -26,6 +27,7 @@ export abstract class StageGeneric {
     transactionUid: string;
     moduleUid: string;
     stageUid: string;
+    executionUid: string;
     stageName: string;
 
     moduleExecution: ModuleExecutionInterface;
@@ -42,10 +44,11 @@ export abstract class StageGeneric {
         this._set(options);
     }
 
-    _set({ transactionUid, moduleUid, stageUid, stageName, moduleConfig, stageConfig, body }) {
+    _set({ transactionUid, moduleUid, stageUid, executionUid, stageName, moduleConfig, stageConfig, body }) {
         this.transactionUid = transactionUid;
         this.moduleUid = moduleUid;
         this.stageUid = stageUid;
+        this.executionUid = executionUid;
         this.stageName = stageName;
         this.moduleConfig = moduleConfig;
         this.stageConfig = stageConfig;
@@ -81,6 +84,10 @@ export abstract class StageGeneric {
         return this.transactionUid;
     }
 
+    getProjectUid(): string {
+        return this.moduleConfig.projectUid || this.project.uid;
+    }
+
     getModuleConfig() {
         return this.moduleConfig;
     }
@@ -99,11 +106,16 @@ export abstract class StageGeneric {
         return index === undefined || index === null ? -1 : +index;
     }
 
+    // getIndex(): string | number {
+    //     const index = this.stageExecution?.data?.index !== undefined ? this.stageExecution?.data?.index : this.body.options.index;
+    //     return index === undefined ? -1 : index;
+    // }
+
     getExecutionUid() {
         const executionUid =
             this.stageExecution && this.stageExecution?.system?.executionUid
                 ? this.stageExecution?.system?.executionUid
-                : this.body.executionUid;
+                : this.executionUid;
         return executionUid;
     }
 
@@ -124,18 +136,8 @@ export abstract class StageGeneric {
             this.getIndex(),
         );
     }
-
-    separateStageUidAndExecutionUid(stageUidAndExecUid) {
-        const [stageUid, executionUid = ''] = stageUidAndExecUid.split('#');
-        return { stageUid, executionUid };
-    }
-
-    // getIndex(): string | number {
-    //     const index = this.stageExecution?.data?.index !== undefined ? this.stageExecution?.data?.index : this.body.options.index;
-    //     return index === undefined ? -1 : index;
-    // }
 }
 
-export interface StageGeneric extends StageStructureProperties, ConfigMixin, StatusMixin, RetryMixin {}
+export interface StageGeneric extends StageStructureProperties, ConfigMixin, StatusMixin, RetryMixin, MultipleExecutionMixin {}
 
-applyMixins(StageGeneric, [ConfigMixin, StatusMixin, RetryMixin]);
+applyMixins(StageGeneric, [ConfigMixin, StatusMixin, RetryMixin, MultipleExecutionMixin]);

@@ -7,7 +7,7 @@ import { applyMixins } from 'node-labs/lib/utils/mixin';
 
 import { BodyInterface } from '../../interfaces/body.interface';
 import { ResultInterface, SystemInterface } from '../../interfaces/result.interface';
-import { StageFeatureMethods, StageParts, StageAllProperties, StageFeatureProperties } from '../../interfaces/stageParts.interface';
+import { StageFeatureMethods, StageParts, StageAllProperties } from '../../interfaces/stageParts.interface';
 
 import { StageStatusEnum } from '../../types/stageStatus.type';
 import { ERROR } from '../../types/error.type';
@@ -21,6 +21,7 @@ import { DateMixin } from './mixins/system/date.mixin';
 import { ExecutionInfoMixin } from './mixins/system/executionInfo';
 
 import { StageGeneric } from './stage.generic';
+import { PathMixin } from './mixins/system/path.mixin';
 
 export class StageWorker extends StageGeneric implements StageParts {
     defaultConfig: any = {};
@@ -31,26 +32,12 @@ export class StageWorker extends StageGeneric implements StageParts {
 
     stageExecutionMocked = false;
 
-    rootDir: string;
-    moduleDir: string;
-    stageDir: string;
-
     moduleDomain: any = {};
     stageDomain: any = {};
 
     _set(options) {
         super._set(options);
-        this.setDirs();
-    }
-
-    getProjectUid() {
-        return this.moduleConfig.projectUid || this.project.uid;
-    }
-
-    setDirs() {
-        this.rootDir = [this.getProjectUid(), this.transactionUid].join('/');
-        this.moduleDir = [this.rootDir, this.moduleConfig.moduleUid].join('/');
-        this.stageDir = [this.rootDir, this.stageConfig.stageUid].join('/');
+        this.setPaths();
     }
 
     async checkExecution() {
@@ -141,6 +128,7 @@ export class StageWorker extends StageGeneric implements StageParts {
 
         try {
             result.statusUid = result.statusUid || StageStatusEnum.UNKNOWN;
+
             !result.system && (result.system = {});
             result.system.startedAt = this.system.startedAt;
             result.system.finishedAt = this.system.finishedAt;
@@ -210,6 +198,7 @@ export class StageWorker extends StageGeneric implements StageParts {
         const body = {
             transactionUid: this.transactionUid,
             stageUid: this.stageUid,
+            executionUid: this.getExecutionUid(),
             options: {
                 index,
             },
@@ -273,6 +262,7 @@ export class StageWorker extends StageGeneric implements StageParts {
             transactionUid: this.transactionUid,
             moduleUid: this.moduleUid,
             stageUid: this.stageUid,
+            executionUid: this.executionUid,
             stageName: this.stageName,
 
             moduleConfig: this.moduleConfig,
@@ -282,8 +272,7 @@ export class StageWorker extends StageGeneric implements StageParts {
             moduleExecution: this.moduleExecution,
             stageExecution: this.stageExecution,
 
-            rootDir: this.rootDir,
-            stageDir: this.stageDir,
+            ...this.getAllPaths(),
         };
     }
 
@@ -355,12 +344,12 @@ export class StageWorker extends StageGeneric implements StageParts {
 }
 
 export interface StageWorker
-    extends StageFeatureProperties,
-        LifeCycleMixin,
+    extends LifeCycleMixin,
         DynamicWorkerMixin,
         InjectionMixin,
         DateMixin,
+        PathMixin,
         SecretsMixin,
         ExecutionInfoMixin {}
 
-applyMixins(StageGeneric, [LifeCycleMixin, DynamicWorkerMixin, InjectionMixin, DateMixin, SecretsMixin, ExecutionInfoMixin]);
+applyMixins(StageGeneric, [LifeCycleMixin, DynamicWorkerMixin, InjectionMixin, DateMixin, PathMixin, SecretsMixin, ExecutionInfoMixin]);

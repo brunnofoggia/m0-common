@@ -4,29 +4,28 @@ import { StageConfigInterface } from './stageConfig.interface';
 import { StageExecutionInterface } from './stageExecution.interface';
 import { ProjectInterface } from './project.interface';
 import { ModuleExecutionInterface } from './moduleExecution.interface';
+import { PathProperties } from 'domain/worker/mixins/system/path.mixin';
 
-export interface StageStructureProperties {
+export interface ModuleStructureProperties {
     body: BodyInterface;
 
     transactionUid: string;
     moduleUid: string;
     stageUid: string;
+    executionUid: string;
     stageName: string;
 
     moduleConfig: ModuleConfigInterface;
     stageConfig: StageConfigInterface;
     project: ProjectInterface;
+}
 
+export interface StageStructureProperties extends ModuleStructureProperties {
     moduleExecution: ModuleExecutionInterface;
     stageExecution: StageExecutionInterface;
 }
 
-export interface StageFeatureProperties {
-    rootDir: string;
-    stageDir: string;
-}
-
-export interface StageAllProperties extends StageFeatureProperties, StageStructureProperties {}
+export interface StageAllProperties extends StageStructureProperties, PathProperties {}
 
 export interface StageFeatureMethods {
     // options

@@ -1,16 +1,17 @@
 import { WorkerError } from '../../../worker/error';
 import { StageStructureProperties } from '../../../../interfaces/stageParts.interface';
 import { StageStatusEnum } from '../../../../types/stageStatus.type';
+import { PathMixin } from './path.mixin';
 
 export abstract class SecretsMixin {
     abstract _getSolutions();
     abstract getEnv();
-    abstract getProjectUid();
+    abstract getProjectUid(): string;
 
     buildSecretPath(name: string, basePath: any = null) {
         const env = this.getEnv();
         const path = ['', env];
-        basePath === null && (basePath = [this.getProjectUid()].join('/'));
+        basePath === null && (basePath = this.getProjectPath());
         path.push(basePath);
         path.push(name);
 
@@ -48,15 +49,20 @@ export abstract class SecretsMixin {
         return await this.getSecret(name, basePath);
     }
 
+    async getProjectSecret(name: string, basePath: any = null) {
+        basePath === null && (basePath = this.getProjectPath());
+        return await this.getSecret(name, basePath);
+    }
+
     async getModuleSecret(name: string, basePath: any = null) {
-        basePath === null && (basePath = [this.getProjectUid(), this.moduleUid].join('/'));
+        basePath === null && (basePath = this.getProjectModulePath());
         return await this.getSecret(name, basePath);
     }
 
     async getStageSecret(name: string, basePath: any = null) {
-        basePath === null && (basePath = [this.getProjectUid(), this.stageUid].join('/'));
+        basePath === null && (basePath = this.getProjectStagePath());
         return await this.getSecret(name, basePath);
     }
 }
 
-export interface SecretsMixin extends StageStructureProperties {}
+export interface SecretsMixin extends StageStructureProperties, PathMixin {}
