@@ -1,7 +1,10 @@
-import { MoreThanOrEqual } from 'typeorm';
+import { IsNull, MoreThanOrEqual } from 'typeorm';
+import { bind } from 'lodash';
+
 import { DynamicDatabase } from 'node-labs/lib/services/dynamicDatabase.service';
 
 import { StageExecutionEntity } from '../entities/stageExecution.entity';
+import { MultipleExecutionMixin } from '../../../domain/worker/mixins/system/multipleExecution.mixin';
 
 export class StageExecutionService extends DynamicDatabase<StageExecutionEntity> {
     protected entity = StageExecutionEntity;
@@ -58,42 +61,26 @@ export class StageExecutionService extends DynamicDatabase<StageExecutionEntity>
         return await this.find({
             where: {
                 moduleExecutionId,
+                deletedAt: IsNull(),
             },
         });
     }
 
-    // async findByModuleExecutionIdAndStageUidAndDate(
-    //     moduleExecutionId,
-    //     date,
-    //     stageUid,
-    //     _options: any = {},
-    // ): Promise<StageExecutionEntity[]> {
-    //     const options: any = {
-    //         ..._options,
-    //         where: {
-    //             moduleExecutionId,
-    //             stageConfig: {
-    //                 stageUid,
-    //             },
-    //             moduleExecution: {
-    //                 date: MoreThanOrEqual(date),
-    //             },
-    //         },
-    //         order: {
-    //             id: 'DESC',
-    //         },
-    //         take: 1,
-    //     };
-    //     const moduleExecutionList = await this.find(options);
-    //     return moduleExecutionList;
-    // }
+    async findByModuleExecutionIdAndStageUidAndExecutionUid(moduleExecutionId, stageUidAndExecutionUid): Promise<StageExecutionEntity[]> {
+        const { stageUid, executionUid } = this.separateStageUidAndExecutionUid(stageUidAndExecutionUid);
+        return await this.findAllByModuleExecutionAndStageUidAndIndex(moduleExecutionId, stageUid, executionUid);
+    }
 
-    // async findOneByModuleExecutionIdAndStageUidAndDate(moduleExecutionId, date, stageUid, options: any = {}) {
-    //     return (
-    //         await this.findByModuleExecutionIdAndStageUidAndDate(moduleExecutionId, date, stageUid, {
-    //             ...options,
-    //             take: 1,
-    //         })
-    //     )?.shift();
-    // }
+    async findOneByModuleExecutionIdAndStageUidAndExecutionUid(moduleExecutionId, stageUidAndExecutionUid) {
+        const { stageUid, executionUid } = this.separateStageUidAndExecutionUid(stageUidAndExecutionUid);
+        return await this.findByModuleExecutionAndStageUidAndIndex(moduleExecutionId, stageUid, executionUid);
+    }
+
+    getStageExecutionSplitter() {
+        return bind(MultipleExecutionMixin.prototype.getStageExecutionSplitter, this);
+    }
+
+    separateStageUidAndExecutionUid(...args) {
+        return bind(MultipleExecutionMixin.prototype.separateStageUidAndExecutionUid, this)(...args);
+    }
 }
