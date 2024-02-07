@@ -123,7 +123,7 @@ export class StageWorker extends StageGeneric implements StageParts {
     }
 
     public async sendResultAsMessage(result: ResultInterface): Promise<ResultInterface> {
-        debug(`result:`, result, '; stage:', this.stageUid, '; index: ', this.getIndex());
+        debug(`result:`, result, '; stage:', this.stageUid, '; execUid:', this.executionUid, '; index: ', this.getIndex());
         if (typeof result === 'undefined' || result === null || this.stageExecutionMocked) return;
 
         try {
@@ -182,28 +182,17 @@ export class StageWorker extends StageGeneric implements StageParts {
         }
     }
 
-    async triggerExecutionResult(result: ResultInterface) {
-        const index = this.getIndex();
+    async triggerExecutionResult(result_: ResultInterface) {
+        const result = {
+            ...omit(result_, '_options'),
+            errorMessage: (result_.errorMessage || '').split('\n')[0],
+        };
+
         // avoid infinity loop when waiting multiple child process
         // but with this waiting status never is saved
         // if (result.status === StageStatusEnum.WAITING) return;
-
-        const { events } = await this._getSolutions();
-        const body = {
-            projectUid: this.projectUid,
-            transactionUid: this.transactionUid,
-            stageUid: this.stageUid,
-            executionUid: this.getExecutionUid(),
-            options: {
-                index,
-            },
-            result: {
-                ...omit(result, '_options'),
-                errorMessage: (result.errorMessage || '').split('\n')[0],
-            },
-        };
-
-        events.sendToQueue(this.worflowEventName, body);
+        const body = this.buildTriggerStageResultBody({}, result);
+        return this.triggerStageToDefaultProvider(this.worflowEventName, body);
     }
 
     public getDefaultConfig() {

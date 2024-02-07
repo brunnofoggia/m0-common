@@ -1,4 +1,4 @@
-import { uniqueId } from 'lodash';
+import { uniqueId, result } from 'lodash';
 import { applyMixins } from 'node-labs/lib/utils/mixin';
 
 import { ModuleExecutionInterface } from '../../interfaces/moduleExecution.interface';
@@ -151,6 +151,19 @@ export abstract class StageGeneric {
         };
     }
 
+    buildTriggerStageResultBody(options: any = {}, result: any = {}) {
+        let stageUidAndExecutionUid = this.stageUid;
+        options = {
+            index: this.getIndex(),
+        };
+
+        stageUidAndExecutionUid = this.fowardExecutionUid(stageUidAndExecutionUid);
+        return {
+            ...this.buildStageBody(stageUidAndExecutionUid, options),
+            result,
+        };
+    }
+
     buildTriggerStageBody(stageUidAndExecutionUid_, options: any = {}) {
         let stageUidAndExecutionUid = stageUidAndExecutionUid_;
         options = {
@@ -159,7 +172,6 @@ export abstract class StageGeneric {
         };
 
         stageUidAndExecutionUid = this.fowardExecutionUid(stageUidAndExecutionUid);
-
         return this.buildStageBody(stageUidAndExecutionUid, options);
     }
 }
