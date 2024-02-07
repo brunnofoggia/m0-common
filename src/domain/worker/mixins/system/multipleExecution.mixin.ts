@@ -6,7 +6,7 @@ export abstract class MultipleExecutionMixin {
     }
 
     separateStageUidAndExecutionUid(stageUidAndExecUid) {
-        const [stageUid, executionUid = '_'] = stageUidAndExecUid.split(this.getStageExecutionSplitter());
+        const [stageUid, executionUid = ''] = stageUidAndExecUid.split(this.getStageExecutionSplitter());
         return { stageUid, executionUid };
     }
 

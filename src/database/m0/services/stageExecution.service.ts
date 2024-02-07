@@ -16,7 +16,7 @@ export class StageExecutionService extends DynamicDatabase<StageExecutionEntity>
         executionUid = '',
         index: string | number = -1,
     ) {
-        !executionUid && (executionUid = '_');
+        !executionUid && (executionUid = '');
 
         queryBuilder.andWhere(`stageExecution.deletedAt IS NULL`);
 
