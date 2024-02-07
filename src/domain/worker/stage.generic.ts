@@ -24,6 +24,7 @@ export abstract class StageGeneric {
     uniqueId: string;
     body;
 
+    projectUid: string;
     transactionUid: string;
     moduleUid: string;
     stageUid: string;
@@ -44,7 +45,7 @@ export abstract class StageGeneric {
         this._set(options);
     }
 
-    _set({ transactionUid, moduleUid, stageUid, executionUid, stageName, moduleConfig, stageConfig, body }) {
+    _set({ projectUid = '', transactionUid, moduleUid, stageUid, executionUid, stageName, moduleConfig, stageConfig, body }) {
         this.transactionUid = transactionUid;
         this.moduleUid = moduleUid;
         this.stageUid = stageUid;
@@ -55,6 +56,7 @@ export abstract class StageGeneric {
         this.body = body;
 
         this.project = this.moduleConfig.project;
+        this.projectUid = projectUid || this.moduleConfig.projectUid || this.project.uid;
     }
 
     _getSolutions() {
@@ -85,7 +87,7 @@ export abstract class StageGeneric {
     }
 
     getProjectUid(): string {
-        return this.moduleConfig.projectUid || this.project.uid;
+        return this.projectUid;
     }
 
     getModuleConfig() {
@@ -135,6 +137,30 @@ export abstract class StageGeneric {
             this.getExecutionUid(),
             this.getIndex(),
         );
+    }
+
+    buildStageBody(stageUidAndExecutionUid, options: any = {}) {
+        const { stageUid, executionUid } = this.separateStageUidAndExecutionUid(stageUidAndExecutionUid);
+        return {
+            projectUid: this.projectUid,
+            transactionUid: this.transactionUid,
+            date: this.moduleExecution.date,
+            stageUid,
+            executionUid,
+            options,
+        };
+    }
+
+    buildTriggerStageBody(stageUidAndExecutionUid_, options: any = {}) {
+        let stageUidAndExecutionUid = stageUidAndExecutionUid_;
+        options = {
+            ...options,
+            _calledByStage: this.stageUid,
+        };
+
+        stageUidAndExecutionUid = this.fowardExecutionUid(stageUidAndExecutionUid);
+
+        return this.buildStageBody(stageUidAndExecutionUid, options);
     }
 }
 

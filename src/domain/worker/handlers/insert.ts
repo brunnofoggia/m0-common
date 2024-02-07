@@ -14,7 +14,7 @@ const prepareInsertOptions = (_options) => {
 };
 
 export const insert = async (worker: StageWorker, service, getData, monitorService = null) => {
-    const { stageConfig, body, rootDir, stageDir } = worker.get();
+    const { stageConfig, body, rootDir, stageDir, executionUid } = worker.get();
 
     const key = _.camelCase([stageConfig.stageUid, 'process'].join('/'));
     const monitorKey = [stageDir, body.options.index].join('/');
@@ -27,7 +27,12 @@ export const insert = async (worker: StageWorker, service, getData, monitorServi
     const options = prepareInsertOptions(stageConfig.options);
     const { storage } = await worker._getSolutions();
     const fromDir = [rootDir, options.input.dir].join('/');
-    const fromPath = [fromDir, body.options.index].join('/');
+    const fromPath_ = [fromDir];
+    if (executionUid) {
+        fromPath_.push(executionUid);
+    }
+    fromPath_.push(body.options.index);
+    const fromPath = fromPath_.join('/');
 
     await service.checkIfTableExists();
 

@@ -40,16 +40,16 @@ export abstract class SnapshotMixin {
         return defaultsDeep(foundStageConfig || {}, stageConfig);
     }
 
-    async createSnapshot({ transactionUid, stageUid, forceUpdate = false, mergeSnapshot = {} }) {
+    async createSnapshot({ projectUid = '', transactionUid, stageUid, forceUpdate = false, mergeSnapshot = {} }) {
         const forceUpdate_ = +forceUpdate;
         const moduleUid = stageUid.split('/')[0];
         let moduleConfig;
 
-        if (!forceUpdate_) moduleConfig = await SnapshotProvider.find(transactionUid, stageUid, forceUpdate_);
+        if (!forceUpdate_) moduleConfig = await SnapshotProvider.find(projectUid, transactionUid, stageUid, forceUpdate_);
         if (!moduleConfig || !size(moduleConfig) || forceUpdate_) {
             // create / update a snapshot
             moduleConfig = await ModuleConfigProvider.findConfig(transactionUid, moduleUid);
-            await SnapshotProvider.save(transactionUid, moduleUid, this.buildSnapshot(moduleConfig, mergeSnapshot));
+            await SnapshotProvider.save(projectUid, transactionUid, moduleUid, this.buildSnapshot(moduleConfig, mergeSnapshot));
         }
 
         if (!moduleConfig) {
@@ -63,7 +63,7 @@ export abstract class SnapshotMixin {
         if (!stageConfig || !size(stageConfig)) {
             // does not force twice
             if (!forceUpdate_) {
-                return this.createSnapshot({ transactionUid, stageUid, forceUpdate: true, mergeSnapshot });
+                return this.createSnapshot({ projectUid, transactionUid, stageUid, forceUpdate: true, mergeSnapshot });
             }
 
             throw new Error(`Stage config not found (${stageUid})`);

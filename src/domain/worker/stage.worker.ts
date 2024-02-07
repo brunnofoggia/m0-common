@@ -182,12 +182,6 @@ export class StageWorker extends StageGeneric implements StageParts {
         }
     }
 
-    async triggerStage(_name, body) {
-        const { events } = await this._getSolutions();
-        // const name = _name.replace(/\//g, '-');
-        return events.sendToQueue(_name, body);
-    }
-
     async triggerExecutionResult(result: ResultInterface) {
         const index = this.getIndex();
         // avoid infinity loop when waiting multiple child process
@@ -196,6 +190,7 @@ export class StageWorker extends StageGeneric implements StageParts {
 
         const { events } = await this._getSolutions();
         const body = {
+            projectUid: this.projectUid,
             transactionUid: this.transactionUid,
             stageUid: this.stageUid,
             executionUid: this.getExecutionUid(),
@@ -259,6 +254,7 @@ export class StageWorker extends StageGeneric implements StageParts {
         return {
             body: this.body,
 
+            projectUid: this.projectUid,
             transactionUid: this.transactionUid,
             moduleUid: this.moduleUid,
             stageUid: this.stageUid,

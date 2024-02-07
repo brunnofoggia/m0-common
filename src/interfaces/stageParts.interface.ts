@@ -9,6 +9,7 @@ import { PathProperties } from 'domain/worker/mixins/system/path.mixin';
 export interface ModuleStructureProperties {
     body: BodyInterface;
 
+    projectUid: string;
     transactionUid: string;
     moduleUid: string;
     stageUid: string;

@@ -18,12 +18,12 @@ export class ModuleExecutionProvider extends M0ApiProvider {
         if (!projectUid && !transactionUid) throwHttpException(ERROR.NOT_ENOUGH_DATA);
 
         const _data = {
-            moduleConfigId: moduleConfigId,
-            moduleUid: moduleUid,
-            projectUid: projectUid,
+            moduleConfigId,
+            moduleUid,
+            projectUid,
             date: (date ? new Date(date) : new Date()).toISOString(),
-            transactionUid: transactionUid,
-            data: data,
+            transactionUid,
+            data,
         };
 
         return (

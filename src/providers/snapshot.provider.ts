@@ -6,9 +6,19 @@ import { M0ApiProvider } from './m0Api.provider';
 export class SnapshotProvider extends M0ApiProvider {
     static basePath = 'm0/snapshot';
 
-    static async find(transactionUid: string, stageUid: string, forceUpdate = 0) {
+    static buildFindUrl(projectUid: string, transactionUid: string, stageUid: string) {
+        const url = [this.basePath];
+        if (projectUid) url.push(projectUid);
+        url.push(transactionUid);
+        url.push(stageUid);
+        return url.join('/');
+    }
+
+    static async find(projectUid: string, transactionUid: string, stageUid: string, forceUpdate = 0) {
+        // TODO: disabled but implemented. will work when/if projectUid become required into message body
+        projectUid = '';
         if (!transactionUid) throwHttpException(ERROR.TRANSACTIONUID_EMPTY);
-        const url = [this.basePath, transactionUid, stageUid].join('/') + '?forceUpdate=' + forceUpdate;
+        const url = this.buildFindUrl(projectUid, transactionUid, stageUid) + '?forceUpdate=' + forceUpdate;
         const data = (
             await this.request({
                 method: 'get',
@@ -19,7 +29,9 @@ export class SnapshotProvider extends M0ApiProvider {
         return data;
     }
 
-    static async save(transactionUid: string, stageUid: string, data = {}) {
+    static async save(projectUid: string, transactionUid: string, stageUid: string, data = {}) {
+        // TODO: disabled but implemented. will work when/if projectUid become required into message body
+        projectUid = '';
         const url = [this.basePath].join('/');
 
         return (
@@ -27,7 +39,7 @@ export class SnapshotProvider extends M0ApiProvider {
                 method: 'put',
                 url,
                 data: {
-                    uid: [transactionUid, stageUid].join('/'),
+                    uid: [projectUid, transactionUid, stageUid].join('/'),
                     data,
                 },
             })

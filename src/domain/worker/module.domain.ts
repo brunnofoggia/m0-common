@@ -100,7 +100,8 @@ export class ModuleDomain extends ModuleGeneric {
     }
 
     async getSnapshotConfig() {
-        if (!this.body.mockStageExecution) this.moduleConfig = await SnapshotProvider.find(this.transactionUid, this.body.stageUid);
+        if (!this.body.mockStageExecution)
+            this.moduleConfig = await SnapshotProvider.find(this.projectUid, this.transactionUid, this.body.stageUid);
         this.moduleConfig = this.buildSnapshot((this.moduleConfig || {}) as never, this.body.mergeSnapshot);
 
         this.stageConfig = this.getStageConfigFromSnapshot(this.stageUid, this.moduleConfig || {});

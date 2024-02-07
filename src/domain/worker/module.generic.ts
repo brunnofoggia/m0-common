@@ -17,6 +17,7 @@ export abstract class ModuleGeneric {
 
     body: BodyInterface;
 
+    projectUid: string;
     transactionUid: string;
     moduleUid: string;
     stageUid: string;
@@ -57,6 +58,7 @@ export abstract class ModuleGeneric {
         const { stageUid, executionUid } = this.separateStageUidAndExecutionUid(body.stageUid);
 
         this.transactionUid = body.transactionUid || '';
+        this.projectUid = body.projectUid || '';
         this.moduleUid = moduleUid;
         this.stageName = stageKey;
         this.stageUid = stageUid;
@@ -68,6 +70,7 @@ export abstract class ModuleGeneric {
 
     _getBuilderOptions() {
         return {
+            projectUid: this.projectUid,
             transactionUid: this.transactionUid,
             moduleUid: this.moduleUid,
             stageUid: this.stageUid,

@@ -129,7 +129,7 @@ export abstract class SplitMixin {
             };
 
             // debug('new event will be created', this.worflowEventName, body);
-            await this.triggerStage(this.worflowEventName, body);
+            await this.triggerStageToDefaultProvider(this.worflowEventName, body);
             // break;
         }
 
@@ -145,16 +145,13 @@ export abstract class SplitMixin {
             options,
             {
                 ...omit(this.getSplitStageOptions(), '_indexTo'),
-                _calledByStage: this.stageUid,
+                // _calledByStage: this.stageUid,
             },
             this.fowardInternalOptions(),
         );
 
-        return {
-            transactionUid: this.transactionUid,
-            stageUid: this.buildStageUidWithCurrentExecutionUid(this.stageConfig.config.splitStage),
-            options,
-        };
+        const stageUidAndExecutionUid = this.buildStageUidWithCurrentExecutionUid(this.stageConfig.config.splitStage);
+        return this.buildTriggerStageBody(stageUidAndExecutionUid, options);
     }
 
     splitExecuteOptions() {
