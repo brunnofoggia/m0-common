@@ -5,6 +5,7 @@ import { DynamicDatabase } from 'node-labs/lib/services/dynamicDatabase.service'
 
 import { StageExecutionEntity } from '../entities/stageExecution.entity';
 import { MultipleExecutionMixin } from '../../../domain/worker/mixins/system/multipleExecution.mixin';
+import { applyMixins } from 'node-labs/lib/utils/mixin';
 
 export class StageExecutionService extends DynamicDatabase<StageExecutionEntity> {
     protected entity = StageExecutionEntity;
@@ -75,12 +76,8 @@ export class StageExecutionService extends DynamicDatabase<StageExecutionEntity>
         const { stageUid, executionUid } = this.separateStageUidAndExecutionUid(stageUidAndExecutionUid);
         return await this.findByModuleExecutionAndStageUidAndIndex(moduleExecutionId, stageUid, executionUid);
     }
-
-    getStageExecutionSplitter() {
-        return bind(MultipleExecutionMixin.prototype.getStageExecutionSplitter, this);
-    }
-
-    separateStageUidAndExecutionUid(...args) {
-        return bind(MultipleExecutionMixin.prototype.separateStageUidAndExecutionUid, this)(...args);
-    }
 }
+
+export interface StageExecutionService extends DynamicDatabase<StageExecutionEntity>, MultipleExecutionMixin {}
+
+applyMixins(StageExecutionService, [MultipleExecutionMixin]);

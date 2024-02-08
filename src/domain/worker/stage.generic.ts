@@ -15,7 +15,7 @@ import { StageExecutionProvider } from '../../providers/stageExecution.provider'
 import { ConfigMixin } from './mixins/system/config.mixin';
 import { StatusMixin } from './mixins/system/status.mixin';
 import { RetryMixin } from './mixins/system/retry.mixin';
-import { MultipleExecutionMixin } from './mixins/system/multipleExecution.mixin';
+import { MultipleExecutionStageMixin } from './mixins/system/multipleExecution.mixin';
 
 export abstract class StageGeneric {
     static defaultWorker = 'index';
@@ -204,6 +204,6 @@ export abstract class StageGeneric {
     }
 }
 
-export interface StageGeneric extends StageStructureProperties, ConfigMixin, StatusMixin, RetryMixin, MultipleExecutionMixin {}
+export interface StageGeneric extends StageStructureProperties, ConfigMixin, StatusMixin, RetryMixin, MultipleExecutionStageMixin {}
 
-applyMixins(StageGeneric, [ConfigMixin, StatusMixin, RetryMixin, MultipleExecutionMixin]);
+applyMixins(StageGeneric, [ConfigMixin, StatusMixin, RetryMixin, MultipleExecutionStageMixin]);

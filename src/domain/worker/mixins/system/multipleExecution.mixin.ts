@@ -1,3 +1,4 @@
+import { applyMixins } from 'node-labs/lib/utils/mixin';
 import { ModuleStructureProperties } from '../../../../interfaces/stageParts.interface';
 
 export abstract class MultipleExecutionMixin {
@@ -16,6 +17,26 @@ export abstract class MultipleExecutionMixin {
 
         return stageUidAndExecUid.join(this.getStageExecutionSplitter());
     }
+
+    _buildExecutionUid(executionUid_) {
+        if (!executionUid_) return executionUid_;
+        const replace = (search, replace) => (executionUid_ = executionUid_.split(search).join(replace));
+
+        switch (true) {
+            case /:now\(\)/.test(executionUid_):
+                replace(':now()', new Date().toISOString().replace(/\D+/g, ''));
+                break;
+            case /:today\(\)/.test(executionUid_):
+                replace(':today()', new Date().toISOString().split('T')[0].replace(/\D+/g, ''));
+                break;
+        }
+
+        return executionUid_;
+    }
+}
+
+export abstract class MultipleExecutionStageMixin {
+    //
 
     joinStageUidWithCurrentExecutionUid(stageUid) {
         return this.joinStageUidAndExecutionUid(stageUid, this.executionUid);
@@ -48,14 +69,8 @@ export abstract class MultipleExecutionMixin {
     fowardExecutionUidToList(stageUidAndExecutionUidList) {
         return stageUidAndExecutionUidList.map((stageUidAndExecutionUid) => this.fowardExecutionUid(stageUidAndExecutionUid));
     }
-
-    _buildExecutionUid(executionUid_) {
-        if (!executionUid_) return executionUid_;
-        if (/now\(\)/.test(executionUid_)) {
-            executionUid_ = executionUid_.replace('now()', new Date().toISOString().replace(/\D+/g, ''));
-        }
-        return executionUid_;
-    }
 }
 
-export interface MultipleExecutionMixin extends ModuleStructureProperties {}
+export interface MultipleExecutionStageMixin extends ModuleStructureProperties, MultipleExecutionMixin {}
+
+applyMixins(MultipleExecutionStageMixin, [MultipleExecutionMixin]);

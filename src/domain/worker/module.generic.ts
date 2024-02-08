@@ -9,7 +9,7 @@ import { BodyInterface } from '../../interfaces/body.interface';
 import { ModuleConfigInterface } from '../../interfaces/moduleConfig.interface';
 import { StageConfigInterface } from '../../interfaces/stageConfig.interface';
 import { ProjectInterface } from '../../interfaces/project.interface';
-import { MultipleExecutionMixin } from './mixins/system/multipleExecution.mixin';
+import { MultipleExecutionStageMixin } from './mixins/system/multipleExecution.mixin';
 
 export abstract class ModuleGeneric {
     static getSolutions;
@@ -90,6 +90,6 @@ export abstract class ModuleGeneric {
     }
 }
 
-export interface ModuleGeneric extends SnapshotMixin, MultipleExecutionMixin {}
+export interface ModuleGeneric extends SnapshotMixin, MultipleExecutionStageMixin {}
 
-applyMixins(ModuleGeneric, [SnapshotMixin, MultipleExecutionMixin]);
+applyMixins(ModuleGeneric, [SnapshotMixin, MultipleExecutionStageMixin]);
