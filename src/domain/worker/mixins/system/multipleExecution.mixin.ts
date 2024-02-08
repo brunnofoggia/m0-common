@@ -18,17 +18,22 @@ export abstract class MultipleExecutionMixin {
         return stageUidAndExecUid.join(this.getStageExecutionSplitter());
     }
 
+    _buildExecutionUid_today(executionUid_) {
+        if (!executionUid_) return executionUid_;
+        return executionUid_.replace(':today()', new Date().toISOString().split('T')[0].replace(/\D+/g, ''));
+    }
+
+    _buildExecutionUid_now(executionUid_) {
+        if (!executionUid_) return executionUid_;
+        return executionUid_.replace(':now()', new Date().toISOString().replace(/\D+/g, ''));
+    }
+
     _buildExecutionUid(executionUid_) {
         if (!executionUid_) return executionUid_;
-        const replace = (search, replace) => (executionUid_ = executionUid_.split(search).join(replace));
 
-        switch (true) {
-            case /:now\(\)/.test(executionUid_):
-                replace(':now()', new Date().toISOString().replace(/\D+/g, ''));
-                break;
-            case /:today\(\)/.test(executionUid_):
-                replace(':today()', new Date().toISOString().split('T')[0].replace(/\D+/g, ''));
-                break;
+        const fn = (executionUid_.match(/:(\w+)\(\)/) || [])[1];
+        if (fn && this[`_buildExecutionUid_${fn}`]) {
+            executionUid_ = this[`_buildExecutionUid_${fn}`](executionUid_);
         }
 
         return executionUid_;
@@ -68,6 +73,11 @@ export abstract class MultipleExecutionStageMixin {
 
     fowardExecutionUidToList(stageUidAndExecutionUidList) {
         return stageUidAndExecutionUidList.map((stageUidAndExecutionUid) => this.fowardExecutionUid(stageUidAndExecutionUid));
+    }
+
+    _buildExecutionUid_stageuid(executionUid_) {
+        if (!executionUid_) return executionUid_;
+        return executionUid_.replace(':stageuid()', this.stageUid);
     }
 }
 
