@@ -193,7 +193,8 @@ export abstract class StageGeneric {
     }
 
     buildTriggerStageBody(stageUidAndExecutionUid_, options: any = {}) {
-        let stageUidAndExecutionUid = stageUidAndExecutionUid_;
+        let stageUidAndExecutionUid = this._prepareStageUidAndExecutionUid(stageUidAndExecutionUid_);
+
         options = {
             ...options,
             _calledByStage: this.stageUid,

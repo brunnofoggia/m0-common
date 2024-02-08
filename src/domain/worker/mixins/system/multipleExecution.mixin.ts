@@ -38,6 +38,12 @@ export abstract class MultipleExecutionMixin {
 
         return executionUid_;
     }
+
+    _prepareStageUidAndExecutionUid(stageUidAndExecutionUid) {
+        const { stageUid, executionUid } = this.separateStageUidAndExecutionUid(stageUidAndExecutionUid);
+        const executionUid_ = this._buildExecutionUid(executionUid);
+        return this.joinStageUidAndExecutionUid(stageUid, executionUid_);
+    }
 }
 
 export abstract class MultipleExecutionStageMixin {
