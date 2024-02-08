@@ -12,6 +12,7 @@ import { StageFeatureMethods, StageParts, StageAllProperties } from '../../inter
 import { StageStatusEnum } from '../../types/stageStatus.type';
 import { ERROR } from '../../types/error.type';
 import { WorkerError } from './error';
+import { StageExecutionFindError } from '../../types/stageExecution';
 
 import { DynamicWorkerMixin } from './mixins/system/dynamicWorker.mixin';
 import { InjectionMixin } from './mixins/system/injection.mixin';
@@ -147,35 +148,27 @@ export class StageWorker extends StageGeneric implements StageParts {
         try {
             const index = this.getIndex();
             if (this.body.mockStageExecution) return this.mockStageExecution();
-            const stageExecution = await this._findLastExecution();
+            // const stageExecution = await this._findLastExecution();
+            const { stageExecution, error } = await this._findNonFailedLastStageExecution();
 
-            if (!stageExecution || !size(stageExecution)) {
-                throw new WorkerError(
-                    `stageExecution not found for
-                transactionUid:${this.transactionUid} , stageUid: ${this.stageConfig?.stageUid} , index: ${index}
-                ("${JSON.stringify(stageExecution)}")`,
-                    StageStatusEnum.ERROR,
-                );
-            } else if (
-                stageExecution.statusUid &&
-                indexOf(
-                    [
-                        // StageStatusEnum.DONE,
-                        StageStatusEnum.FAILED,
+            switch (error) {
+                case StageExecutionFindError.NOT_FOUND:
+                    throw new WorkerError(
+                        `stageExecution not found for
+                        transactionUid:${this.transactionUid} , stageUid: ${this.stageConfig?.stageUid} , index: ${index}
+                        ("${JSON.stringify(stageExecution)}")`,
                         StageStatusEnum.UNKNOWN,
-                    ],
-                    stageExecution.statusUid,
-                ) === -1
-            ) {
-                return stageExecution;
+                    );
+                case StageExecutionFindError.FAILED:
+                    throw new WorkerError(
+                        `invalid stageExecution for
+                    transactionUid:${this.transactionUid} , stageUid: ${this.stageConfig?.stageUid} , index: ${index}
+                    ("${JSON.stringify(stageExecution)}")`,
+                        StageStatusEnum.FAILED,
+                    );
             }
 
-            throw new WorkerError(
-                `invalid stageExecution for
-            transactionUid:${this.transactionUid} , stageUid: ${this.stageConfig?.stageUid} , index: ${index}
-            ("${JSON.stringify(stageExecution)}")`,
-                StageStatusEnum.FAILED,
-            );
+            return stageExecution;
         } catch (err) {
             debug(err);
             return null;

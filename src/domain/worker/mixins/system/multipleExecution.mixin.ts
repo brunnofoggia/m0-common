@@ -48,6 +48,14 @@ export abstract class MultipleExecutionMixin {
     fowardExecutionUidToList(stageUidAndExecutionUidList) {
         return stageUidAndExecutionUidList.map((stageUidAndExecutionUid) => this.fowardExecutionUid(stageUidAndExecutionUid));
     }
+
+    _buildExecutionUid(executionUid_) {
+        if (!executionUid_) return executionUid_;
+        if (/now\(\)/.test(executionUid_)) {
+            executionUid_ = executionUid_.replace('now()', new Date().toISOString().replace(/\D+/g, ''));
+        }
+        return executionUid_;
+    }
 }
 
 export interface MultipleExecutionMixin extends ModuleStructureProperties {}

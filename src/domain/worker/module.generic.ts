@@ -62,7 +62,7 @@ export abstract class ModuleGeneric {
         this.moduleUid = moduleUid;
         this.stageName = stageKey;
         this.stageUid = stageUid;
-        this.executionUid = body.executionUid || executionUid;
+        this.executionUid = body.executionUid = this._buildExecutionUid(body.executionUid || executionUid);
 
         this.body = body;
         this.body.options = this.body.options || {};

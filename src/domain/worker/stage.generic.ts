@@ -1,4 +1,4 @@
-import { uniqueId, result } from 'lodash';
+import { uniqueId, result, indexOf, size } from 'lodash';
 import { applyMixins } from 'node-labs/lib/utils/mixin';
 
 import { ModuleExecutionInterface } from '../../interfaces/moduleExecution.interface';
@@ -7,6 +7,8 @@ import { ModuleConfigInterface } from '../../interfaces/moduleConfig.interface';
 import { StageConfigInterface } from '../../interfaces/stageConfig.interface';
 import { StageExecutionInterface } from '../../interfaces/stageExecution.interface';
 import { StageStructureProperties } from '../../interfaces/stageParts.interface';
+import { StageStatusEnum } from '../../types/stageStatus.type';
+import { StageExecutionFindError } from '../../types/stageExecution';
 
 import { StageExecutionProvider } from '../../providers/stageExecution.provider';
 
@@ -139,6 +141,32 @@ export abstract class StageGeneric {
         );
     }
 
+    async _findNonFailedLastStageExecution() {
+        // motivation to find the last one based on uid:
+        // to make possible to work with parallel processes (split / child)
+        const stageExecution = await this._findLastExecution();
+
+        if (!stageExecution || !size(stageExecution)) {
+            return { stageExecution: undefined, error: StageExecutionFindError.NOT_FOUND };
+        }
+
+        if (
+            stageExecution?.statusUid &&
+            indexOf(
+                [
+                    // StageStatusEnum.DONE,
+                    StageStatusEnum.FAILED,
+                    StageStatusEnum.UNKNOWN,
+                ],
+                stageExecution.statusUid,
+            ) === -1
+        ) {
+            return { stageExecution, error: StageExecutionFindError.NONE };
+        }
+
+        return { stageExecution: undefined, error: StageExecutionFindError.FAILED };
+    }
+
     buildStageBody(stageUidAndExecutionUid, options: any = {}) {
         const { stageUid, executionUid } = this.separateStageUidAndExecutionUid(stageUidAndExecutionUid);
         return {
@@ -157,7 +185,7 @@ export abstract class StageGeneric {
             index: this.getIndex(),
         };
 
-        stageUidAndExecutionUid = this.fowardExecutionUid(stageUidAndExecutionUid);
+        stageUidAndExecutionUid = this.joinStageUidWithCurrentExecutionUid(stageUidAndExecutionUid);
         return {
             ...this.buildStageBody(stageUidAndExecutionUid, options),
             result,
