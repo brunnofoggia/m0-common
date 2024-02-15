@@ -33,7 +33,7 @@ export class ModuleDomain extends ModuleGeneric {
     }
 
     async checkData() {
-        if (this.body.mockStageExecution) return;
+        if (this.body.mockStageExecution || this.body.options._pureExecution) return;
         const config = await ModuleConfigProvider.findConfig(this.transactionUid, this.moduleUid);
         if (!config || !size(config)) {
             throwHttpException(ERROR.TRANSACTIONUID_NOT_INITIALIZED, HttpStatusCode.Ok);
@@ -59,7 +59,7 @@ export class ModuleDomain extends ModuleGeneric {
         await this.getSnapshotConfig();
 
         debug('check stage config existence');
-        if (!this.stageConfig || !size(this.stageConfig)) {
+        if ((!this.stageConfig || !size(this.stageConfig)) && !this.body.options._pureExecution) {
             exitRequest(ERROR.NO_STAGE_CONFIG_FOUND);
         }
 
@@ -100,7 +100,7 @@ export class ModuleDomain extends ModuleGeneric {
     }
 
     async getSnapshotConfig() {
-        if (!this.body.mockStageExecution)
+        if (!this.body.mockStageExecution || this.body.options._pureExecution)
             this.moduleConfig = await SnapshotProvider.find(this.projectUid, this.transactionUid, this.body.stageUid);
         this.moduleConfig = this.buildSnapshot((this.moduleConfig || {}) as never, this.body.mergeSnapshot);
 

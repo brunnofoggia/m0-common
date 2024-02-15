@@ -125,7 +125,7 @@ export class StageWorker extends StageGeneric implements StageParts {
 
     public async sendResultAsMessage(result: ResultInterface): Promise<ResultInterface> {
         debug(`result:`, result, '; stage:', this.stageUid, '; execUid:', this.executionUid, '; index: ', this.getIndex());
-        if (typeof result === 'undefined' || result === null || this.stageExecutionMocked) return;
+        if (typeof result === 'undefined' || result === null || this.stageExecutionMocked || this.body.options._pureExecution) return;
 
         try {
             result.statusUid = result.statusUid || StageStatusEnum.UNKNOWN;
@@ -147,7 +147,7 @@ export class StageWorker extends StageGeneric implements StageParts {
     async findLastStageExecution() {
         try {
             const index = this.getIndex();
-            if (this.body.mockStageExecution) return this.mockStageExecution();
+            if (this.body.mockStageExecution || this.body.options._pureExecution) return this.mockStageExecution();
             // const stageExecution = await this._findLastExecution();
             const { stageExecution, error } = await this._findNonFailedLastStageExecution();
 

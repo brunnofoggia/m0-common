@@ -1,4 +1,4 @@
-import { uniqueId, result, indexOf, size } from 'lodash';
+import { uniqueId, result, indexOf, size, lastIndexOf } from 'lodash';
 import { applyMixins } from 'node-labs/lib/utils/mixin';
 
 import { ModuleExecutionInterface } from '../../interfaces/moduleExecution.interface';
@@ -7,7 +7,7 @@ import { ModuleConfigInterface } from '../../interfaces/moduleConfig.interface';
 import { StageConfigInterface } from '../../interfaces/stageConfig.interface';
 import { StageExecutionInterface } from '../../interfaces/stageExecution.interface';
 import { StageStructureProperties } from '../../interfaces/stageParts.interface';
-import { StageStatusEnum } from '../../types/stageStatus.type';
+import { StageStatusEnum, StageStatusError } from '../../types/stageStatus.type';
 import { StageExecutionFindError } from '../../types/stageExecution';
 
 import { StageExecutionProvider } from '../../providers/stageExecution.provider';
@@ -202,6 +202,10 @@ export abstract class StageGeneric {
 
         stageUidAndExecutionUid = this.fowardExecutionUid(stageUidAndExecutionUid);
         return this.buildStageBody(stageUidAndExecutionUid, options);
+    }
+
+    isStatusAnError(statusUid) {
+        return lastIndexOf(StageStatusError, statusUid) >= 0;
     }
 }
 
