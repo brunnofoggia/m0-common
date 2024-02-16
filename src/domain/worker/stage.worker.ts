@@ -330,4 +330,4 @@ export interface StageWorker
         SecretsMixin,
         ExecutionInfoMixin {}
 
-applyMixins(StageGeneric, [LifeCycleMixin, DynamicWorkerMixin, InjectionMixin, DateMixin, PathMixin, SecretsMixin, ExecutionInfoMixin]);
+applyMixins(StageWorker, [LifeCycleMixin, DynamicWorkerMixin, InjectionMixin, DateMixin, PathMixin, SecretsMixin, ExecutionInfoMixin]);

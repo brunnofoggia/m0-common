@@ -70,6 +70,7 @@ export abstract class ParallelWorkerGeneric {
         const stageExecutionList = await StageExecutionProvider.findAllByTransactionAndModule(
             this.transactionUid,
             this.stageConfig.config.splitStage,
+            this.executionUid,
         );
         const filteredStageExecutionList = sortBy(
             filter(stageExecutionList, (stageExecution) => stageExecution.id > this.stageExecution.id),
