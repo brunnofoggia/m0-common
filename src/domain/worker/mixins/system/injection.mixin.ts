@@ -1,20 +1,29 @@
 import { applyMixins } from 'node-labs/lib/utils/mixin';
 
 import { Domain } from '../../../../types/domain.type';
-import { StageParts, StageStructureProperties } from '../../../../interfaces/stageParts.interface';
+import { StageAllProperties, StageParts, StageStructureProperties } from '../../../../interfaces/stageParts.interface';
 
 import { DynamicWorkerMixin } from './dynamicWorker.mixin';
 
 export abstract class InjectionMixin {
     abstract getStageParts(): StageParts;
+    abstract get(): StageAllProperties;
 
     /* domains */
     async _loadDomains(domains, path, type: Domain) {
-        const stageParts = this.getStageParts();
+        const props = this.get();
+
+        // legacy
+        const parts = this.getStageParts();
+
         for (const name of domains) {
             const Domain = await this.loadWorkerClass(name, path);
-            const instance = !Domain.getInstance ? new Domain() : await Domain.getInstance(stageParts);
-            if (instance.setStageParts) instance.setStageParts(stageParts);
+            const instance = !Domain.getInstance ? new Domain(props, this) : await Domain.getInstance(parts, this);
+            if (instance._set) instance._set(props, this);
+
+            // legacy
+            if (instance.setStageParts) instance.setStageParts(parts, this);
+
             this[type + 'Domain'][name] = instance;
         }
     }
