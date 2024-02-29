@@ -35,7 +35,8 @@ export abstract class CursorPartGeneric {
         // will keep total in mind but stop after reaching 0 or less then pageLimit
         const count = totalLimit;
         debug('total records available', count);
-        if (count % pageLimit > 0) throw new WorkerError('invalid totalLimit/pageLimit. one must be multiple of the other', StageStatusEnum.FAILED);
+        if (count % pageLimit > 0)
+            throw new WorkerError('invalid totalLimit/pageLimit. one must be multiple of the other', StageStatusEnum.FAILED);
 
         const totalPages = Math.ceil(count / pageLimit);
         debug('totalLimit', totalLimit, 'count', count, 'pageLimit', pageLimit, 'totalPages', totalPages);
@@ -69,6 +70,10 @@ export abstract class CursorPartGeneric {
         const cursorKey = this.getCursorKey();
         const pk = `"${alias}"."${cursorKey}"`;
 
+        // here I find dynamically the first record of the subprocess by using
+        // limit to get only one
+        // and calculating offset based on index
+        // that way I will *AVOID* the mistake of considering id sequence that wont be sequential
         const queryBuilder = this.paginateRecordsQueryBuilder(this.getLocalService());
         queryBuilder.limit(1);
         queryBuilder.orderBy(pk, Order.ASC);
@@ -97,8 +102,6 @@ export abstract class CursorPartGeneric {
                 },
                 queryBuilder,
             );
-            // const cursor: Cursor = this.paginator.setCursorByEntity(firstRow);
-            // debug('first cursor', cursor, this.paginator.decodeCursor(cursor.afterCursor));
         }
 
         return this.paginator;
@@ -117,9 +120,11 @@ export abstract class CursorPartGeneric {
         if (size(firstRow) && firstRow[cursorKey] === undefined)
             throw new WorkerError('invalid initial cursor value or cursor key field not present', StageStatusEnum.FAILED);
 
-        const where = `${pk} >= ${firstRow[cursorKey]}`;
+        // i did this at first but it makes no sense to capture all the keys
         // const splitDelimiters = this.getSplitDelimiters();
         // const where = `${pk} >= ${splitDelimiters[0]} AND ${pk} <= ${splitDelimiters[1]}`;
+        // then I realized that the first row could be calculated using limit and offset (see findFirstRow method)
+        const where = `${pk} >= ${firstRow[cursorKey]}`;
 
         queryBuilder.andWhere(where);
         return queryBuilder;

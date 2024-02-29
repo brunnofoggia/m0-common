@@ -5,6 +5,7 @@ import { queuelize } from 'node-labs/lib/utils';
 
 import { ResultInterface } from '../../../interfaces/result.interface';
 import { defaultsDeep } from 'lodash';
+import { StageWorker } from '../stage.worker';
 
 export abstract class PartWorkerGeneric {
     [x: string]: any;
@@ -13,6 +14,8 @@ export abstract class PartWorkerGeneric {
         const defaultOptions = defaultsDeep({}, this.defaultOptions, {
             totalLimit: 50000,
             pageLimit: 1000,
+            _testOnePage: false,
+            _testOneRow: false,
         });
         return defaultOptions;
     }
@@ -57,9 +60,7 @@ export abstract class PartWorkerGeneric {
 
     /* variables */
     public async setupVariables() {
-        this.prepareOptions();
         const index = +this.getIndex();
-
         return { index, instance: await this.instanceVariables(), loop: await this.loopVariables() };
     }
 
@@ -114,7 +115,9 @@ export abstract class PartWorkerGeneric {
             // const row = rows[index];
             const data = await this.transformRow({ page, instance, index, row: rows[index] });
             await this.processRow({ page, instance, index, row: data });
+            if (this.stageConfig.options._testOneRow) break;
         }
+        if (this.stageConfig.options._testOnePage) return false;
         return true;
     }
 
@@ -138,3 +141,5 @@ export abstract class PartWorkerGeneric {
         null;
     }
 }
+
+export interface PartWorkerGeneric extends StageWorker {}

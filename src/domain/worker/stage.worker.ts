@@ -1,4 +1,4 @@
-import { size, indexOf, omit, defaultsDeep, pickBy, bind, defaults } from 'lodash';
+import { size, indexOf, omit, defaultsDeep, pickBy, bind, defaults, cloneDeep } from 'lodash';
 import _debug from 'debug';
 const debug = _debug('worker:stage');
 
@@ -35,6 +35,11 @@ export class StageWorker extends StageGeneric implements StageParts {
 
     moduleDomain: any = {};
     stageDomain: any = {};
+
+    private _stageConfig_options;
+    private _stageConfig_options_inputed = {};
+    private _stageConfig_config;
+    private _stageConfig_config_inputed = {};
 
     _set(options) {
         super._set(options);
@@ -115,11 +120,11 @@ export class StageWorker extends StageGeneric implements StageParts {
     }
 
     public logError(error) {
-        console.log(this.stageDir, typeof error === 'string' ? error : error.stack);
+        debug(this.stageDir, typeof error === 'string' ? error : error.stack);
     }
 
     async execute(): Promise<ResultInterface | null> {
-        console.log('stage.builder execute()', this.stageUid);
+        debug('stage.builder execute()', this.stageUid);
         return { statusUid: StageStatusEnum.DONE };
     }
 
@@ -196,15 +201,31 @@ export class StageWorker extends StageGeneric implements StageParts {
         return this.defaultOptions;
     }
 
-    prepareConfig(_config = null) {
-        _config === null && (_config = this.stageConfig.config);
-        this.stageConfig.config = defaultsDeep({}, this.stageExecution.data, _config, this.getDefaultConfig());
+    prepareConfig(_config: any = {}) {
+        if (!this._stageConfig_config) this._stageConfig_config = cloneDeep(this.stageConfig.config);
+        this._stageConfig_config_inputed = defaultsDeep(this._stageConfig_config_inputed, _config);
+
+        this.stageConfig.config = defaultsDeep(
+            {},
+            this.stageExecution.data,
+            this._stageConfig_config,
+            this._stageConfig_config_inputed,
+            this.getDefaultConfig(),
+        );
         return this.stageConfig.config;
     }
 
-    prepareOptions(_options = null) {
-        _options === null && (_options = this.stageConfig.options);
-        this.stageConfig.options = defaultsDeep({}, this.stageExecution.data, _options, this.getDefaultOptions());
+    prepareOptions(_options: any = {}) {
+        if (!this._stageConfig_options) this._stageConfig_options = cloneDeep(this.stageConfig.options);
+        this._stageConfig_options_inputed = defaultsDeep(this._stageConfig_options_inputed, _options);
+
+        this.stageConfig.options = defaultsDeep(
+            {},
+            this.stageExecution.data,
+            this._stageConfig_options,
+            this._stageConfig_options_inputed,
+            this.getDefaultOptions(),
+        );
         return this.stageConfig.options;
     }
 

@@ -16,7 +16,7 @@ export abstract class DynamicWorkerMixin {
                 // get default instead
                 return this._loadWorkerClass(name, path, defaultWorker);
             }
-            throw new Error(`class "${name}" not found`);
+            throw new Error(`class "${name}" not found (path: ${path}, worker: ${worker}): ${err.message}`);
         }
     }
 }
