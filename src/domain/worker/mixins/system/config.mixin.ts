@@ -11,14 +11,18 @@ export abstract class ConfigMixin {
         return config[configName] || undefined;
     }
 
+    _checkValueIsActivated(value) {
+        return (isNumber(value) && value > 0) || value === true || (size(value) > 0 && !this._checkValueIsDeactivated(value));
+    }
+
+    _checkValueIsDeactivated(value) {
+        return value === 0 || value === false;
+    }
+
     _isActivated(configHolder, configName, configKey = 'config') {
         const value = this._getConfigValue(configHolder, configName, configKey);
 
-        return (
-            (isNumber(value) && value > 0) ||
-            value === true ||
-            (size(value) > 0 && !this._isDeactivated(configHolder, configName, configKey))
-        );
+        return this._checkValueIsActivated(value);
     }
 
     _getActivatedConfig(configHolder, configName, configKey = 'config') {
@@ -29,7 +33,7 @@ export abstract class ConfigMixin {
 
     _isDeactivated(configHolder, configName, configKey = 'config') {
         const value = this._getConfigValue(configHolder, configName, configKey);
-        return value === 0 || value === false;
+        return this._checkValueIsDeactivated(value);
     }
 
     _isStageConfigActivated(configName, stageConfig) {
@@ -136,6 +140,22 @@ export abstract class ConfigMixin {
             this._isDeactivated('stageConfig', configName) ||
             this._isDeactivated('moduleConfig', configName) ||
             this._isDeactivated('project', configName, '_config')
+        );
+    }
+
+    getInheritedConfigValue(configName) {
+        return (
+            this._getConfigValue('stageConfig', configName) ||
+            this._getConfigValue('moduleConfig', configName) ||
+            this._getConfigValue('project', configName, '_config')
+        );
+    }
+
+    getInheritedConfigActivated(configName) {
+        return (
+            this._getActivatedConfig('stageConfig', configName) ||
+            this._getActivatedConfig('moduleConfig', configName) ||
+            this._getActivatedConfig('project', configName, '_config')
         );
     }
 
