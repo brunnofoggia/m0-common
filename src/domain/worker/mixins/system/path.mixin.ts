@@ -13,6 +13,8 @@ export interface PathProperties {
 
 export abstract class PathMixin {
     abstract getProjectUid(): string;
+    abstract getEnv(): string;
+    abstract getFakeEnv(): string;
 
     rootDir: string;
     moduleDir: string;
@@ -23,6 +25,10 @@ export abstract class PathMixin {
     projectModulePath: string;
     projectStagePath: string;
 
+    getStorageEnv() {
+        return process.env.STORAGE_ENV;
+    }
+
     setPaths() {
         this.setPathRoot();
         this.setPathModule();
@@ -30,8 +36,16 @@ export abstract class PathMixin {
     }
 
     setPathRoot() {
+        const rootDir = [];
+        // bucket can be switched just by creating another one
+        // const envPath = this.getStorageEnv();
+        // if (envPath) rootDir.push(envPath);
+
         this.projectPath = this.getProjectUid();
-        this.rootDir = [this.projectPath, this.transactionUid].join('/');
+        rootDir.push(this.projectPath);
+        rootDir.push(this.transactionUid);
+
+        this.rootDir = rootDir.join('/');
     }
 
     setPathModule() {

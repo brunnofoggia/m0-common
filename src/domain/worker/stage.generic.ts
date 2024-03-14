@@ -7,7 +7,7 @@ import { ModuleConfigInterface } from '../../interfaces/moduleConfig.interface';
 import { StageConfigInterface } from '../../interfaces/stageConfig.interface';
 import { StageExecutionInterface } from '../../interfaces/stageExecution.interface';
 import { StageStructureProperties } from '../../interfaces/stageParts.interface';
-import { StageStatusEnum, StageStatusError } from '../../types/stageStatus.type';
+import { StageStatusEnded, StageStatusEnum, StageStatusError, StageStatusProcess } from '../../types/stageStatus.type';
 import { StageExecutionFindError } from '../../types/stageExecution';
 
 import { StageExecutionProvider } from '../../providers/stageExecution.provider';
@@ -110,6 +110,14 @@ export abstract class StageGeneric {
         return index === undefined || index === null ? -1 : +index;
     }
 
+    getEnv() {
+        return process.env.NODE_ENV || 'dev';
+    }
+
+    getFakeEnv() {
+        return process.env.FAKE_ENV || this.getEnv();
+    }
+
     // getIndex(): string | number {
     //     const index = this.stageExecution?.data?.index !== undefined ? this.stageExecution?.data?.index : this.body.options.index;
     //     return index === undefined ? -1 : index;
@@ -204,8 +212,21 @@ export abstract class StageGeneric {
         return this.buildStageBody(stageUidAndExecutionUid, options);
     }
 
+    isStatusProcessing(statusUid) {
+        return lastIndexOf(StageStatusProcess, statusUid) >= 0;
+    }
+
+    // legacy
     isStatusAnError(statusUid) {
         return lastIndexOf(StageStatusError, statusUid) >= 0;
+    }
+
+    isStatusError(statusUid) {
+        return lastIndexOf(StageStatusError, statusUid) >= 0;
+    }
+
+    isStatusEnded(statusUid) {
+        return lastIndexOf(StageStatusEnded, statusUid) >= 0;
     }
 }
 

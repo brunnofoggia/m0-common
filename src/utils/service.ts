@@ -17,7 +17,7 @@ export const buildColumnAlias = (tableAlias, columnName) => {
     return `${tableAlias}_${columnName}`;
 };
 
-interface BuildSelectColumnOptions {
+export interface BuildSelectColumnOptions {
     makeAlias: boolean;
 }
 
@@ -26,7 +26,9 @@ const defaultBuildSelectColumnOptions: BuildSelectColumnOptions = {
 };
 
 export const buildSelectColumn = (tableAlias, columnName_, options: Partial<BuildSelectColumnOptions> = {}) => {
+    const [columnName, columnAlias = columnName_] = columnName_.split(' ');
+
     options = { ...defaultBuildSelectColumnOptions, ...options };
-    const alias = !options.makeAlias ? columnName_ : buildColumnAlias(tableAlias, columnName_);
-    return [buildColumnName(tableAlias, columnName_), alias];
+    const alias = !options.makeAlias ? columnAlias : buildColumnAlias(tableAlias, columnAlias);
+    return [buildColumnName(tableAlias, columnName), alias];
 };

@@ -321,10 +321,6 @@ export class StageWorker extends StageGeneric implements StageParts {
         return StageGeneric._getDefaultWorker();
     }
 
-    getEnv() {
-        return process.env.NODE_ENV || 'dev';
-    }
-
     getRootDir() {
         return this.rootDir;
     }

@@ -5,11 +5,16 @@ import { PathMixin } from './path.mixin';
 
 export abstract class SecretsMixin {
     abstract _getSolutions();
-    abstract getEnv();
+    abstract getEnv(): string;
+    abstract getFakeEnv(): string;
     abstract getProjectUid(): string;
 
+    getSecretsEnv() {
+        return process.env.SECRETS_ENV || this.getFakeEnv() || this.getEnv();
+    }
+
     buildSecretPath(name: string, basePath: any = null) {
-        const env = this.getEnv();
+        const env = this.getSecretsEnv();
         const path = ['', env];
         basePath === null && (basePath = this.getProjectPath());
         path.push(basePath);

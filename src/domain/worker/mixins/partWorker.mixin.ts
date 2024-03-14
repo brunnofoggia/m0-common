@@ -108,16 +108,28 @@ export abstract class PartWorkerGeneric {
         return [];
     }
 
-    async processQueue({ page, skip = null, instance, loop, rows }) {
+    async processQueue({ page, skip = null, instance, loop, rows }): Promise<any> {
         debug('processing page', page);
+        await this.beforeEachQueue({ page });
         rows = await this.composeRowsData({ instance, rows });
-        for (const index in rows) {
-            // const row = rows[index];
-            const data = await this.transformRow({ page, instance, index, row: rows[index] });
-            await this.processRow({ page, instance, index, row: data });
-            if (this.stageConfig.options._testOneRow) break;
+
+        let error;
+        let lastResult: any;
+        try {
+            for (const index in rows) {
+                // const row = rows[index];
+                const data = await this.transformRow({ page, instance, index, row: rows[index] });
+                lastResult = data !== false && (await this.processRow({ page, instance, index, row: data }));
+                if (this.stageConfig.options._testOneRow || lastResult === false) break;
+            }
+        } catch (error_) {
+            error = error_;
         }
-        if (this.stageConfig.options._testOnePage) return false;
+
+        await this.afterEachQueue({ page, error });
+        if (error) throw error;
+
+        if (this.stageConfig.options._testOnePage || lastResult === false) return false;
         return true;
     }
 
@@ -125,19 +137,27 @@ export abstract class PartWorkerGeneric {
         return rows;
     }
 
-    async transformRow({ page, instance, index, row }) {
+    async transformRow({ page, instance, index, row }): Promise<any> {
         return row;
     }
 
-    async processRow({ page, instance, index, row }) {
+    async processRow({ page, instance, index, row }): Promise<any> {
         null;
     }
 
-    async beforeQueue(params) {
+    async beforeQueue(params): Promise<any> {
         null;
     }
 
-    async afterQueue(params) {
+    async beforeEachQueue(params): Promise<any> {
+        null;
+    }
+
+    async afterQueue(params): Promise<any> {
+        null;
+    }
+
+    async afterEachQueue(params): Promise<any> {
         null;
     }
 }
