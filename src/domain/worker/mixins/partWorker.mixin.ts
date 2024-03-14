@@ -119,7 +119,7 @@ export abstract class PartWorkerGeneric {
             for (const index in rows) {
                 // const row = rows[index];
                 const data = await this.transformRow({ page, instance, index, row: rows[index] });
-                lastResult = data !== false && (await this.processRow({ page, instance, index, row: data }));
+                lastResult = data !== false && (await this.processRow({ page, instance, index, row: data })) !== false;
                 if (this.stageConfig.options._testOneRow || lastResult === false) break;
             }
         } catch (error_) {
