@@ -16,6 +16,7 @@ export class MXWorker extends StageWorker {
         return +this.project._config?.timezone || 0;
     }
 
+    // #region stages
     getParentStage() {
         return this.stageConfig.config.parentStage || this.stageExecution.data._calledByStage;
     }
@@ -32,4 +33,5 @@ export class MXWorker extends StageWorker {
     getParentStageDir() {
         return [this.rootDir, this.getParentStage()].join('/');
     }
+    // #endregion
 }

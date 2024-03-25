@@ -23,6 +23,7 @@ import { ExecutionInfoMixin } from './mixins/system/executionInfo';
 
 import { StageGeneric } from './stage.generic';
 import { PathMixin } from './mixins/system/path.mixin';
+import { validateOptionsByRuleSet } from './utils/validate';
 
 export class StageWorker extends StageGeneric implements StageParts {
     defaultConfig: any = {};
@@ -69,40 +70,43 @@ export class StageWorker extends StageGeneric implements StageParts {
         this.prepareConfig();
         this.prepareOptions();
 
+        this.system.startedAt = new Date().toISOString();
         let result;
         if (!this.fakeResult) {
-            result = await this._execute();
+            try {
+                debug('lifecycle: on initialize');
+                await this._onInitialize();
 
-            debug('check result');
-            if (this._checkResult(result)) {
-                result = await this.sendResultAsMessage(result);
+                result = await this._execute();
+
+                debug('lifecycle: check result');
+                if (this._checkResult(result)) {
+                    result = await this.sendResultAsMessage(result);
+                }
+
+                debug('lifecycle: on destroy');
+                await this._onDestroy();
+                debug('lifecycle: builder done\n-------------------------\n');
+            } catch (error) {
+                this.logError(error);
+                result = this.buildExecutionError(error);
             }
-
-            debug('on destroy');
-            await this._onDestroy();
-            debug('builder done\n-------------------------');
         } else {
             result = await this.sendResultAsMessage(this.statusDone());
         }
+        this.system.finishedAt = new Date().toISOString();
+
         return result;
     }
 
     async _execute(): Promise<ResultInterface | null> {
         await this.checkExecution();
-        let result;
 
-        this.system.startedAt = new Date().toISOString();
-        try {
-            debug('on initialize');
-            await this._onInitialize();
+        debug('lifecycle: before execute');
+        await this._onBeforeExecute();
 
-            debug('execute');
-            result = await this.execute();
-        } catch (error) {
-            this.logError(error);
-            result = this.buildExecutionError(error);
-        }
-        this.system.finishedAt = new Date().toISOString();
+        debug('lifecycle: execute');
+        const result = await this.execute();
 
         return result;
     }
@@ -252,6 +256,20 @@ export class StageWorker extends StageGeneric implements StageParts {
         });
     }
 
+    // #region validations
+    async getRequiredRuleSet() {
+        return [];
+    }
+
+    async validateOptions() {
+        validateOptionsByRuleSet(this, await this.getRequiredRuleSet());
+    }
+
+    async onBeforeExecute() {
+        await this.validateOptions();
+    }
+    // #endregion
+
     // getters
     get(): StageAllProperties {
         return {
@@ -275,6 +293,35 @@ export class StageWorker extends StageGeneric implements StageParts {
         };
     }
 
+    static _getWorker(stageConfig, project) {
+        return stageConfig?.config?.worker || project?._config?.defaultWorker;
+    }
+
+    getWorker() {
+        return StageWorker._getWorker(this.stageConfig, this.project) || this.getDefaultWorker();
+    }
+
+    getDefaultWorker() {
+        return StageGeneric._getDefaultWorker();
+    }
+
+    getRootDir() {
+        return this.rootDir;
+    }
+
+    getStageDir() {
+        return this.stageDir;
+    }
+
+    getService(Service): any {
+        return new Service(this.uniqueId);
+    }
+
+    getRetryAttempt(increaseByOne = true) {
+        return super.getRetryAttempt(increaseByOne);
+    }
+
+    // #region legacy code
     extractMethods(): StageFeatureMethods {
         return {
             // options
@@ -308,34 +355,7 @@ export class StageWorker extends StageGeneric implements StageParts {
     getStageParts(): StageParts {
         return defaults(this.extractMethods(), this.get());
     }
-
-    static _getWorker(stageConfig, project) {
-        return stageConfig?.config?.worker || project?._config?.defaultWorker;
-    }
-
-    getWorker() {
-        return StageWorker._getWorker(this.stageConfig, this.project) || this.getDefaultWorker();
-    }
-
-    getDefaultWorker() {
-        return StageGeneric._getDefaultWorker();
-    }
-
-    getRootDir() {
-        return this.rootDir;
-    }
-
-    getStageDir() {
-        return this.stageDir;
-    }
-
-    getService(Service): any {
-        return new Service(this.uniqueId);
-    }
-
-    getRetryAttempt(increaseByOne = true) {
-        return super.getRetryAttempt(increaseByOne);
-    }
+    // #endregion
 }
 
 export interface StageWorker

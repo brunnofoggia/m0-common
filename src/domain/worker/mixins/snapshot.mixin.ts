@@ -60,7 +60,7 @@ export abstract class SnapshotMixin {
         const stageConfig = this.getStageConfigFromModule(stageUid, moduleConfig);
 
         // if a new stage is registered manually, config is reloaded
-        if (!stageConfig || !size(stageConfig)) {
+        if (!stageConfig || !size(stageConfig) || stageConfig?.config?.keepSnapshotUpdated) {
             // does not force twice
             if (!forceUpdate_) {
                 return this.createSnapshot({ projectUid, transactionUid, stageUid, forceUpdate: true, mergeSnapshot });
