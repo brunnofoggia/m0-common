@@ -84,10 +84,13 @@ export abstract class SplitMixin {
     }
 
     getKeys(lengthKeyPrefix = '') {
-        if (!lengthKeyPrefix && this.stageConfig.config.prevStage)
-            lengthKeyPrefix = [this.rootDir, this.stageConfig.config.prevStage].join('/');
+        if (!lengthKeyPrefix && this.stageConfig.config.prevStage) {
+            const lengthKeyPrefixArr = [this.rootDir, this.stageConfig.config.prevStage];
+            if (this.executionUid) lengthKeyPrefixArr.push(this.executionUid);
+            lengthKeyPrefix = lengthKeyPrefixArr.join('/');
+        }
 
-        const stageDir = this.stageDir;
+        const stageDir = this.executionDir;
 
         const lengthKey = [lengthKeyPrefix, 'length'].join('/');
         const processKey = [stageDir, 'process'].join('/');
