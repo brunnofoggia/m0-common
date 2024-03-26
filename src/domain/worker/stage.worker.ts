@@ -71,26 +71,19 @@ export class StageWorker extends StageGeneric implements StageParts {
         this.prepareOptions();
 
         this.system.startedAt = new Date().toISOString();
-        let result;
+        let result, execResult;
         if (!this.fakeResult) {
             try {
                 debug('lifecycle: on initialize');
                 await this._onInitialize();
 
-                result = await this._execute();
-
-                debug('lifecycle: check result');
-                if (this._checkResult(result)) {
-                    result = await this.sendResultAsMessage(result);
-                }
-
-                debug('lifecycle: on destroy');
-                await this._onDestroy();
-                debug('lifecycle: builder done\n-------------------------\n');
+                execResult = await this._execute();
             } catch (error) {
+                debug('lifecycle: cought error');
                 this.logError(error);
-                result = this.buildExecutionError(error);
+                execResult = this.buildExecutionError(error);
             }
+            result = await this._result(execResult);
         } else {
             result = await this.sendResultAsMessage(this.statusDone());
         }
@@ -107,6 +100,19 @@ export class StageWorker extends StageGeneric implements StageParts {
 
         debug('lifecycle: execute');
         const result = await this.execute();
+
+        return result;
+    }
+
+    async _result(result: ResultInterface) {
+        debug('lifecycle: check result');
+        if (this._checkResult(result)) {
+            result = await this.sendResultAsMessage(result);
+        }
+
+        debug('lifecycle: on destroy');
+        await this._onDestroy();
+        debug('lifecycle: builder done\n-------------------------\n');
 
         return result;
     }
