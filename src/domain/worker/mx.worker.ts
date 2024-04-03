@@ -25,5 +25,18 @@ export class MXWorker extends StageWorker {
         const prevStage_ = this.getPrevStage();
         return isArray(prevStage_) ? prevStage_ : [prevStage_];
     }
+
+    getParentStage() {
+        return this.stageConfig.config.callbackStage || this.stageConfig.config.parentStage || this.stageExecution.data._calledByStage;
+    }
+
+    getParentStageDir() {
+        const stageUid = this.replaceStageExecutionSplitter(this.getParentStage());
+        return [this.rootDir, stageUid].join('/');
+    }
+
+    getChildStageUid() {
+        return this.stageConfig.config.childStage || this.stageConfig.config.splitStage;
+    }
     // #endregion
 }

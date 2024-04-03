@@ -20,15 +20,6 @@ export abstract class PartWorkerGeneric {
         return defaultOptions;
     }
 
-    getParentStageUid() {
-        return this.stageConfig.config.callbackStage || this.stageConfig.config.parentStage || this.stageExecution.data._calledByStage;
-    }
-
-    getParentStageDir() {
-        const stageUid = this.replaceStageExecutionSplitter(this.getParentStage());
-        return [this.rootDir, stageUid].join('/');
-    }
-
     /* execution */
     public async execute(): Promise<ResultInterface> {
         const { index, instance, loop } = await this.setupVariables();

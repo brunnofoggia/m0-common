@@ -20,6 +20,7 @@ export abstract class SplitMixin {
     abstract afterSplitEnd();
 
     abstract getLengthKeyPrefix();
+    abstract getChildStageUid();
 
     async splitExecute({ stateService, lengthKeyPrefix = '' }): Promise<ResultInterface | null> {
         try {
@@ -111,10 +112,6 @@ export abstract class SplitMixin {
         }
 
         await this.splitStage(length, options);
-    }
-
-    getChildStageUid() {
-        return this.stageConfig.config.childStage || this.stageConfig.config.splitStage;
     }
 
     async splitStage(length = '0', options: any = {}) {
