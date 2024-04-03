@@ -14,6 +14,7 @@ export abstract class InjectionMixin {
     abstract getStageParts(): StageParts;
     abstract get(): StageAllProperties;
     abstract prepareOptions(options: any);
+    abstract replaceStageExecutionSplitter(stageUid: string, executionUid?: string): string;
 
     /* domains */
     async _loadDomains(domains, path, type: Domain) {
@@ -111,12 +112,12 @@ export abstract class InjectionMixin {
     }
 
     buildWorkerParentStagePath() {
-        const [, stageName] = this.stageConfig.config.parentStage.split('/');
+        const [, stageName] = this.replaceStageExecutionSplitter(this['getParentStageUid']()).split('/');
         return `${this.buildWorkerModulePath()}/stages/${stageName}`;
     }
 
     buildWorkerPartStagePath() {
-        const childStage = this['getSplitStageUid']();
+        const childStage = this['getChildStageUid']();
         const [, stageName] = childStage.split('/');
         return `${this.buildWorkerModulePath()}/stages/${stageName}`;
     }

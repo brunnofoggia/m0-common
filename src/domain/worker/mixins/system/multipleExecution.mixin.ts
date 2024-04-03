@@ -6,7 +6,7 @@ export abstract class MultipleExecutionMixin {
         return '#';
     }
 
-    replaceStageExecutionSplitter(stageUidAndExecutionUid, splitter = '/') {
+    replaceStageExecutionSplitter(stageUidAndExecutionUid: string, splitter = '/') {
         return stageUidAndExecutionUid.replace(this.getStageExecutionSplitter(), splitter);
     }
 

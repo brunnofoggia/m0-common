@@ -17,10 +17,6 @@ export class MXWorker extends StageWorker {
     }
 
     // #region stages
-    getParentStage() {
-        return this.stageConfig.config.parentStage || this.stageExecution.data._calledByStage;
-    }
-
     getPrevStage() {
         return this.stageConfig.config.prevStage || this.stageExecution.data._calledByStage;
     }
@@ -28,10 +24,6 @@ export class MXWorker extends StageWorker {
     getPrevStageList() {
         const prevStage_ = this.getPrevStage();
         return isArray(prevStage_) ? prevStage_ : [prevStage_];
-    }
-
-    getParentStageDir() {
-        return [this.rootDir, this.getParentStage()].join('/');
     }
     // #endregion
 }

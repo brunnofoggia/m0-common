@@ -36,7 +36,7 @@ export abstract class ParallelWorkerGeneric {
     }
 
     getLengthKeyPrefix() {
-        return [this.rootDir, this.getSplitStageUid()].join('/');
+        return [this.rootDir, this.getChildStageUid()].join('/');
     }
 
     getLengthKey() {
@@ -69,7 +69,7 @@ export abstract class ParallelWorkerGeneric {
     async findSplitStageExecutionList() {
         const stageExecutionList = await StageExecutionProvider.findAllByTransactionAndModule(
             this.transactionUid,
-            this.getSplitStageUid(),
+            this.getChildStageUid(),
             this.executionUid,
         );
         const filteredStageExecutionList = sortBy(
