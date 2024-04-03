@@ -6,6 +6,10 @@ export abstract class MultipleExecutionMixin {
         return '#';
     }
 
+    replaceStageExecutionSplitter(stageUidAndExecutionUid, splitter = '/') {
+        return stageUidAndExecutionUid.replace(this.getStageExecutionSplitter(), splitter);
+    }
+
     separateStageUidAndExecutionUid(stageUidAndExecUid) {
         const [stageUid, executionUid = ''] = stageUidAndExecUid.split(this.getStageExecutionSplitter());
         return { stageUid, executionUid };
@@ -58,6 +62,10 @@ export abstract class MultipleExecutionStageMixin {
 
     buildStageUidWithCurrentExecutionUid(stageUid = '') {
         return this.buildStageUidAndExecutionUid(stageUid, this.executionUid);
+    }
+
+    buildCurrentStageUidAndExecutionUid() {
+        return this.buildStageUidAndExecutionUid(this.stageUid, this.executionUid);
     }
 
     shouldFowardExecutionUid() {

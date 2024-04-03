@@ -116,7 +116,8 @@ export abstract class InjectionMixin {
     }
 
     buildWorkerPartStagePath() {
-        const [, stageName] = this.stageConfig.config.splitStage.split('/');
+        const childStage = this['getSplitStageUid']();
+        const [, stageName] = childStage.split('/');
         return `${this.buildWorkerModulePath()}/stages/${stageName}`;
     }
 

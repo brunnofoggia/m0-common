@@ -113,8 +113,12 @@ export abstract class SplitMixin {
         await this.splitStage(length, options);
     }
 
+    getSplitStageUid() {
+        return this.stageConfig.config.childStage || this.stageConfig.config.splitStage;
+    }
+
     async splitStage(length = '0', options: any = {}) {
-        if (!this.stageConfig.config.splitStage || this.stageExecution.data._triggerSplitStage === 0) return;
+        if (!this.getSplitStageUid() || this.stageExecution.data._triggerSplitStage === 0) return;
 
         const _body = this.splitStageGlobalOptions(options);
         const _indexTo = this.getSplitStageOptions()['_indexTo'] || [];
@@ -144,16 +148,21 @@ export abstract class SplitMixin {
     }
 
     splitStageGlobalOptions(options) {
+        const baseOptions: any = {};
+        if (this.stageConfig.config._sendAsCallback) {
+            baseOptions.callbackStage = this.buildCurrentStageUidAndExecutionUid();
+        }
+
         options = defaultsDeep(
             options,
             {
                 ...omit(this.getSplitStageOptions(), '_indexTo'),
-                // _calledByStage: this.stageUid,
+                ...baseOptions,
             },
             this.fowardInternalOptions(),
         );
 
-        const stageUidAndExecutionUid = this.buildStageUidWithCurrentExecutionUid(this.stageConfig.config.splitStage);
+        const stageUidAndExecutionUid = this.buildStageUidWithCurrentExecutionUid(this.getSplitStageUid());
         return this.buildTriggerStageBody(stageUidAndExecutionUid, options);
     }
 
