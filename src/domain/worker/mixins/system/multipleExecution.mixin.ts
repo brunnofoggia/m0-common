@@ -47,8 +47,6 @@ export abstract class MultipleExecutionMixin {
 }
 
 export abstract class MultipleExecutionStageMixin {
-    //
-
     joinStageUidWithCurrentExecutionUid(stageUid) {
         return this.joinStageUidAndExecutionUid(stageUid, this.executionUid);
     }
@@ -84,6 +82,11 @@ export abstract class MultipleExecutionStageMixin {
     _buildExecutionUid_stageuid(executionUid_) {
         if (!executionUid_) return executionUid_;
         return executionUid_.replace(':stageuid()', this.stageUid);
+    }
+
+    _buildExecutionUid_keep(executionUid_) {
+        if (!executionUid_) return executionUid_;
+        return executionUid_.replace(':keep()', this.executionUid);
     }
 }
 
