@@ -20,7 +20,7 @@ export abstract class SplitMixin {
     abstract afterSplitEnd();
 
     abstract getLengthKeyPrefix();
-    abstract getChildStageUid();
+    abstract getChildStage();
 
     async splitExecute({ stateService, lengthKeyPrefix = '' }): Promise<ResultInterface | null> {
         try {
@@ -115,7 +115,7 @@ export abstract class SplitMixin {
     }
 
     async splitStage(length = '0', options: any = {}) {
-        if (!this.getChildStageUid() || this.stageExecution.data.options._triggerSplitStage === 0) return;
+        if (!this.getChildStage() || this.stageExecution.data.options._triggerSplitStage === 0) return;
 
         const _body = this.splitStageGlobalOptions(options);
         const _indexTo = this.getSplitStageOptions()['_indexTo'] || [];
@@ -160,7 +160,7 @@ export abstract class SplitMixin {
             this.fowardInternalOptions(),
         );
 
-        const stageUidAndExecutionUid = this.buildStageUidWithCurrentExecutionUid(this.getChildStageUid());
+        const stageUidAndExecutionUid = this.buildStageUidWithCurrentExecutionUid(this.getChildStage());
         return this.buildTriggerStageBody(stageUidAndExecutionUid, options);
     }
 

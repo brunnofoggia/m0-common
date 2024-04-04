@@ -37,7 +37,7 @@ export class MXWorker extends StageWorker {
         return [this.rootDir, stageUid].join('/');
     }
 
-    getChildStageUid() {
+    getChildStage() {
         return this.stageConfig.config.childStage || this.stageConfig.config.splitStage;
     }
     // #endregion
