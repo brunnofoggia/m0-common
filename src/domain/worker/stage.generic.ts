@@ -1,4 +1,4 @@
-import { uniqueId, result, indexOf, size, lastIndexOf } from 'lodash';
+import { uniqueId, indexOf, size, lastIndexOf } from 'lodash';
 import { applyMixins } from 'node-labs/lib/utils/mixin';
 
 import { ModuleExecutionInterface } from '../../interfaces/moduleExecution.interface';
@@ -175,7 +175,7 @@ export abstract class StageGeneric {
         return { stageExecution: undefined, error: StageExecutionFindError.FAILED };
     }
 
-    buildStageBody(stageUidAndExecutionUid, options: any = {}) {
+    buildStageBody(stageUidAndExecutionUid, options: any = {}, config: any = {}) {
         const { stageUid, executionUid } = this.separateStageUidAndExecutionUid(stageUidAndExecutionUid);
         return {
             projectUid: this.projectUid,
@@ -184,6 +184,7 @@ export abstract class StageGeneric {
             stageUid,
             executionUid,
             options,
+            config,
         };
     }
 
@@ -200,7 +201,7 @@ export abstract class StageGeneric {
         };
     }
 
-    buildTriggerStageBody(stageUidAndExecutionUid_, options: any = {}) {
+    buildTriggerStageBody(stageUidAndExecutionUid_, options: any = {}, config: any = {}) {
         let stageUidAndExecutionUid = this._prepareStageUidAndExecutionUid(stageUidAndExecutionUid_);
 
         options = {
@@ -209,7 +210,7 @@ export abstract class StageGeneric {
         };
 
         stageUidAndExecutionUid = this.fowardExecutionUid(stageUidAndExecutionUid);
-        return this.buildStageBody(stageUidAndExecutionUid, options);
+        return this.buildStageBody(stageUidAndExecutionUid, options, config);
     }
 
     isStatusProcessing(statusUid) {

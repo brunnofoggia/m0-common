@@ -217,7 +217,7 @@ export class StageWorker extends StageGeneric implements StageParts {
 
         this.stageConfig.config = defaultsDeep(
             {},
-            this.stageExecution.data,
+            this.stageExecution.data.config,
             this._stageConfig_config,
             this._stageConfig_config_inputed,
             this.getDefaultConfig(),
@@ -231,7 +231,7 @@ export class StageWorker extends StageGeneric implements StageParts {
 
         this.stageConfig.options = defaultsDeep(
             {},
-            this.stageExecution.data,
+            this.stageExecution.data.options,
             this._stageConfig_options,
             this._stageConfig_options_inputed,
             this.getDefaultOptions(),
@@ -251,13 +251,13 @@ export class StageWorker extends StageGeneric implements StageParts {
     }
 
     fowardInternalOptions() {
-        return pickBy(this.stageExecution.data, (value, key) => {
+        return pickBy(this.stageExecution.data.options, (value, key) => {
             return /^_[a-zA-Z]/.test(key);
         });
     }
 
     omitInternalOptions() {
-        return pickBy(this.stageExecution.data, (value, key) => {
+        return pickBy(this.stageExecution.data.options, (value, key) => {
             return !/^_[a-zA-Z]/.test(key);
         });
     }
