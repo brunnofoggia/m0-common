@@ -81,7 +81,7 @@ export abstract class SplitMixin {
     // this method will be called when all child stages are done
     async splitStagesDone() {
         this.afterSplitEnd && (await this.afterSplitEnd());
-        return { statusUid: StageStatusEnum.DONE };
+        return this.statusDone();
     }
 
     getKeys(lengthKeyPrefix = '') {
