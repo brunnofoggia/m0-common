@@ -140,7 +140,7 @@ export abstract class StageGeneric {
         return events.sendToQueue(_name, body);
     }
 
-    async _findLastExecution() {
+    async _findCurrentLastExecution() {
         return await StageExecutionProvider.findByTransactionAndModuleAndIndex(
             this.transactionUid,
             this.stageConfig.stageUid,
@@ -149,10 +149,10 @@ export abstract class StageGeneric {
         );
     }
 
-    async _findNonFailedLastStageExecution() {
+    async _findCurrentNonFailedLastStageExecution() {
         // motivation to find the last one based on uid:
         // to make possible to work with parallel processes (split / child)
-        const stageExecution = await this._findLastExecution();
+        const stageExecution = await this._findCurrentLastExecution();
 
         if (!stageExecution || !size(stageExecution)) {
             return { stageExecution: undefined, error: StageExecutionFindError.NOT_FOUND };

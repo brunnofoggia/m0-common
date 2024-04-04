@@ -62,7 +62,7 @@ export class StageWorker extends StageGeneric implements StageParts {
         this.__debug('set unique id', uniqueId);
         this._setUniqueId(uniqueId);
         this.__debug('find module+stage execution');
-        this.stageExecution = await this.findLastStageExecution();
+        this.stageExecution = await this.findCurrentLastStageExecution();
         if (!size(this.stageExecution)) return;
 
         this.moduleExecution = this.stageExecution.moduleExecution;
@@ -159,12 +159,12 @@ export class StageWorker extends StageGeneric implements StageParts {
         return result;
     }
 
-    async findLastStageExecution() {
+    async findCurrentLastStageExecution() {
         try {
             const index = this.getIndex();
             if (this.body.mockStageExecution || this.body.options._pureExecution) return this.mockStageExecution();
-            // const stageExecution = await this._findLastExecution();
-            const { stageExecution, error } = await this._findNonFailedLastStageExecution();
+            // const stageExecution = await this._findCurrentLastExecution();
+            const { stageExecution, error } = await this._findCurrentNonFailedLastStageExecution();
 
             switch (error) {
                 case StageExecutionFindError.NOT_FOUND:
