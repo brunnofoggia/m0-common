@@ -1,3 +1,4 @@
+import { StageUidAndExecutionUid } from '../../../../interfaces/stageExecution.interface';
 import { StageStructureProperties } from '../../../../interfaces/stageParts.interface';
 
 export interface PathProperties {
@@ -15,6 +16,7 @@ export abstract class PathMixin {
     abstract getProjectUid(): string;
     abstract getEnv(): string;
     abstract getFakeEnv(): string;
+    abstract separateStageUidAndExecutionUid(stageUidAndExecUid: string): StageUidAndExecutionUid;
 
     rootDir: string;
     moduleDir: string;
@@ -63,7 +65,29 @@ export abstract class PathMixin {
         this.projectStagePath = [this.projectPath, this.stageUid].join('/');
     }
 
-    // getters
+    // buildExecutionDir(stageUid: string, executionUid: string) {
+    //     const stageDir = [this.rootDir, stageUid];
+    //     if (executionUid) stageDir.push(executionUid);
+    //     return stageDir.join('/');
+
+    // }
+
+    buildExecutionDir(stageUidAndExecutionUid: string, executionUid_ = '') {
+        const { stageUid, executionUid } = this.separateStageUidAndExecutionUid(stageUidAndExecutionUid);
+        if (!executionUid_ && executionUid) {
+            executionUid_ = executionUid;
+        }
+
+        const executionDir = [this.rootDir, stageUid];
+        if (executionUid_) executionDir.push(executionUid_);
+        return [this.rootDir, executionDir.join('/')].join('/');
+    }
+
+    buildExecutionDirWithCurrentExecutionUid(stageUid: string) {
+        return this.buildExecutionDir(stageUid, this.executionUid);
+    }
+
+    // #region getters
     getRootDir() {
         return this.rootDir;
     }
@@ -103,6 +127,7 @@ export abstract class PathMixin {
             projectStagePath: this.projectStagePath,
         };
     }
+    // #endregion
 }
 
 export interface PathMixin extends StageStructureProperties {}

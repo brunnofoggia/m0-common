@@ -1,5 +1,6 @@
 import { applyMixins } from 'node-labs/lib/utils/mixin';
 import { ModuleStructureProperties } from '../../../../interfaces/stageParts.interface';
+import { StageUidAndExecutionUid } from '../../../../interfaces/stageExecution.interface';
 
 export abstract class MultipleExecutionMixin {
     getStageExecutionSplitter() {
@@ -10,7 +11,7 @@ export abstract class MultipleExecutionMixin {
         return stageUidAndExecutionUid.replace(this.getStageExecutionSplitter(), splitter);
     }
 
-    separateStageUidAndExecutionUid(stageUidAndExecUid) {
+    separateStageUidAndExecutionUid(stageUidAndExecUid: string): StageUidAndExecutionUid {
         const [stageUid, executionUid = ''] = stageUidAndExecUid.split(this.getStageExecutionSplitter());
         return { stageUid, executionUid };
     }
@@ -51,6 +52,10 @@ export abstract class MultipleExecutionMixin {
 }
 
 export abstract class MultipleExecutionStageMixin {
+    getStageUidAndExecutionUid() {
+        return this.buildCurrentStageUidAndExecutionUid();
+    }
+
     joinStageUidWithCurrentExecutionUid(stageUid) {
         return this.joinStageUidAndExecutionUid(stageUid, this.executionUid);
     }

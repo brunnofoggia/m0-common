@@ -15,3 +15,8 @@ export interface StageExecutionInterface extends GenericInterface {
     statusUid: StageStatusEnum;
     moduleExecution?: ModuleExecutionInterface;
 }
+
+export interface StageUidAndExecutionUid {
+    stageUid: string;
+    executionUid: string;
+}
