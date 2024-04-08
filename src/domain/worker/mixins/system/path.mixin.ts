@@ -80,7 +80,7 @@ export abstract class PathMixin {
 
         const executionDir = [this.rootDir, stageUid];
         if (executionUid_) executionDir.push(executionUid_);
-        return [this.rootDir, executionDir.join('/')].join('/');
+        return executionDir.join('/');
     }
 
     buildExecutionDirWithCurrentExecutionUid(stageUid: string) {
