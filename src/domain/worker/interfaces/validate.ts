@@ -1,6 +1,10 @@
 export interface RequiredInterface {
+    // path
     basePath?: string;
-    pathList: string[];
+    path?: string;
+    // required
+    pathList?: string[];
+    required?: string[];
 }
 
-export interface RequiredListInterface extends Array<RequiredInterface> {}
+export interface RequiredListInterface extends Array<Partial<RequiredInterface>> {}

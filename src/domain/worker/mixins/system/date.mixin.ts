@@ -1,6 +1,7 @@
 import { getDateForTimezone } from 'node-labs/lib/utils';
 import { ModuleExecutionInterface } from '../../../../interfaces/moduleExecution.interface';
 import { StageStructureProperties } from '../../../../interfaces/stageParts.interface';
+import { ManipulateType } from 'dayjs';
 
 export abstract class DateMixin {
     abstract moduleExecution: ModuleExecutionInterface;

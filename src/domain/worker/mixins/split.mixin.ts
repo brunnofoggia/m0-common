@@ -1,7 +1,7 @@
 import _debug from 'debug';
 const debug = _debug('worker:mixin:split');
 
-import { defaultsDeep, result, omit } from 'lodash';
+import { defaultsDeep, result, omit, pick } from 'lodash';
 
 import { exitRequest } from 'node-labs/lib/utils/errors';
 import { StageStatusEnum } from '../../../types/stageStatus.type';
@@ -125,9 +125,10 @@ export abstract class SplitMixin {
             const indexTo = _indexTo[counter] || {};
             const body = {
                 ...omit(_body, 'options'),
+                ...pick(indexTo, 'transactionUid'),
                 options: {
                     ..._body.options,
-                    ...indexTo,
+                    ...omit(indexTo, 'transactionUid'),
                     index: counter,
                 },
             };

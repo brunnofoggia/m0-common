@@ -4,7 +4,7 @@ import { RequiredListInterface } from '../interfaces/validate';
 export const validateOptionsByRuleSet = (object: { [key: string]: any }, requiredList: RequiredListInterface): any => {
     if (requiredList)
         for (const required of requiredList) {
-            validateOptions(object, required.pathList, required.basePath);
+            validateOptions(object, required.required || required.pathList, required.path || required.basePath);
         }
 };
 

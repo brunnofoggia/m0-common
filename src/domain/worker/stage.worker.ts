@@ -83,11 +83,11 @@ export class StageWorker extends StageGeneric implements StageParts {
                 this.logError(error);
                 execResult = this.buildExecutionError(error);
             }
+            this.system.finishedAt = new Date().toISOString();
             result = await this._result(execResult);
         } else {
             result = await this.sendResultAsMessage(this.statusDone());
         }
-        this.system.finishedAt = new Date().toISOString();
 
         return result;
     }
