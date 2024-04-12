@@ -48,6 +48,7 @@ export abstract class InjectionMixin {
 
         const Class_ = await this._loadDomainClass(name, path);
         const instance = await this._instantiateDomain(Class_, { domainOptions });
+        if (!instance) throw new Error(`instance for "${name}" wasnt created sucessfully`);
 
         if (!instance['_initialized']) {
             await this._prepareDomain(instance, domainOptions);
@@ -65,6 +66,8 @@ export abstract class InjectionMixin {
         const domainOptions: DomainOptions = { name, path: domainPath, basePath: path };
 
         const Class_ = await this.loadWorkerClass(name, path);
+        if (!Class_) throw new Error(`Domain "${name}" not found`);
+
         await this._prepareDomain(Class_, domainOptions, true);
         return Class_;
     }
