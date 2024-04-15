@@ -1,6 +1,9 @@
+import Decimal from 'decimal.js';
+
 import { StageStatusEnum } from '../../../../types/stageStatus.type';
 import { StageStructureProperties } from '../../../../interfaces/stageParts.interface';
 import { WorkerError } from '../../error';
+import { size } from 'lodash';
 
 export abstract class ExecutionInfoMixin {
     abstract executionInfo: any;
@@ -9,6 +12,18 @@ export abstract class ExecutionInfoMixin {
 
     getExecutionInfo() {
         return this.executionInfo || {};
+    }
+
+    getPlainExecutionInfo() {
+        const executionInfo = this.getExecutionInfo();
+        if (size(executionInfo))
+            for (const key in executionInfo) {
+                if (executionInfo[key] instanceof Decimal) {
+                    executionInfo[key] = +executionInfo[key].toFixed(4);
+                }
+            }
+
+        return executionInfo || {};
     }
 
     getExecutionInfoValue(field) {
@@ -21,7 +36,13 @@ export abstract class ExecutionInfoMixin {
     }
 
     increaseExecutionInfoValue(field, value: number) {
-        this.executionInfo[field] = (this.executionInfo[field] || 0) + value;
+        const initialValue = this.executionInfo[field] || 0;
+        this.executionInfo[field] = initialValue + value;
+    }
+
+    increaseDecimalExecutionInfoValue(field, value: number) {
+        if (!this.executionInfo[field]) this.executionInfo[field] = new Decimal(0);
+        this.executionInfo[field] = this.executionInfo[field].plus(value);
     }
 
     getExecutionError() {

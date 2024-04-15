@@ -1,6 +1,6 @@
 {
     "name": "m0-common",
-    "version": "2.25.0-alpha",
+    "version": "2.26.0-alpha",
     "description": "",
     "license": "ISC",
     "author": "Bruno Foggia",
@@ -17,6 +17,7 @@
         "test:cov": "jest --coverage"
     },
     "dependencies": {
+        "decimal.js": "^10.4.3",
         "node-labs": "github:brunnofoggia/node-labs"
     },
     "devDependencies": {

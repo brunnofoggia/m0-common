@@ -3,6 +3,7 @@ import { defaultsDeep, size } from 'lodash';
 import { StageStatusEnum } from '../../../../types/stageStatus.type';
 import { StageStructureProperties } from '../../../../interfaces/stageParts.interface';
 import { WorkerError } from '../../error';
+import { ExecutionInfoMixin } from './executionInfo';
 
 export abstract class StatusMixin {
     abstract executionInfo: any;
@@ -10,7 +11,7 @@ export abstract class StatusMixin {
     abstract executionStatusUid: any;
 
     _status(_options: any, statusUid: any = null) {
-        const info = size(this.executionInfo) ? { info: this.executionInfo } : {};
+        const info = size(this.executionInfo) ? { info: this.getPlainExecutionInfo() } : {};
         const error = size(this.executionError)
             ? { errorMessage: this.executionError.message, errorCode: this.executionError['code'] }
             : {};
@@ -46,4 +47,4 @@ export abstract class StatusMixin {
     }
 }
 
-export interface StatusMixin extends StageStructureProperties {}
+export interface StatusMixin extends StageStructureProperties, ExecutionInfoMixin {}
