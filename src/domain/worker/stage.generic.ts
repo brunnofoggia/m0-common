@@ -16,6 +16,7 @@ import { ConfigMixin } from './mixins/system/config.mixin';
 import { StatusMixin } from './mixins/system/status.mixin';
 import { RetryMixin } from './mixins/system/retry.mixin';
 import { MultipleExecutionStageMixin } from './mixins/system/multipleExecution.mixin';
+import { WorkerError } from './error';
 
 export abstract class StageGeneric {
     static defaultWorker = 'index';
@@ -41,6 +42,8 @@ export abstract class StageGeneric {
     stageExecution: StageExecutionInterface;
 
     executionInfo: any = {};
+    executionError: WorkerError;
+    executionStatusUid: any = null;
     fakeResult = false;
 
     constructor(options) {

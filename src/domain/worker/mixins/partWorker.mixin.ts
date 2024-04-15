@@ -6,10 +6,9 @@ import { queuelize } from 'node-labs/lib/utils';
 import { ResultInterface } from '../../../interfaces/result.interface';
 import { defaultsDeep } from 'lodash';
 import { StageWorker } from '../stage.worker';
+import { StageStatusEnum } from '../../../types/stageStatus.type';
 
 export abstract class PartWorkerGeneric {
-    [x: string]: any;
-
     public getDefaultOptions() {
         const defaultOptions = defaultsDeep({}, this.defaultOptions, {
             totalLimit: 50000,
@@ -42,7 +41,7 @@ export abstract class PartWorkerGeneric {
             after: (params) => this.afterQueue(params),
         });
 
-        return this.statusDone();
+        return this.status({}, this.stageExecution.data?.options?._forceStatusDone ? StageStatusEnum.DONE : null);
     }
 
     async processExecution({ index, instance, loop, page }): Promise<boolean | void> {
