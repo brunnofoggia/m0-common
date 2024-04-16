@@ -159,9 +159,10 @@ export abstract class SplitMixin {
 
     splitStageGlobalOptions(options) {
         const baseOptions: any = {};
+        const baseConfig: any = {};
 
         if (this.stageConfig.config.childCallback) {
-            baseOptions.callbackStage = this.buildCurrentStageUidAndExecutionUid();
+            baseConfig.callbackStage = this.buildCurrentStageUidAndExecutionUid();
         }
 
         options = defaultsDeep(
@@ -174,7 +175,7 @@ export abstract class SplitMixin {
         );
 
         const stageUidAndExecutionUid = this.buildStageUidWithCurrentExecutionUid(this.getChildStage());
-        return this.buildTriggerStageBody(stageUidAndExecutionUid, options);
+        return this.buildTriggerStageBody(stageUidAndExecutionUid, options, baseConfig);
     }
 
     splitExecuteOptions() {
