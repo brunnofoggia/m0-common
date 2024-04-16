@@ -62,8 +62,6 @@ export class StageExecutionProvider extends M0ApiProvider {
     static async findAllByTransactionAndModule(transactionUid: string, stageUid: string, executionUid = '', index = -1) {
         const url = [this.basePath, 'findAllByTransactionAndModule', transactionUid, stageUid, index, executionUid].join('/');
 
-        console.log('findAllByTransactionAndModule', url);
-
         const result = (await this.request({ url })).data;
         return result;
     }
