@@ -1,6 +1,7 @@
 import _debug from 'debug';
 const debug = _debug('worker:stage:ParallelWorker');
 import { defaultsDeep, filter, map, omit, reduce, sortBy } from 'lodash';
+import Decimal from 'decimal.js';
 
 import { applyMixins } from 'node-labs/lib/utils/mixin';
 import { StageStatusEnum } from '../../../types/stageStatus.type';
@@ -80,13 +81,31 @@ export abstract class ParallelWorkerGeneric {
         return filteredStageExecutionList.slice(0, length);
     }
 
+    getValueListFromInfoField(stageExecutionList, infoField) {
+        return map(stageExecutionList, (stageExecution) => {
+            const lastResult = this._getLastResult(stageExecution);
+            return (lastResult && lastResult.info && lastResult.info[infoField]) || 0;
+        });
+    }
+
+    _getLastResult(stageExecution) {
+        return stageExecution.result[stageExecution.result.length - 1];
+    }
+
     async calcInfoField(stageExecutionList, infoField) {
-        const valueList = map(stageExecutionList, (stageExecution) => {
-            const data = stageExecution.result.pop();
-            return (data && data.info && data.info[infoField]) || 0;
+        const valueList = this.getValueListFromInfoField(stageExecutionList, infoField);
+        return reduce(valueList, (prev, curr) => prev + curr);
+    }
+
+    async calcDecimalInfoField(stageExecutionList, infoField) {
+        const valueList = this.getValueListFromInfoField(stageExecutionList, infoField);
+        let decimal = new Decimal(0);
+
+        valueList.forEach((value) => {
+            decimal = decimal.plus(value);
         });
 
-        return reduce(valueList, (prev, curr) => prev + curr);
+        return +decimal.toFixed(4);
     }
 
     /* replace methods bellow if needed */

@@ -27,8 +27,11 @@ export abstract class SplitMixin {
             const { nextKey } = this.getKeys(lengthKeyPrefix);
             const nextValue = await stateService.getValue(nextKey);
 
+            const isStartingParallelization = this.stageExecution.statusUid !== StageStatusEnum.WAITING;
+            const nextValueRemovedFromDb = typeof nextValue === 'undefined';
+
             // or its a new stage or a stage that required some stages before (requiredStage: results in stage waiting)
-            if (this.stageExecution.statusUid !== StageStatusEnum.WAITING || typeof nextValue === 'undefined') {
+            if (isStartingParallelization || nextValueRemovedFromDb) {
                 this.beforeSplitStart && (await this.beforeSplitStart());
 
                 const { lengthKey } = this.getKeys(lengthKeyPrefix);
@@ -58,14 +61,14 @@ export abstract class SplitMixin {
     async splitStagesResult({ stateService, lengthKeyPrefix }): Promise<ResultInterface | null> {
         this.beforeSplitEnd && (await this.beforeSplitEnd());
         const { lengthKey, nextKey, processKey } = this.getKeys(lengthKeyPrefix);
+        const isTestingResult = this.isTestingResult();
 
         await stateService.increment(processKey);
-
         const ordered = +(await stateService.getValue(lengthKey));
         const finished = +(await stateService.getValue(processKey));
 
-        if (ordered === finished) {
-            const saved = await stateService.saveBy(nextKey, '1', '0');
+        if (ordered === finished || isTestingResult) {
+            const saved = (await stateService.saveBy(nextKey, '1', '0')) || isTestingResult;
             if (!saved) {
                 // will get here when concurrent updates find each other
                 return null;
@@ -73,15 +76,24 @@ export abstract class SplitMixin {
 
             // finished all child
             return await this.splitStagesDone();
+        } else if (finished > ordered) {
+            return this.statusFailed({ errorMessage: `finished: ${finished} > ordered: ${ordered}` });
         }
+
         // still waiting other child to finish
-        return { statusUid: StageStatusEnum.WAITING };
+        return this.statusWaiting();
+    }
+
+    isTestingResult() {
+        return !!this.stageExecution.data.options?._testResult;
     }
 
     // this method will be called when all child stages are done
     async splitStagesDone() {
+        const isTestingResult = this.isTestingResult();
+
         this.afterSplitEnd && (await this.afterSplitEnd());
-        return this.statusDone();
+        return !isTestingResult ? this.statusDone() : this.statusWaiting();
     }
 
     getKeys(lengthKeyPrefix = '') {
