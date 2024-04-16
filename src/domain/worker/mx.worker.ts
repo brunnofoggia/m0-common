@@ -18,7 +18,7 @@ export class MXWorker extends StageWorker {
 
     // #region stages
     getPrevStage() {
-        return this.stageConfig.config.prevStage || this.stageExecution.data.options._calledByStage;
+        return this.stageConfig.config.prevStage || this.stageExecution.data.options?._calledByStage;
     }
 
     getPrevStageList() {
@@ -28,7 +28,7 @@ export class MXWorker extends StageWorker {
 
     getParentStage() {
         return (
-            this.stageConfig.config.callbackStage || this.stageConfig.config.parentStage || this.stageExecution.data.options._calledByStage
+            this.stageConfig.config.callbackStage || this.stageConfig.config.parentStage || this.stageExecution.data.options?._calledByStage
         );
     }
 

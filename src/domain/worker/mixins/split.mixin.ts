@@ -127,7 +127,7 @@ export abstract class SplitMixin {
     }
 
     async splitStage(length = '0', options: any = {}) {
-        if (!this.getChildStage() || this.stageExecution.data.options._triggerSplitStage === 0) return;
+        if (!this.getChildStage() || this.stageExecution.data.options?._triggerSplitStage === 0) return;
 
         const _body = this.splitStageGlobalOptions(options);
         const _indexTo = this.getSplitStageOptions()['_indexTo'] || [];
