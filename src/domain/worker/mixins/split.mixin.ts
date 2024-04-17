@@ -11,6 +11,7 @@ import { StageWorker } from '../stage.worker';
 
 export abstract class SplitMixin {
     abstract splitStageOptions;
+    abstract parallelResults;
 
     abstract beforeSplitStart();
     abstract beforeSplitEnd();
@@ -89,11 +90,19 @@ export abstract class SplitMixin {
     }
 
     // this method will be called when all child stages are done
-    async splitStagesDone() {
-        const isTestingResult = this.isTestingResult();
-
+    async splitStagesDone(results: any = {}) {
         this.afterSplitEnd && (await this.afterSplitEnd());
-        return !isTestingResult ? this.statusDone() : this.statusWaiting();
+        return this.splitStagesDoneResult(results);
+    }
+
+    async splitStagesDoneResult(results_: any = {}) {
+        const results = this.mergeParallelResults(results_);
+        const isTestingResult = this.isTestingResult();
+        return !isTestingResult ? this.statusDone(results) : this.statusWaiting(results);
+    }
+
+    mergeParallelResults(results_) {
+        return defaultsDeep({}, results_, this.parallelResults || {});
     }
 
     getKeys(lengthKeyPrefix = '') {

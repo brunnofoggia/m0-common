@@ -4,46 +4,47 @@ import { StageStatusEnum } from '../../../../types/stageStatus.type';
 import { StageStructureProperties } from '../../../../interfaces/stageParts.interface';
 import { WorkerError } from '../../error';
 import { ExecutionInfoMixin } from './executionInfo';
+import { ResultInterface } from 'interfaces/result.interface';
 
 export abstract class StatusMixin {
     abstract executionInfo: any;
     abstract executionError: WorkerError;
     abstract executionStatusUid: any;
 
-    _status(_options: any, statusUid: any = null) {
+    _status(_result: Partial<ResultInterface>, statusUid: any = null) {
         const info = size(this.executionInfo) ? { info: this.getPlainExecutionInfo() } : {};
         const error = size(this.executionError)
             ? { errorMessage: this.executionError.message, errorCode: this.executionError['code'] }
             : {};
         const status = { statusUid: statusUid || this.executionStatusUid || StageStatusEnum.DONE };
 
-        const options: any = defaultsDeep(_options, info, error, status);
+        const options: any = defaultsDeep(_result, info, error, status);
 
         return options;
     }
 
-    status(options: any = {}, statusUid: any = null) {
-        return this._status(options, statusUid);
+    status(result: Partial<ResultInterface> = {}, statusUid: any = null) {
+        return this._status(result, statusUid);
     }
 
-    statusDone(options: any = {}) {
-        return this._status(options, StageStatusEnum.DONE);
+    statusDone(result: Partial<ResultInterface> = {}) {
+        return this._status(result, StageStatusEnum.DONE);
     }
 
-    statusFailed(options: any = {}) {
-        return this._status(options, StageStatusEnum.FAILED);
+    statusFailed(result: Partial<ResultInterface> = {}) {
+        return this._status(result, StageStatusEnum.FAILED);
     }
 
-    statusError(options: any = {}) {
-        return this._status(options, StageStatusEnum.ERROR);
+    statusError(result: Partial<ResultInterface> = {}) {
+        return this._status(result, StageStatusEnum.ERROR);
     }
 
-    statusUnknown(options: any = {}) {
-        return this._status(options, StageStatusEnum.UNKNOWN);
+    statusUnknown(result: Partial<ResultInterface> = {}) {
+        return this._status(result, StageStatusEnum.UNKNOWN);
     }
 
-    statusWaiting(options: any = {}) {
-        return this._status(options, StageStatusEnum.WAITING);
+    statusWaiting(result: Partial<ResultInterface> = {}) {
+        return this._status(result, StageStatusEnum.WAITING);
     }
 }
 
