@@ -28,15 +28,16 @@ export const insert = async (worker: StageWorker, service, getData, monitorServi
     const { storage } = await worker._getSolutions();
     const fromDir = [rootDir, options.input.dir].join('/');
     const fromPath_ = [fromDir];
-    if (executionUid) {
+    if (executionUid && !options._ignoreExecutionUidForStorage) {
         fromPath_.push(executionUid);
     }
     fromPath_.push(body.options.index);
     const fromPath = fromPath_.join('/');
+    debug(`fromPath: ${fromPath}`);
 
     await service.checkIfTableExists();
 
-    const createFileStream = async () => await readStream(fromPath, storage);
+    const createFileStream = async () => readStream(fromPath, storage);
     const fileStream = await createFileStream();
     if (!fileStream) return;
 
