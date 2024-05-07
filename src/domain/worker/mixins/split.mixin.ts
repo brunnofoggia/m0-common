@@ -148,7 +148,7 @@ export abstract class SplitMixin {
                 ...omit(_body, 'options'),
                 ...pick(indexTo, 'transactionUid'),
                 options: {
-                    ..._body.options,
+                    ...omit(_body.options, 'index'),
                     ...omit(indexTo, 'transactionUid'),
                     index: counter,
                 },

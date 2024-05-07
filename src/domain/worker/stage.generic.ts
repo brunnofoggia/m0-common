@@ -109,8 +109,12 @@ export abstract class StageGeneric {
 
     getIndex(): number {
         const index =
-            this.stageExecution && !isNaN(this.stageExecution?.data?.index) ? this.stageExecution?.data?.index : this.body.options.index;
-        return index === undefined || index === null ? -1 : +index;
+            this.stageExecution && !isNaN(this.stageExecution?.data?.options?.index)
+                ? this.stageExecution?.data?.options.index
+                : !isNaN(this.stageExecution?.data?.index)
+                ? this.stageExecution?.data?.index
+                : this.body.options.index;
+        return index === undefined || index === null || index === false ? -1 : +index;
     }
 
     getEnv() {
