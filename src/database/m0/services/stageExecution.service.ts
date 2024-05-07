@@ -25,7 +25,9 @@ export class StageExecutionService extends DynamicDatabase<StageExecutionEntity>
         queryBuilder.andWhere(`stageConfig.stageUid = :b`, { b: stageUid });
         queryBuilder.andWhere(`stageExecution.system ::jsonb @> :c`, { c: { executionUid } });
 
-        if (index + '' !== '-1') queryBuilder.andWhere(`stageExecution.data ::jsonb @> :d`, { d: { options: { index: +index } } });
+        // removed to avoid override problem for grandsonStage + callbackStage
+        // if (index + '' !== '-1')
+        queryBuilder.andWhere(`stageExecution.data ::jsonb @> :d`, { d: { options: { index: +index } } });
 
         queryBuilder.orderBy('stageExecution.id', 'DESC');
     }
