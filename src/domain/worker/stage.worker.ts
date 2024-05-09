@@ -24,6 +24,7 @@ import { ExecutionInfoMixin } from './mixins/system/executionInfo';
 import { StageGeneric } from './stage.generic';
 import { PathMixin } from './mixins/system/path.mixin';
 import { validateOptionsByRuleSet } from './utils/validate';
+import { StagesMixin } from './mixins/system/stages.mixin';
 
 export class StageWorker extends StageGeneric implements StageParts {
     defaultConfig: any = {};
@@ -203,14 +204,6 @@ export class StageWorker extends StageGeneric implements StageParts {
         return this.triggerStageToDefaultProvider(this.worflowEventName, body);
     }
 
-    public getDefaultConfig() {
-        return this.defaultConfig;
-    }
-
-    public getDefaultOptions() {
-        return this.defaultOptions;
-    }
-
     prepareConfig(_config: any = {}) {
         if (!this._stageConfig_config) this._stageConfig_config = cloneDeep(this.stageConfig.config);
         this._stageConfig_config_inputed = defaultsDeep(this._stageConfig_config_inputed, _config);
@@ -276,7 +269,15 @@ export class StageWorker extends StageGeneric implements StageParts {
     }
     // #endregion
 
-    // getters
+    // #region getters
+    public getDefaultConfig() {
+        return this.defaultConfig;
+    }
+
+    public getDefaultOptions() {
+        return this.defaultOptions;
+    }
+
     get(): StageAllProperties {
         return {
             body: this.body,
@@ -326,6 +327,7 @@ export class StageWorker extends StageGeneric implements StageParts {
     getRetryAttempt(increaseByOne = true) {
         return super.getRetryAttempt(increaseByOne);
     }
+    // #endregion
 
     // #region legacy code
     extractMethods(): StageFeatureMethods {
@@ -371,6 +373,16 @@ export interface StageWorker
         DateMixin,
         PathMixin,
         SecretsMixin,
-        ExecutionInfoMixin {}
+        ExecutionInfoMixin,
+        StagesMixin {}
 
-applyMixins(StageWorker, [LifeCycleMixin, DynamicWorkerMixin, InjectionMixin, DateMixin, PathMixin, SecretsMixin, ExecutionInfoMixin]);
+applyMixins(StageWorker, [
+    LifeCycleMixin,
+    DynamicWorkerMixin,
+    InjectionMixin,
+    DateMixin,
+    PathMixin,
+    SecretsMixin,
+    ExecutionInfoMixin,
+    StagesMixin,
+]);

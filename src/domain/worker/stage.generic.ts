@@ -17,6 +17,7 @@ import { StatusMixin } from './mixins/system/status.mixin';
 import { RetryMixin } from './mixins/system/retry.mixin';
 import { MultipleExecutionStageMixin } from './mixins/system/multipleExecution.mixin';
 import { WorkerError } from './error';
+import { BodyInterface } from '../../interfaces/body.interface';
 
 export abstract class StageGeneric {
     static defaultWorker = 'index';
@@ -25,7 +26,7 @@ export abstract class StageGeneric {
     readonly worflowEventName = 'm0/workflow';
 
     uniqueId: string;
-    body;
+    body: BodyInterface;
 
     projectUid: string;
     transactionUid: string;
@@ -108,12 +109,17 @@ export abstract class StageGeneric {
     }
 
     getIndex(): number {
-        const index =
-            this.stageExecution && !isNaN(this.stageExecution?.data?.options?.index)
-                ? this.stageExecution?.data?.options.index
-                : !isNaN(this.stageExecution?.data?.index)
-                ? this.stageExecution?.data?.index
-                : this.body.options.index;
+        const bodyIndex = this.body.options?.index;
+        const stageExecutionIndex =
+            size(this.stageExecution?.data) > 0
+                ? !isNaN(this.stageExecution.data.options?.index)
+                    ? this.stageExecution.data.options.index
+                    : !isNaN(this.stageExecution.data.index)
+                    ? this.stageExecution.data.index
+                    : undefined
+                : undefined;
+
+        const index = stageExecutionIndex || bodyIndex;
         return index === undefined || index === null || index === false ? -1 : +index;
     }
 

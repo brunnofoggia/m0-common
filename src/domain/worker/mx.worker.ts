@@ -15,30 +15,4 @@ export class MXWorker extends StageWorker {
     getTimezone() {
         return +this.project._config?.timezone || 0;
     }
-
-    // #region stages
-    getPrevStage() {
-        return this.stageConfig.config.prevStage || this.stageExecution.data.options?._calledByStage;
-    }
-
-    getPrevStageList() {
-        const prevStage_ = this.getPrevStage();
-        return isArray(prevStage_) ? prevStage_ : [prevStage_];
-    }
-
-    getParentStage() {
-        return (
-            this.stageConfig.config.callbackStage || this.stageConfig.config.parentStage || this.stageExecution.data.options?._calledByStage
-        );
-    }
-
-    getParentStageDir() {
-        const stageUid = this.replaceStageExecutionSplitter(this.getParentStage());
-        return [this.rootDir, stageUid].join('/');
-    }
-
-    getChildStage() {
-        return this.stageConfig.config.childStage || this.stageConfig.config.splitStage;
-    }
-    // #endregion
 }
