@@ -88,10 +88,12 @@ export abstract class CursorPartGeneric {
         if (!this.paginator) {
             const paginatorOptions = this.getPaginatorOptions();
             const queryBuilder = await this.getPaginatorBuilder();
+            const entity = this.getLocalEntity();
+            if (!entity) throw new WorkerError('getLocalEntity not configured properly', StageStatusEnum.FAILED);
 
             this.paginator = new PaginatorUtil(
                 {
-                    entity: this.getLocalEntity(),
+                    entity,
                     alias: paginatorOptions.alias,
                     paginationKeys: this.getPaginationKeys(),
                     Paginator: PaginatorJoin,
@@ -112,21 +114,23 @@ export abstract class CursorPartGeneric {
         const cursorKey = this.getCursorKey();
         const pk = `"${alias}"."${cursorKey}"`;
 
-        const firstRow = await this.findFirstRow();
-        if (!firstRow) throw new WorkerError('invalid page. no first row', StageStatusEnum.FAILED);
-
         const queryBuilder = this.paginateRecordsQueryBuilder(this.getLocalService());
 
-        if (size(firstRow) && firstRow[cursorKey] === undefined)
-            throw new WorkerError('invalid initial cursor value or cursor key field not present', StageStatusEnum.FAILED);
+        if (this.stageConfig.options.disableFirstRowByIndex) {
+            const firstRow = await this.findFirstRow();
+            if (!firstRow) throw new WorkerError('invalid page. no first row', StageStatusEnum.FAILED);
 
-        // i did this at first but it makes no sense to capture all the keys
-        // const splitDelimiters = this.getSplitDelimiters();
-        // const where = `${pk} >= ${splitDelimiters[0]} AND ${pk} <= ${splitDelimiters[1]}`;
-        // then I realized that the first row could be calculated using limit and offset (see findFirstRow method)
-        const where = `${pk} >= ${firstRow[cursorKey]}`;
+            if (size(firstRow) && firstRow[cursorKey] === undefined)
+                throw new WorkerError('invalid initial cursor value or cursor key field not present', StageStatusEnum.FAILED);
 
-        queryBuilder.andWhere(where);
+            // i did this at first but it makes no sense to capture all the keys
+            // const splitDelimiters = this.getSplitDelimiters();
+            // const where = `${pk} >= ${splitDelimiters[0]} AND ${pk} <= ${splitDelimiters[1]}`;
+            // then I realized that the first row could be calculated using limit and offset (see findFirstRow method)
+            const where = `${pk} >= ${firstRow[cursorKey]}`;
+
+            queryBuilder.andWhere(where);
+        }
         return queryBuilder;
     }
 
