@@ -7,6 +7,22 @@ export abstract class StagesMixin {
     abstract fowardInternalOptions(): any;
 
     // #region getters
+    _getParentStage() {
+        return this.stageConfig.config.parentStage;
+    }
+
+    _getCallbackStage() {
+        return this.stageConfig.config.callbackStage;
+    }
+
+    _getNextStages() {
+        return this.stageConfig.config.nextStage;
+    }
+
+    _getRequiredStages() {
+        return this.stageConfig.config.requiredStage;
+    }
+
     getPrevStage() {
         return this.stageConfig.config.prevStage || this.stageExecution.data.options?._calledByStage;
     }
@@ -17,9 +33,7 @@ export abstract class StagesMixin {
     }
 
     getParentStage() {
-        return (
-            this.stageConfig.config.callbackStage || this.stageConfig.config.parentStage || this.stageExecution.data.options?._calledByStage
-        );
+        return this.stageConfig.config.callbackStage || this._getParentStage() || this.stageExecution.data.options?._calledByStage;
     }
 
     getParentStageDir() {

@@ -80,9 +80,9 @@ export class ModuleDomain extends ModuleGeneric {
     }
 
     async _getBuilderClass() {
-        const fakeStageUid = (this.body.options?._fakeStageUid || '').split('/');
-        const moduleUid = fakeStageUid[0] || this.moduleUid;
-        const stageName = fakeStageUid[1] || this.stageName;
+        const stageSourceUid = (this.body.options?._fakeStageUid || this.stageConfig.config.stageSourceUid || '').split('/');
+        const moduleUid = stageSourceUid[0] || this.moduleUid;
+        const stageName = stageSourceUid[1] || this.stageName;
 
         let BuilderClass;
         try {
