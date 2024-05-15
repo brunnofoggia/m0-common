@@ -50,7 +50,7 @@ export class StageExecutionProvider extends M0ApiProvider {
         stageUid: string,
         executionUid = '',
         // relevant ony to parallel process
-        index = -1,
+        index: any = -1,
     ) {
         const url = [this.basePath, 'findByTransactionAndModule', transactionUid, stageUid, index, executionUid].join('/');
         // console.log(url);
@@ -59,7 +59,7 @@ export class StageExecutionProvider extends M0ApiProvider {
         return result;
     }
 
-    static async findAllByTransactionAndModule(transactionUid: string, stageUid: string, executionUid = '', index = -1) {
+    static async findAllByTransactionAndModule(transactionUid: string, stageUid: string, executionUid = '', index: any = -1) {
         const url = [this.basePath, 'findAllByTransactionAndModule', transactionUid, stageUid, index, executionUid].join('/');
 
         const result = (await this.request({ url })).data;

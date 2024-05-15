@@ -73,6 +73,7 @@ export abstract class ParallelWorkerGeneric {
             this.transactionUid,
             this.getChildStage(),
             this.executionUid,
+            'none',
         );
         const filteredStageExecutionList = sortBy(
             filter(stageExecutionList, (stageExecution) => stageExecution.id > this.stageExecution.id),

@@ -15,7 +15,7 @@ export class StageExecutionService extends DynamicDatabase<StageExecutionEntity>
         moduleExecutionId: number,
         stageUid: string,
         executionUid = '',
-        index: string | number = -1,
+        index: any = -1,
     ) {
         !executionUid && (executionUid = '');
 
@@ -25,9 +25,9 @@ export class StageExecutionService extends DynamicDatabase<StageExecutionEntity>
         queryBuilder.andWhere(`stageConfig.stageUid = :b`, { b: stageUid });
         queryBuilder.andWhere(`stageExecution.system ::jsonb @> :c`, { c: { executionUid } });
 
-        // removed to avoid override problem for grandsonStage + callbackStage
-        // if (index + '' !== '-1')
-        queryBuilder.andWhere(`stageExecution.data ::jsonb @> :d`, { d: { options: { index: +index } } });
+        // changed to avoid override problem for grandsonStage + callbackStage
+        // kept ''==='none' to make possible to filter childStages with all their indexes
+        if (index + '' !== 'none') queryBuilder.andWhere(`stageExecution.data ::jsonb @> :d`, { d: { options: { index: +index } } });
 
         queryBuilder.orderBy('stageExecution.id', 'DESC');
     }
@@ -36,7 +36,7 @@ export class StageExecutionService extends DynamicDatabase<StageExecutionEntity>
         moduleExecutionId: number,
         stageUid: string,
         executionUid = '',
-        index: string | number = -1,
+        index: any = -1,
     ): Promise<StageExecutionEntity> {
         const queryBuilder = this.getRepository()
             .createQueryBuilder('stageExecution')
@@ -50,7 +50,7 @@ export class StageExecutionService extends DynamicDatabase<StageExecutionEntity>
         moduleExecutionId: number,
         stageUid: string,
         executionUid = '',
-        index: string | number = -1,
+        index: any = -1,
     ): Promise<StageExecutionEntity[]> {
         const queryBuilder = this.getRepository()
             .createQueryBuilder('stageExecution')
