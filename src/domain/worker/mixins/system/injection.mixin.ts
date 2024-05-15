@@ -102,8 +102,14 @@ export abstract class InjectionMixin {
         }
     }
 
+    readSourceUid() {
+        const sourceUidData = this.stageConfig.config.stageSourceUid.split('/');
+        return { moduleUid: sourceUidData[0], stageName: sourceUidData[1] };
+    }
+
     buildWorkerModulePath() {
-        return `modules/${this.moduleUid}`;
+        const moduleUid = !this.stageConfig.config.stageSourceUid() ? this.moduleUid : this.readSourceUid().moduleUid;
+        return `modules/${moduleUid}`;
     }
 
     domainDirName(): string {
@@ -111,7 +117,8 @@ export abstract class InjectionMixin {
     }
 
     buildWorkerStagePath() {
-        return `${this.buildWorkerModulePath()}/stages/${this.stageName}`;
+        const stageName = !this.stageConfig.config.stageSourceUid() ? this.stageName : this.readSourceUid().stageName;
+        return `${this.buildWorkerModulePath()}/stages/${stageName}`;
     }
 
     buildWorkerParentStagePath() {
