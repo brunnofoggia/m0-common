@@ -52,7 +52,7 @@ export abstract class StagesMixin {
         return await this.triggerStageToDefaultProvider(this.worflowEventName, body);
     }
 
-    async getChildStageDefaultOptions() {
+    async getChildStageDefaultOptions(): Promise<any> {
         const defaultOptions = {
             transactionUid: this.transactionUid,
             index: this.getIndex(),
@@ -61,11 +61,11 @@ export abstract class StagesMixin {
         return defaultOptions;
     }
 
-    async buildChildStageOptions(options: any = {}) {
+    async buildChildStageOptions(options: any = {}): Promise<any> {
         return defaultsDeep({}, options, await this.getChildStageDefaultOptions(), this.fowardInternalOptions());
     }
 
-    async getChildStageDefaultConfig() {
+    async getChildStageDefaultConfig(): Promise<any> {
         const defaultConfig = {
             callbackStage: this.buildCurrentStageUidAndExecutionUid(),
             callbackIndex: this.getIndex(),
@@ -74,7 +74,7 @@ export abstract class StagesMixin {
         return defaultConfig;
     }
 
-    async buildChildStageConfig(config: any = {}) {
+    async buildChildStageConfig(config: any = {}): Promise<any> {
         return defaultsDeep({}, config, await this.getChildStageDefaultConfig());
     }
 
