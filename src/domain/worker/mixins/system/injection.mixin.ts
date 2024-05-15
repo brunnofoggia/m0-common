@@ -107,8 +107,12 @@ export abstract class InjectionMixin {
         return { moduleUid: sourceUidData[0], stageName: sourceUidData[1] };
     }
 
+    isFromAnotherSource() {
+        return this.stageConfig.config.stageSourceUid && this.stageConfig.config.stageSourceUid !== this.stageUid;
+    }
+
     buildWorkerModulePath() {
-        const moduleUid = !this.stageConfig.config.stageSourceUid() ? this.moduleUid : this.readSourceUid().moduleUid;
+        const moduleUid = !this.isFromAnotherSource() ? this.moduleUid : this.readSourceUid().moduleUid;
         return `modules/${moduleUid}`;
     }
 
@@ -117,7 +121,7 @@ export abstract class InjectionMixin {
     }
 
     buildWorkerStagePath() {
-        const stageName = !this.stageConfig.config.stageSourceUid() ? this.stageName : this.readSourceUid().stageName;
+        const stageName = !this.isFromAnotherSource() ? this.stageName : this.readSourceUid().stageName;
         return `${this.buildWorkerModulePath()}/stages/${stageName}`;
     }
 
