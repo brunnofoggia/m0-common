@@ -188,12 +188,17 @@ export abstract class StageGeneric {
         return { stageExecution: undefined, error: StageExecutionFindError.FAILED };
     }
 
-    buildStageBody(stageUidAndExecutionUid, options: any = {}, config: any = {}) {
+    buildStageBody(stageUidAndExecutionUid, options: any = {}, config: any = {}, root: any = {}) {
         const { stageUid, executionUid } = this.separateStageUidAndExecutionUid(stageUidAndExecutionUid);
-        return {
+        const _root = {
             projectUid: this.projectUid,
             transactionUid: this.transactionUid,
             date: this.moduleExecution.date,
+            ...root,
+        };
+
+        return {
+            ..._root,
             stageUid,
             executionUid,
             options,
@@ -214,7 +219,7 @@ export abstract class StageGeneric {
         };
     }
 
-    buildTriggerStageBody(stageUidAndExecutionUid_, options: any = {}, config: any = {}) {
+    buildTriggerStageBody(stageUidAndExecutionUid_, options: any = {}, config: any = {}, root: any = {}) {
         let stageUidAndExecutionUid = this._prepareStageUidAndExecutionUid(stageUidAndExecutionUid_);
 
         options = {
@@ -223,7 +228,7 @@ export abstract class StageGeneric {
         };
 
         stageUidAndExecutionUid = this.fowardExecutionUid(stageUidAndExecutionUid);
-        return this.buildStageBody(stageUidAndExecutionUid, options, config);
+        return this.buildStageBody(stageUidAndExecutionUid, options, config, root);
     }
 
     isStatusProcessing(statusUid) {

@@ -54,7 +54,6 @@ export abstract class StagesMixin {
 
     async getChildStageDefaultOptions(): Promise<any> {
         const defaultOptions = {
-            transactionUid: this.transactionUid,
             index: this.getIndex(),
         };
 
@@ -74,20 +73,29 @@ export abstract class StagesMixin {
         return defaultConfig;
     }
 
+    async getChildStageDefaultRoot(): Promise<any> {
+        return {};
+    }
+
     async buildChildStageConfig(config: any = {}): Promise<any> {
         return defaultsDeep({}, config, await this.getChildStageDefaultConfig());
+    }
+
+    async buildChildStageRoot(root: any = {}): Promise<any> {
+        return defaultsDeep({}, root, await this.getChildStageDefaultRoot());
     }
 
     async buildChildStageUid() {
         return this.buildStageUidWithCurrentExecutionUid(this.getChildStage());
     }
 
-    async buildChildStageBody(options_: any = {}, config_: any = {}) {
+    async buildChildStageBody(options_: any = {}, config_: any = {}, root_: any = {}) {
         const options = await this.buildChildStageOptions(options_);
         const config = await this.buildChildStageConfig(config_);
+        const root = await this.buildChildStageRoot(root_);
 
         const childStageUid = await this.buildChildStageUid();
-        return this.buildTriggerStageBody(childStageUid, options, config);
+        return this.buildTriggerStageBody(childStageUid, options, config, root);
     }
     // #endregion
 }
