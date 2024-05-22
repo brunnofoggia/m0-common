@@ -72,13 +72,20 @@ export abstract class PathMixin {
 
     // }
 
+    buildStageDir(stageUidAndExecutionUid: string) {
+        const { stageUid } = this.separateStageUidAndExecutionUid(stageUidAndExecutionUid);
+
+        const stageDir = [this.rootDir, stageUid];
+        return stageDir.join('/');
+    }
+
     buildExecutionDir(stageUidAndExecutionUid: string, executionUid_ = '') {
         const { stageUid, executionUid } = this.separateStageUidAndExecutionUid(stageUidAndExecutionUid);
         if (!executionUid_ && executionUid) {
             executionUid_ = executionUid;
         }
 
-        const executionDir = [this.rootDir, stageUid];
+        const executionDir = [this.buildStageDir(stageUid)];
         if (executionUid_) executionDir.push(executionUid_);
         return executionDir.join('/');
     }
