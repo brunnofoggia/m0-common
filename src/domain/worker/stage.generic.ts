@@ -1,4 +1,4 @@
-import { uniqueId, indexOf, size, lastIndexOf } from 'lodash';
+import { uniqueId, indexOf, size, lastIndexOf, defaultsDeep } from 'lodash';
 import { applyMixins } from 'node-labs/lib/utils/mixin';
 
 import { ModuleExecutionInterface } from '../../interfaces/moduleExecution.interface';
@@ -222,10 +222,20 @@ export abstract class StageGeneric {
     buildTriggerStageBody(stageUidAndExecutionUid_, options: any = {}, config: any = {}, root: any = {}) {
         let stageUidAndExecutionUid = this._prepareStageUidAndExecutionUid(stageUidAndExecutionUid_);
 
-        options = {
-            ...options,
-            _calledByStage: this.stageUid,
-        };
+        const refData: any = {};
+        if ('parentTransactionUid' in this.moduleExecution.data) {
+            refData.moduleExecutionData = {
+                parentTransactionUid: this.transactionUid,
+            };
+        }
+
+        options = defaultsDeep(
+            {
+                _calledByStage: this.stageUid,
+            },
+            options,
+            refData,
+        );
 
         stageUidAndExecutionUid = this.fowardExecutionUid(stageUidAndExecutionUid);
         return this.buildStageBody(stageUidAndExecutionUid, options, config, root);
