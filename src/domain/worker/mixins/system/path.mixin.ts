@@ -38,16 +38,8 @@ export abstract class PathMixin {
     }
 
     setPathRoot() {
-        const rootDir = [];
-        // bucket can be switched just by creating another one
-        // const envPath = this.getStorageEnv();
-        // if (envPath) rootDir.push(envPath);
-
         this.projectPath = this.getProjectUid();
-        rootDir.push(this.projectPath);
-        rootDir.push(this.transactionUid);
-
-        this.rootDir = rootDir.join('/');
+        this.rootDir = this.buildRootDir();
     }
 
     setPathModule() {
@@ -65,6 +57,27 @@ export abstract class PathMixin {
         this.projectStagePath = [this.projectPath, this.stageUid].join('/');
     }
 
+    buildRootDir(transactionUid = '') {
+        const _transactionUid = transactionUid || this.transactionUid;
+        const rootDir = [];
+        // bucket can be switched just by creating another one
+        // const envPath = this.getStorageEnv();
+        // if (envPath) rootDir.push(envPath);
+
+        rootDir.push(this.projectPath);
+        rootDir.push(_transactionUid);
+
+        return rootDir.join('/');
+    }
+
+    buildSharedDir() {
+        const sharedDir = [];
+        sharedDir.push(this.projectPath);
+        sharedDir.push('shared');
+
+        return sharedDir.join('/');
+    }
+
     // buildExecutionDir(stageUid: string, executionUid: string) {
     //     const stageDir = [this.rootDir, stageUid];
     //     if (executionUid) stageDir.push(executionUid);
@@ -72,26 +85,26 @@ export abstract class PathMixin {
 
     // }
 
-    buildStageDir(stageUidAndExecutionUid: string) {
+    buildStageDir(stageUidAndExecutionUid: string, rootDir = '') {
         const { stageUid } = this.separateStageUidAndExecutionUid(stageUidAndExecutionUid);
 
-        const stageDir = [this.rootDir, stageUid];
+        const stageDir = [rootDir || this.rootDir, stageUid];
         return stageDir.join('/');
     }
 
-    buildExecutionDir(stageUidAndExecutionUid: string, executionUid_ = '') {
+    buildExecutionDir(stageUidAndExecutionUid: string, executionUid_ = '', rootDir = '') {
         const { stageUid, executionUid } = this.separateStageUidAndExecutionUid(stageUidAndExecutionUid);
         if (!executionUid_ && executionUid) {
             executionUid_ = executionUid;
         }
 
-        const executionDir = [this.buildStageDir(stageUid)];
+        const executionDir = [this.buildStageDir(stageUid, rootDir)];
         if (executionUid_) executionDir.push(executionUid_);
         return executionDir.join('/');
     }
 
-    buildExecutionDirWithCurrentExecutionUid(stageUid: string) {
-        return this.buildExecutionDir(stageUid, this.executionUid);
+    buildExecutionDirWithCurrentExecutionUid(stageUid: string, rootDir = '') {
+        return this.buildExecutionDir(stageUid, this.executionUid, rootDir);
     }
 
     // #region getters
