@@ -170,7 +170,8 @@ export abstract class SplitMixin {
         const baseOptions: any = {};
         const baseConfig: any = {};
 
-        if (this.stageConfig.config.childCallback) {
+        const shouldCallback = !!this.stageConfig.config.childCallback;
+        if (shouldCallback) {
             baseConfig.callbackStage = this.buildCurrentStageUidAndExecutionUid();
         }
 

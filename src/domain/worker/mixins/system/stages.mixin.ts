@@ -47,8 +47,8 @@ export abstract class StagesMixin {
     // #endregion
 
     // #region child stage
-    async triggerChildStage(options_: any = {}, config_: any = {}) {
-        const body = await this.buildChildStageBody(options_, config_);
+    async triggerChildStage(options_: any = {}, config_: any = {}, root_: any = {}) {
+        const body = await this.buildChildStageBody(options_, config_, root_);
         return await this.triggerStageToDefaultProvider(this.worflowEventName, body);
     }
 
@@ -65,10 +65,12 @@ export abstract class StagesMixin {
     }
 
     async getChildStageDefaultConfig(): Promise<any> {
-        const defaultConfig = {
-            callbackStage: this.buildCurrentStageUidAndExecutionUid(),
-            callbackIndex: this.getIndex(),
-        };
+        const defaultConfig: any = {};
+        const shouldCallback = !!this.stageConfig.config.childCallback;
+        if (shouldCallback) {
+            defaultConfig.callbackStage = this.buildCurrentStageUidAndExecutionUid();
+            defaultConfig.callbackIndex = this.getIndex();
+        }
 
         return defaultConfig;
     }

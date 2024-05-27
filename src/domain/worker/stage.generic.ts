@@ -78,6 +78,10 @@ export abstract class StageGeneric {
         return !!result;
     }
 
+    get isFakeResult() {
+        return this.fakeResult || !!this.stageExecution?.data?.options?.fakeResult;
+    }
+
     abstract initialize(uniqueId: string);
 
     static _getDefaultWorker() {
@@ -197,6 +201,20 @@ export abstract class StageGeneric {
             ...root,
         };
 
+        // is forced transaction empty
+        const forcedEmptyTransactionUid = !_root.transactionUid;
+        if (forcedEmptyTransactionUid) {
+            const parentTransactionUid = this.transactionUid;
+            options = defaultsDeep(
+                {
+                    moduleExecutionData: {
+                        parentTransactionUid,
+                    },
+                },
+                options,
+            );
+        }
+
         return {
             ..._root,
             stageUid,
@@ -223,10 +241,18 @@ export abstract class StageGeneric {
         let stageUidAndExecutionUid = this._prepareStageUidAndExecutionUid(stageUidAndExecutionUid_);
 
         const refData: any = {};
+        // repasse do parentTransactionUid para outro modulo
         if ('parentTransactionUid' in this.moduleExecution.data) {
-            refData.moduleExecutionData = {
-                parentTransactionUid: this.transactionUid,
-            };
+            const parentTransactionUid = this.moduleExecution.data.parentTransactionUid;
+            const triggeredModuleUid = stageUidAndExecutionUid.split('/')[0];
+
+            const isTransactionUidForcedBlank = 'transactionUid' in root && root.transactionUid === '';
+            // reenvia o parentTransactionUid para o modulo seguinte dentro da mesma transaction
+            if (this.moduleUid !== triggeredModuleUid && !isTransactionUidForcedBlank) {
+                refData.moduleExecutionData = {
+                    parentTransactionUid,
+                };
+            }
         }
 
         options = defaultsDeep(

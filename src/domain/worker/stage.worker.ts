@@ -53,7 +53,7 @@ export class StageWorker extends StageGeneric implements StageParts {
     }
 
     async __debug(...args) {
-        if (!this.fakeResult) {
+        if (!this.isFakeResult) {
             debug(...args);
         }
     }
@@ -73,7 +73,7 @@ export class StageWorker extends StageGeneric implements StageParts {
 
         this.system.startedAt = new Date().toISOString();
         let result, execResult;
-        if (!this.fakeResult) {
+        if (!this.isFakeResult) {
             try {
                 debug('lifecycle: on initialize');
                 await this._onInitialize();
