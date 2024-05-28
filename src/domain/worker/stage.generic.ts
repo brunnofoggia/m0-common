@@ -198,6 +198,8 @@ export abstract class StageGeneric {
             projectUid: this.projectUid,
             transactionUid: this.transactionUid,
             date: this.moduleExecution.date,
+            stageUid,
+            executionUid,
             ...root,
         };
 
@@ -217,8 +219,6 @@ export abstract class StageGeneric {
 
         return {
             ..._root,
-            stageUid,
-            executionUid,
             options,
             config,
         };

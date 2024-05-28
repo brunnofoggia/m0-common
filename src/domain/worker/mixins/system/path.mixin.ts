@@ -6,6 +6,7 @@ export interface PathProperties {
     moduleDir: string;
     stageDir: string;
     executionDir: string;
+    sharedDir: string;
 
     projectPath: string;
     projectModulePath: string;
@@ -22,6 +23,7 @@ export abstract class PathMixin {
     moduleDir: string;
     stageDir: string;
     executionDir: string;
+    sharedDir: string;
 
     projectPath: string;
     projectModulePath: string;
@@ -35,6 +37,7 @@ export abstract class PathMixin {
         this.setPathRoot();
         this.setPathModule();
         this.setPathStage();
+        this.setSharedDir();
     }
 
     setPathRoot() {
@@ -70,12 +73,12 @@ export abstract class PathMixin {
         return rootDir.join('/');
     }
 
-    buildSharedDir() {
+    setSharedDir() {
         const sharedDir = [];
         sharedDir.push(this.projectPath);
         sharedDir.push('shared');
 
-        return sharedDir.join('/');
+        this.sharedDir = sharedDir.join('/');
     }
 
     // buildExecutionDir(stageUid: string, executionUid: string) {
@@ -136,12 +139,13 @@ export abstract class PathMixin {
         return this.projectStagePath;
     }
 
-    getAllPaths() {
+    getAllPaths(): PathProperties {
         return {
             rootDir: this.rootDir,
             moduleDir: this.moduleDir,
             stageDir: this.stageDir,
             executionDir: this.executionDir,
+            sharedDir: this.sharedDir,
             projectPath: this.projectPath,
             projectModulePath: this.projectModulePath,
             projectStagePath: this.projectStagePath,
