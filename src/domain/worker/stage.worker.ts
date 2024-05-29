@@ -1,4 +1,4 @@
-import { size, indexOf, omit, defaultsDeep, pickBy, bind, defaults, cloneDeep } from 'lodash';
+import { size, indexOf, omit, defaultsDeep, pickBy, bind, defaults, cloneDeep, isArray, map, isString } from 'lodash';
 import _debug from 'debug';
 const debug = _debug('worker:stage');
 
@@ -79,6 +79,7 @@ export class StageWorker extends StageGeneric implements StageParts {
                 await this._onInitialize();
 
                 execResult = await this._execute();
+                await this._resultInfoFn(execResult);
             } catch (error) {
                 debug('lifecycle: cought error');
                 this.logError(error);
@@ -103,6 +104,27 @@ export class StageWorker extends StageGeneric implements StageParts {
         const result = await this.execute();
 
         return result;
+    }
+
+    async _resultInfoFn(result: ResultInterface) {
+        if (!this.stageConfig.config.resultInfoFn || result.statusUid !== StageStatusEnum.DONE) return;
+        if (!result.info) result.info = {};
+        const resultInfoConfig = this.stageConfig.config.resultInfoFn;
+        let resultInfoFn = isArray(resultInfoConfig) ? resultInfoConfig : [resultInfoConfig];
+        resultInfoFn = map(resultInfoFn, (info) => {
+            if (!isString(info)) return info;
+
+            return {
+                fn: info,
+            };
+        });
+
+        for (const fnConfig of resultInfoFn) {
+            const fnResult = await this[fnConfig.fn]();
+            const key = !fnConfig.key ? fnResult[0] : fnConfig.key;
+            const value = !fnConfig.key ? fnResult[1] : fnResult;
+            result.info[key] = !!value;
+        }
     }
 
     async _result(result: ResultInterface) {
