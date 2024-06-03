@@ -106,24 +106,38 @@ export class StageWorker extends StageGeneric implements StageParts {
         return result;
     }
 
-    async _resultInfoFn(result: ResultInterface) {
-        if (!this.stageConfig.config.resultInfoFn || result.statusUid !== StageStatusEnum.DONE) return;
-        if (!result.info) result.info = {};
-        const resultInfoConfig = this.stageConfig.config.resultInfoFn;
-        let resultInfoFn = isArray(resultInfoConfig) ? resultInfoConfig : [resultInfoConfig];
-        resultInfoFn = map(resultInfoFn, (info) => {
+    prepareResultInfoFn(config) {
+        if (config === false || config === 0) return [];
+
+        const resultInfoFn = isArray(config) ? config : [config];
+        return map(resultInfoFn, (info) => {
             if (!isString(info)) return info;
 
             return {
                 fn: info,
             };
         });
+    }
+
+    async _resultInfoFn(result: ResultInterface) {
+        if (result.statusUid !== StageStatusEnum.DONE) return;
+        if (!result.info) result.info = {};
+        const resultInfoFn = this.prepareResultInfoFn(this.stageConfig.config.resultInfoFn || '_resultInfo');
 
         for (const fnConfig of resultInfoFn) {
-            const fnResult = await this[fnConfig.fn]();
-            const key = !fnConfig.key ? fnResult[0] : fnConfig.key;
-            const value = !fnConfig.key ? fnResult[1] : fnResult;
-            result.info[key] = !!value;
+            if (typeof this[fnConfig.fn] === 'undefined') continue;
+
+            const fnResult = typeof this[fnConfig.fn] === 'function' ? await this[fnConfig.fn]() : this[fnConfig.fn];
+            const key = fnConfig.key || !isArray(fnResult) ? fnConfig.key : fnResult[0];
+            const value = fnConfig.key || !isArray(fnResult) ? fnResult : fnResult[1];
+
+            if (key) {
+                result.info[key] = typeof value === 'object' ? value : !!value;
+            } else if (typeof value === 'object') {
+                result.info = { ...result.info, ...value };
+            } else {
+                throw new WorkerError('Invalid resultInfoFn config. Key couldnt be defined', StageStatusEnum.FAILED);
+            }
         }
     }
 
