@@ -77,6 +77,10 @@ export abstract class MultipleExecutionStageMixin {
         return /^_/.test(this.executionUid);
     }
 
+    getForwardedExecutionUid() {
+        return this.shouldFowardExecutionUid() ? this.executionUid : '';
+    }
+
     // trick to execute the workflow everyday
     fowardExecutionUid(stageUidAndExecutionUid_) {
         let stageUidAndExecutionUid = stageUidAndExecutionUid_;
