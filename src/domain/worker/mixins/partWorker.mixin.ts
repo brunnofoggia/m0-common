@@ -9,6 +9,8 @@ import { StageWorker } from '../stage.worker';
 import { StageStatusEnum } from '../../../types/stageStatus.type';
 
 export abstract class PartWorkerGeneric {
+    parentStageConfig: any = {};
+
     public getDefaultOptions() {
         const defaultOptions = defaultsDeep({}, this.defaultOptions, {
             totalLimit: 50000,
@@ -17,6 +19,15 @@ export abstract class PartWorkerGeneric {
             _testOneRow: false,
         });
         return defaultOptions;
+    }
+
+    async setParentStageConfig() {
+        this.parentStageConfig = {};
+
+        const parentStage = this.getParentStage();
+        if (parentStage) {
+            this.parentStageConfig = await this.findStageConfig(parentStage);
+        }
     }
 
     /* execution */

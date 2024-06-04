@@ -18,6 +18,7 @@ import { RetryMixin } from './mixins/system/retry.mixin';
 import { MultipleExecutionStageMixin } from './mixins/system/multipleExecution.mixin';
 import { WorkerError } from './error';
 import { BodyInterface } from '../../interfaces/body.interface';
+import { SnapshotMixin } from './mixins/snapshot.mixin';
 
 export abstract class StageGeneric {
     static defaultWorker = 'index';
@@ -58,6 +59,7 @@ export abstract class StageGeneric {
         this.executionUid = executionUid;
         this.stageName = stageName;
         this.moduleConfig = moduleConfig;
+
         this.stageConfig = stageConfig;
         this.body = body;
 
@@ -285,6 +287,12 @@ export abstract class StageGeneric {
     }
 }
 
-export interface StageGeneric extends StageStructureProperties, ConfigMixin, StatusMixin, RetryMixin, MultipleExecutionStageMixin {}
+export interface StageGeneric
+    extends StageStructureProperties,
+        ConfigMixin,
+        StatusMixin,
+        RetryMixin,
+        MultipleExecutionStageMixin,
+        SnapshotMixin {}
 
-applyMixins(StageGeneric, [ConfigMixin, StatusMixin, RetryMixin, MultipleExecutionStageMixin]);
+applyMixins(StageGeneric, [ConfigMixin, StatusMixin, RetryMixin, MultipleExecutionStageMixin, SnapshotMixin]);

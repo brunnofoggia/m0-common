@@ -32,6 +32,15 @@ export abstract class SnapshotMixin {
         return await ModuleConfigProvider.findConfig(transactionUid, moduleUid);
     }
 
+    async _findStageConfig(projectUid, transactionUid, stageUid) {
+        const moduleConfig: ModuleConfigInterface = await SnapshotProvider.find(projectUid, transactionUid, stageUid);
+        return moduleConfig.stageConfig;
+    }
+
+    async findStageConfig(stageUid) {
+        return await this._findStageConfig(this.projectUid, this.transactionUid, stageUid);
+    }
+
     getStageConfigFromModule(stageUid, moduleConfig) {
         const foundStageConfig = find(moduleConfig.stagesConfig || [], (stage) => stage.stageUid === stageUid);
 
