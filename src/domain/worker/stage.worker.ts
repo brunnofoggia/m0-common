@@ -176,7 +176,16 @@ export class StageWorker extends StageGeneric implements StageParts {
     }
 
     public async sendResultAsMessage(result: ResultInterface): Promise<ResultInterface> {
-        debug(`result:`, result, '; stage:', this.stageUid, '; execUid:', this.executionUid, '; index: ', this.getIndex());
+        debug(
+            `result:`,
+            omit(result, '_options'),
+            '; stage:',
+            this.stageUid,
+            '; execUid:',
+            this.executionUid,
+            '; index: ',
+            this.getIndex(),
+        );
         if (typeof result === 'undefined' || result === null || this.stageExecutionMocked || this.body.options._pureExecution) return;
 
         try {

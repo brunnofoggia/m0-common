@@ -1,7 +1,7 @@
 import _debug from 'debug';
 const debug = _debug('worker:mixin:split');
 
-import { defaultsDeep, result, omit, pick } from 'lodash';
+import { defaultsDeep, result, omit, pick, isArray, cloneDeep, size } from 'lodash';
 
 import { exitRequest } from 'node-labs/lib/utils/errors';
 import { StageStatusEnum } from '../../../types/stageStatus.type';
@@ -172,7 +172,7 @@ export abstract class SplitMixin {
     }
 
     splitStageGlobalOptions(options) {
-        const baseOptions: any = {};
+        let baseOptions: any = {};
         const baseConfig: any = {};
 
         const shouldCallback = !!this.stageConfig.config.childCallback;
@@ -180,11 +180,21 @@ export abstract class SplitMixin {
             baseConfig.callbackStage = this.buildCurrentStageUidAndExecutionUid();
         }
 
+        const shouldSendOptions = !!this.stageConfig.config.childSendOptions;
+        if (shouldSendOptions) {
+            const pickOptionsList = this.stageConfig.config.childSendOptions;
+            let pickOptions = cloneDeep(this.stageConfig.options);
+            if (isArray(pickOptionsList) && size(pickOptionsList)) {
+                pickOptions = pick(pickOptions, pickOptionsList);
+            }
+            baseOptions = defaultsDeep(baseOptions, pickOptions);
+        }
+
         options = defaultsDeep(
             options,
             {
-                ...omit(this.getSplitStageOptions(), '_indexTo'),
                 ...baseOptions,
+                ...omit(this.getSplitStageOptions(), '_indexTo'),
             },
             this.fowardInternalOptions(),
         );
