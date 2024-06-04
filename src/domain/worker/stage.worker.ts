@@ -120,7 +120,7 @@ export class StageWorker extends StageGeneric implements StageParts {
     }
 
     async _resultInfoFn(result: ResultInterface) {
-        if (result.statusUid !== StageStatusEnum.DONE) return;
+        if (result?.statusUid !== StageStatusEnum.DONE) return;
         if (!result.info) result.info = {};
         const resultInfoFn = this.prepareResultInfoFn(this.stageConfig.config.resultInfoFn || '_resultInfo');
 
