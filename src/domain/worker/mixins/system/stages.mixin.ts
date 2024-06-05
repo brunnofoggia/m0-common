@@ -33,7 +33,12 @@ export abstract class StagesMixin {
     }
 
     getParentStage() {
-        return this.stageConfig.config.callbackStage || this._getParentStage() || this.stageExecution.data.options?._calledByStage;
+        const parentStage =
+            this.stageConfig.config.callbackStage || this._getParentStage() || this.stageExecution.data.options?._calledByStage;
+        if (!parentStage) {
+            throw new Error('Parent stage could not be determined');
+        }
+        return parentStage;
     }
 
     getParentStageDir() {
