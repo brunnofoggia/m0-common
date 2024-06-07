@@ -1,6 +1,7 @@
 import { size, indexOf, omit, defaultsDeep, pickBy, bind, defaults, cloneDeep, isArray, map, isString } from 'lodash';
 import _debug from 'debug';
 const debug = _debug('worker:stage');
+const essentialInfo = _debug('worker:essential');
 
 import { exitRequest } from 'node-labs/lib/utils/errors';
 import { applyMixins } from 'node-labs/lib/utils/mixin';
@@ -81,7 +82,7 @@ export class StageWorker extends StageGeneric implements StageParts {
                 execResult = await this._execute();
                 await this._resultInfoFn(execResult);
             } catch (error) {
-                debug('lifecycle: cought error');
+                essentialInfo('lifecycle: cought error');
                 this.logError(error);
                 execResult = this.buildExecutionError(error);
             }
@@ -176,7 +177,7 @@ export class StageWorker extends StageGeneric implements StageParts {
     }
 
     public async sendResultAsMessage(result: ResultInterface): Promise<ResultInterface> {
-        debug(
+        essentialInfo(
             `result:`,
             omit(result, '_options'),
             '; stage:',

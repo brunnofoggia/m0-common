@@ -1,5 +1,5 @@
 import _debug from 'debug';
-const debug = _debug('worker:stage:handler:importers');
+const debug = _debug('worker:stage:importers');
 
 let _import;
 const setImportFn = (_fn) => {
