@@ -53,6 +53,8 @@ export abstract class StagesMixin {
 
     // #region child stage
     async triggerChildStage(options_: any = {}, config_: any = {}, root_: any = {}) {
+        if (!this.getChildStage() || this.stageExecution.data.options?._triggerChildStage === 0) return;
+
         const body = await this.buildChildStageBody(options_, config_, root_);
         return await this.triggerStageToDefaultProvider(this.worflowEventName, body);
     }
