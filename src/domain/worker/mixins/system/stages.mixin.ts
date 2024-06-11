@@ -4,6 +4,7 @@ import { StageGeneric } from 'domain/worker/stage.generic';
 import { PathMixin } from './path.mixin';
 
 export abstract class StagesMixin {
+    parentStageConfig: any = {};
     abstract fowardInternalOptions(): any;
 
     // #region getters
@@ -39,6 +40,15 @@ export abstract class StagesMixin {
             throw new Error('Parent stage could not be determined');
         }
         return parentStage;
+    }
+
+    async setParentStageConfig() {
+        this.parentStageConfig = {};
+
+        const parentStage = this.getParentStage();
+        if (parentStage) {
+            this.parentStageConfig = await this.findStageConfig(parentStage);
+        }
     }
 
     getParentStageDir() {
