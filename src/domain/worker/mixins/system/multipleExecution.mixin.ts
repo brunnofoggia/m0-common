@@ -22,6 +22,59 @@ export abstract class MultipleExecutionMixin {
 
         return stageUidAndExecUid.join(this.getStageExecutionSplitter());
     }
+
+    shouldFowardExecutionUid(options: any = {}) {
+        const executionUid = options.executionUid || this['executionUid'] || '';
+        return /^_/.test(executionUid);
+    }
+
+    // #region builders
+    _buildExecutionUid_today(executionUid_) {
+        if (!executionUid_) return executionUid_;
+        return executionUid_.replace(':today()', new Date().toISOString().split('T')[0].replace(/\D+/g, ''));
+    }
+
+    _buildExecutionUid_now(executionUid_) {
+        if (!executionUid_) return executionUid_;
+        return executionUid_.replace(':now()', new Date().toISOString().replace(/\D+/g, ''));
+    }
+
+    _buildExecutionUid_stageuid(executionUid_, options: any = {}) {
+        if (!executionUid_) return executionUid_;
+        if (!options.stageUid) throw new Error('executionUid: stageuid builder cannot be used here');
+        return executionUid_.replace(':stageuid()', options.stageUid.replace(/[^a-zA-Z0-9_]/g, '-'));
+    }
+
+    _buildExecutionUid_keep(executionUid_, options: any = {}) {
+        if (!executionUid_) return executionUid_;
+        if (!options.executionUid) throw new Error('executionUid: keep builder cannot be used here');
+        return executionUid_.replace(':keep()', options.executionUid);
+    }
+
+    _buildExecutionUid(executionUid_, options: any = {}) {
+        if (!executionUid_) return executionUid_;
+        const selfStageUid = options.stageUid || this['stageUid'] || '';
+        const selfExecutionUid = options.executionUid || this['executionUid'] || '';
+
+        let executionUid = executionUid_;
+        if (this.shouldFowardExecutionUid() && !executionUid.startsWith(selfExecutionUid)) {
+            executionUid = [selfExecutionUid, executionUid].join('-');
+        }
+
+        const matches = [...(executionUid_.matchAll(/:(\w+)\(\)/g) || [])];
+        for (const match of matches) {
+            const fn = match[1];
+            if (fn && this[`_buildExecutionUid_${fn}`]) {
+                executionUid = this[`_buildExecutionUid_${fn}`](executionUid, {
+                    stageUid: selfStageUid,
+                    executionUid: selfExecutionUid,
+                });
+            }
+        }
+
+        return executionUid;
+    }
+    // #endregion
 }
 
 export abstract class MultipleExecutionStageMixin {
@@ -46,10 +99,6 @@ export abstract class MultipleExecutionStageMixin {
         return this.buildStageUidAndExecutionUid(this.stageUid, this.executionUid);
     }
 
-    shouldFowardExecutionUid() {
-        return /^_/.test(this.executionUid);
-    }
-
     getForwardedExecutionUid() {
         return this.shouldFowardExecutionUid() ? this.executionUid : '';
     }
@@ -68,47 +117,6 @@ export abstract class MultipleExecutionStageMixin {
     fowardExecutionUidToList(stageUidAndExecutionUidList) {
         return stageUidAndExecutionUidList.map((stageUidAndExecutionUid) => this.fowardExecutionUid(stageUidAndExecutionUid));
     }
-
-    // #region builders
-    _buildExecutionUid_today(executionUid_) {
-        if (!executionUid_) return executionUid_;
-        return executionUid_.replace(':today()', new Date().toISOString().split('T')[0].replace(/\D+/g, ''));
-    }
-
-    _buildExecutionUid_now(executionUid_) {
-        if (!executionUid_) return executionUid_;
-        return executionUid_.replace(':now()', new Date().toISOString().replace(/\D+/g, ''));
-    }
-
-    _buildExecutionUid_stageuid(executionUid_) {
-        if (!executionUid_) return executionUid_;
-        return executionUid_.replace(':stageuid()', this.stageUid.replace(/[^a-zA-Z0-9_]/g, '-'));
-    }
-
-    _buildExecutionUid_keep(executionUid_) {
-        if (!executionUid_) return executionUid_;
-        return executionUid_.replace(':keep()', this.executionUid);
-    }
-
-    _buildExecutionUid(executionUid_) {
-        if (!executionUid_) return executionUid_;
-
-        let executionUid = executionUid_;
-        if (this.shouldFowardExecutionUid() && !executionUid.startsWith(this.executionUid)) {
-            executionUid = [this.executionUid, executionUid].join('-');
-        }
-
-        const matches = [...(executionUid_.matchAll(/:(\w+)\(\)/g) || [])];
-        for (const match of matches) {
-            const fn = match[1];
-            if (fn && this[`_buildExecutionUid_${fn}`]) {
-                executionUid = this[`_buildExecutionUid_${fn}`](executionUid);
-            }
-        }
-
-        return executionUid;
-    }
-    // #endregion
 
     _prepareStageUidAndExecutionUid(stageUidAndExecutionUid) {
         const { stageUid, executionUid } = this.separateStageUidAndExecutionUid(stageUidAndExecutionUid);
