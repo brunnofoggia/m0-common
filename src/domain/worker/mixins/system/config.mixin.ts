@@ -159,6 +159,14 @@ export abstract class ConfigMixin {
         );
     }
 
+    getInheritedOptionValue(configName) {
+        return (
+            this._getConfigValue('stageConfig', configName, 'options') ||
+            this._getConfigValue('moduleConfig', configName, 'options') ||
+            this._getConfigValue('project', configName, '_config')
+        );
+    }
+
     isStageOptionActivated(configName) {
         return this._isActivated('stageConfig', configName, 'options');
     }

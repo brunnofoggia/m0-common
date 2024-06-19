@@ -1,11 +1,16 @@
-import { defaultsDeep, isArray } from 'lodash';
+import { defaultsDeep, filter, isArray, sortBy } from 'lodash';
 
 import { StageGeneric } from 'domain/worker/stage.generic';
 import { PathMixin } from './path.mixin';
+import { StageExecutionProvider } from '../../../../providers/stageExecution.provider';
 
 export abstract class StagesMixin {
     parentStageConfig: any = {};
     abstract fowardInternalOptions(): any;
+
+    isStageStatus(status: string) {
+        return this.stageExecution.statusUid === status;
+    }
 
     // #region getters
     _getParentStage() {
@@ -63,7 +68,8 @@ export abstract class StagesMixin {
 
     // #region child stage
     async triggerChildStage(options_: any = {}, config_: any = {}, root_: any = {}) {
-        if (!this.getChildStage() || this.stageExecution.data.options?._triggerChildStage === 0) return;
+        const stageUid = this.getChildStage() || root_.stageUid;
+        if (!stageUid || this.stageExecution.data.options?._triggerChildStage === 0) return;
 
         const body = await this.buildChildStageBody(options_, config_, root_);
         return await this.triggerStageToDefaultProvider(this.worflowEventName, body);
@@ -117,6 +123,26 @@ export abstract class StagesMixin {
         return this.buildTriggerStageBody(childStageUid, options, config, root);
     }
     // #endregion
+
+    async _findStageExecutionList(transactionUid, stageUid, executionUid) {
+        const stageExecutionList = await StageExecutionProvider.findAllByTransactionAndModule(transactionUid, stageUid, executionUid);
+
+        const sorted = sortBy(stageExecutionList, 'id');
+
+        return sorted;
+        // const length = await this.getLengthValue();
+        // return filteredStageExecutionList.slice(0, length);
+    }
+
+    async _findStageExecutionListAfter(transactionUid, stageUid, executionUid) {
+        const stageExecutionList = await this._findStageExecutionList(transactionUid, stageUid, executionUid);
+        const filtered = filter(stageExecutionList, (stageExecution) => stageExecution.id > this.stageExecution.id);
+        return filtered;
+    }
+
+    async findStageExecutionListAfter(stageUid, executionUid = '') {
+        return this._findStageExecutionListAfter(this.transactionUid, stageUid, executionUid);
+    }
 }
 
 export interface StagesMixin extends StageGeneric, PathMixin {}
