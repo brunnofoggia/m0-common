@@ -84,6 +84,8 @@ export class StageWorker extends StageGeneric implements StageParts {
             } catch (error) {
                 essentialInfo('lifecycle: cought error');
                 this.logError(error);
+                console.log('stack:\n', error.stack);
+
                 execResult = this.buildExecutionError(error);
             }
             this.system.finishedAt = new Date().toISOString();
