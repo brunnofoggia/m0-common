@@ -33,6 +33,7 @@ export abstract class ParallelWorkerGeneric {
             return await this['splitExecute'](this['splitExecuteOptions']());
         } catch (error) {
             this['logError'](error);
+
             return { statusUid: StageStatusEnum.FAILED, errorMessage: error.message };
         }
     }

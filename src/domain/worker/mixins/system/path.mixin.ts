@@ -30,7 +30,7 @@ export abstract class PathMixin {
     projectStagePath: string;
 
     getStorageEnv() {
-        return process.env.STORAGE_ENV;
+        return process.env.STORAGE_ENV || this.getFakeEnv();
     }
 
     setPaths() {

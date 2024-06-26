@@ -10,7 +10,7 @@ export abstract class SecretsMixin {
     abstract getProjectUid(): string;
 
     getSecretsEnv() {
-        return process.env.SECRETS_ENV || this.getFakeEnv() || this.getEnv();
+        return process.env.SECRETS_ENV || this.getFakeEnv();
     }
 
     buildSecretPath(name: string, basePath: any = null) {

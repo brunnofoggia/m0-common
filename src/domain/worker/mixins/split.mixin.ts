@@ -1,5 +1,6 @@
 import _debug from 'debug';
 const debug = _debug('worker:mixin:split');
+const log = _debug('worker:essential:split');
 
 import { defaultsDeep, result, omit, pick, isArray, cloneDeep, size } from 'lodash';
 
@@ -53,7 +54,7 @@ export abstract class SplitMixin {
 
             return this.splitStagesResult({ stateService, lengthKeyPrefix });
         } catch (error) {
-            debug(error.message, error.stack);
+            this.logError(error);
             if (error.statusUid) return error;
             return { statusUid: StageStatusEnum.FAILED, errorMessage: error.message };
         }

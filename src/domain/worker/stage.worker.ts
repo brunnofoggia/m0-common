@@ -1,7 +1,7 @@
 import { size, indexOf, omit, defaultsDeep, pickBy, bind, defaults, cloneDeep, isArray, map, isString } from 'lodash';
 import _debug from 'debug';
 const debug = _debug('worker:stage');
-const essentialInfo = _debug('worker:essential');
+const essentialInfo = _debug('worker:essential:stage');
 
 import { exitRequest } from 'node-labs/lib/utils/errors';
 import { applyMixins } from 'node-labs/lib/utils/mixin';
@@ -170,7 +170,19 @@ export class StageWorker extends StageGeneric implements StageParts {
     }
 
     public logError(error) {
-        debug(this.stageDir, typeof error === 'string' ? error : error.stack);
+        let errorMessage, errorStack;
+        if (typeof error === 'string') {
+            errorMessage = error;
+        } else {
+            errorMessage = error.message;
+            errorStack = error.stack;
+        }
+
+        essentialInfo(this.stageDir, errorMessage);
+        if (errorStack) {
+            essentialInfo('stack:\n');
+            console.log(errorStack);
+        }
     }
 
     async execute(): Promise<ResultInterface | null> {
