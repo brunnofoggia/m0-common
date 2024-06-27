@@ -47,8 +47,9 @@ export abstract class MultipleExecutionMixin {
 
     _buildExecutionUid_keep(executionUid_, options: any = {}) {
         if (!executionUid_) return executionUid_;
-        if (!options.executionUid) throw new Error('executionUid: keep builder cannot be used here');
-        return executionUid_.replace(':keep()', options.executionUid);
+        // disabled to allow process to move on if there is no exec uid
+        // if (!options.executionUid) throw new Error('executionUid: keep builder called, but there is no execution uid');
+        return executionUid_.replace(':keep()', options.executionUid || '');
     }
 
     _buildExecutionUid(executionUid_, options: any = {}) {
