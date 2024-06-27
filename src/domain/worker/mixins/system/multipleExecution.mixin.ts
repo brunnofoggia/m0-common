@@ -58,10 +58,17 @@ export abstract class MultipleExecutionMixin {
 
         let executionUid = executionUid_;
         if (this.shouldFowardExecutionUid() && !executionUid.startsWith(selfExecutionUid)) {
-            executionUid = [selfExecutionUid, executionUid].join('-');
+            // avoid duplicating forwarded executionUid
+            if (executionUid.indexOf(':keep()') >= 0) {
+                executionUid = executionUid.replace(':keep()', '');
+            }
+            const composeExecUid = [selfExecutionUid];
+            if (executionUid) composeExecUid.push(executionUid);
+
+            executionUid = composeExecUid.join('-');
         }
 
-        const matches = [...(executionUid_.matchAll(/:(\w+)\(\)/g) || [])];
+        const matches = [...(executionUid.matchAll(/:(\w+)\(\)/g) || [])];
         for (const match of matches) {
             const fn = match[1];
             if (fn && this[`_buildExecutionUid_${fn}`]) {
