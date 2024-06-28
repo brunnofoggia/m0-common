@@ -1,4 +1,4 @@
-import { size, indexOf, omit, defaultsDeep, pickBy, bind, defaults, cloneDeep, isArray, map, isString } from 'lodash';
+import _, { size, indexOf, omit, defaultsDeep, pickBy, bind, defaults, cloneDeep, isArray, map, isString } from 'lodash';
 import _debug from 'debug';
 const debug = _debug('worker:stage');
 const essentialInfo = _debug('worker:essential:stage');
@@ -310,7 +310,11 @@ export class StageWorker extends StageGeneric implements StageParts {
     }
 
     omitInternalOptions() {
-        return pickBy(this.stageExecution.data.options, (value, key) => {
+        return this._omitInternalOptions(this.stageExecution.data.options);
+    }
+
+    _omitInternalOptions(options) {
+        return pickBy(options, (value, key) => {
             return !/^_[a-zA-Z]/.test(key);
         });
     }
