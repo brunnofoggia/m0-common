@@ -16,7 +16,9 @@ export abstract class RetryMixin {
     }
 
     getRetryAttempt(increaseByOne = false) {
-        return (this.stageExecution.error?.length || 0) + +increaseByOne;
+        // increaseOne is used to get the current attempt before the stageExecution is updated
+        // return (this.stageExecution.error?.length || 0) + +increaseByOne;
+        return (this.stageExecution.system?.attempt || 0) + +increaseByOne;
     }
 
     isLastAttempt(beforeUpdate = false) {
