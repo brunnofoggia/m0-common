@@ -124,22 +124,24 @@ export class StageWorker extends StageGeneric implements StageParts {
 
     async _resultInfoFn(result: ResultInterface) {
         if (result?.statusUid !== StageStatusEnum.DONE) return;
-        if (!result.info) result.info = {};
         const resultInfoFn = this.prepareResultInfoFn(this.stageConfig.config.resultInfoFn || '_resultInfo');
 
-        for (const fnConfig of resultInfoFn) {
-            if (typeof this[fnConfig.fn] === 'undefined') continue;
+        if (resultInfoFn.length > 0) {
+            if (!result.info) result.info = {};
+            for (const fnConfig of resultInfoFn) {
+                if (typeof this[fnConfig.fn] === 'undefined') continue;
 
-            const fnResult = typeof this[fnConfig.fn] === 'function' ? await this[fnConfig.fn]() : this[fnConfig.fn];
-            const key = fnConfig.key || !isArray(fnResult) ? fnConfig.key : fnResult[0];
-            const value = fnConfig.key || !isArray(fnResult) ? fnResult : fnResult[1];
+                const fnResult = typeof this[fnConfig.fn] === 'function' ? await this[fnConfig.fn]() : this[fnConfig.fn];
+                const key = fnConfig.key || !isArray(fnResult) ? fnConfig.key : fnResult[0];
+                const value = fnConfig.key || !isArray(fnResult) ? fnResult : fnResult[1];
 
-            if (key) {
-                result.info[key] = typeof value === 'object' ? value : !!value;
-            } else if (typeof value === 'object') {
-                result.info = { ...result.info, ...value };
-            } else {
-                throw new WorkerError('Invalid resultInfoFn config. Key couldnt be defined', StageStatusEnum.FAILED);
+                if (key) {
+                    result.info[key] = typeof value === 'object' ? value : !!value;
+                } else if (typeof value === 'object') {
+                    result.info = { ...result.info, ...value };
+                } else {
+                    throw new WorkerError('Invalid resultInfoFn config. Key couldnt be defined', StageStatusEnum.FAILED);
+                }
             }
         }
     }
@@ -304,9 +306,7 @@ export class StageWorker extends StageGeneric implements StageParts {
     }
 
     fowardInternalOptions() {
-        return pickBy(this.stageExecution.data.options, (value, key) => {
-            return /^_[a-zA-Z]/.test(key);
-        });
+        return this.forwardInternalOptions();
     }
 
     omitInternalOptions() {
@@ -440,13 +440,4 @@ export interface StageWorker
         ExecutionInfoMixin,
         StagesMixin {}
 
-applyMixins(StageWorker, [
-    LifeCycleMixin,
-    DynamicWorkerMixin,
-    InjectionMixin,
-    DateMixin,
-    PathMixin,
-    SecretsMixin,
-    ExecutionInfoMixin,
-    StagesMixin,
-]);
+applyMixins(StageWorker, [LifeCycleMixin, DynamicWorkerMixin, InjectionMixin, DateMixin, PathMixin, SecretsMixin, StagesMixin]);

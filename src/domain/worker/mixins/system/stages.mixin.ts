@@ -6,7 +6,7 @@ import { StageExecutionProvider } from '../../../../providers/stageExecution.pro
 
 export abstract class StagesMixin {
     parentStageConfig: any = {};
-    abstract fowardInternalOptions(): any;
+    abstract forwardInternalOptions(): any;
 
     isStageStatus(status: string) {
         return this.stageExecution.statusUid === status;
@@ -84,7 +84,7 @@ export abstract class StagesMixin {
     }
 
     async buildChildStageOptions(options: any = {}): Promise<any> {
-        return defaultsDeep({}, options, await this.getChildStageDefaultOptions(), this.fowardInternalOptions());
+        return defaultsDeep({}, options, await this.getChildStageDefaultOptions(), this.forwardInternalOptions());
     }
 
     async getChildStageDefaultConfig(): Promise<any> {

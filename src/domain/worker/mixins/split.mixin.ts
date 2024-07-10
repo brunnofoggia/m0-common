@@ -197,7 +197,7 @@ export abstract class SplitMixin {
                 ...baseOptions,
                 ...omit(this.getSplitStageOptions(), '_indexTo'),
             },
-            this.fowardInternalOptions(),
+            this.forwardInternalOptions(),
         );
 
         const stageUidAndExecutionUid = this.buildStageUidWithCurrentExecutionUid(this.getChildStage());

@@ -19,12 +19,16 @@ import { MultipleExecutionStageMixin } from './mixins/system/multipleExecution.m
 import { WorkerError } from './error';
 import { BodyInterface } from '../../interfaces/body.interface';
 import { SnapshotMixin } from './mixins/snapshot.mixin';
+import { ExecutionInfoMixin } from './mixins/system/executionInfo';
+import { ForwardedMixin, ForwardedResultsMixin } from './mixins/system/forwarded';
+
+export const worflowEventName = 'm0/workflow';
 
 export abstract class StageGeneric {
     static defaultWorker = 'index';
     static getSolutions;
 
-    readonly worflowEventName = 'm0/workflow';
+    readonly worflowEventName = worflowEventName;
 
     uniqueId: string;
     body: BodyInterface;
@@ -342,6 +346,18 @@ export interface StageGeneric
         StatusMixin,
         RetryMixin,
         MultipleExecutionStageMixin,
-        SnapshotMixin {}
+        SnapshotMixin,
+        ExecutionInfoMixin,
+        ForwardedMixin,
+        ForwardedResultsMixin {}
 
-applyMixins(StageGeneric, [ConfigMixin, StatusMixin, RetryMixin, MultipleExecutionStageMixin, SnapshotMixin]);
+applyMixins(StageGeneric, [
+    ConfigMixin,
+    StatusMixin,
+    RetryMixin,
+    MultipleExecutionStageMixin,
+    SnapshotMixin,
+    ExecutionInfoMixin,
+    ForwardedMixin,
+    ForwardedResultsMixin,
+]);

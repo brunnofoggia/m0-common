@@ -3,7 +3,7 @@ import Decimal from 'decimal.js';
 import { StageStatusEnum } from '../../../../types/stageStatus.type';
 import { StageStructureProperties } from '../../../../interfaces/stageParts.interface';
 import { WorkerError } from '../../error';
-import { size } from 'lodash';
+import { get, set, size } from 'lodash';
 
 export abstract class ExecutionInfoMixin {
     abstract executionInfo: any;
@@ -11,7 +11,7 @@ export abstract class ExecutionInfoMixin {
     abstract executionStatusUid: any;
 
     getExecutionInfo() {
-        return this.executionInfo || {};
+        return this.executionInfo;
     }
 
     getPlainExecutionInfo() {
@@ -26,23 +26,25 @@ export abstract class ExecutionInfoMixin {
         return executionInfo || {};
     }
 
-    getExecutionInfoValue(field) {
+    getExecutionInfoValue(path) {
         const info = this.getExecutionInfo();
-        return info[field];
+        return get(info, path);
     }
 
-    setExecutionInfoValue(field, value) {
-        this.executionInfo[field] = value;
+    setExecutionInfoValue(path, value) {
+        set(this.executionInfo, path, value);
     }
 
-    increaseExecutionInfoValue(field, value: number) {
-        const initialValue = this.executionInfo[field] || 0;
-        this.executionInfo[field] = initialValue + value;
+    increaseExecutionInfoValue(path, increase: number) {
+        const currentValue = get(this.executionInfo, path) || 0;
+        set(this.executionInfo, path, currentValue + increase);
     }
 
-    increaseDecimalExecutionInfoValue(field, value: number) {
-        if (!this.executionInfo[field]) this.executionInfo[field] = new Decimal(0);
-        this.executionInfo[field] = this.executionInfo[field].plus(value);
+    increaseDecimalExecutionInfoValue(path, increase: string | number | Decimal) {
+        let currentValue = get(this.executionInfo, path) || 0;
+        if (!currentValue || !(currentValue instanceof Decimal)) currentValue = new Decimal(0);
+
+        set(this.executionInfo, path, currentValue.plus(increase));
     }
 
     getExecutionError() {
