@@ -16,6 +16,9 @@ export interface BodyInterface {
     options?: {
         [key: string]: any;
     };
+    config?: {
+        [key: string]: any;
+    };
 
     result?: ResultInterface;
     mockStageExecution?: any;

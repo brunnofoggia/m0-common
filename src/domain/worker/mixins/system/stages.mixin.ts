@@ -1,12 +1,14 @@
 import { defaultsDeep, filter, isArray, sortBy } from 'lodash';
 
-import { StageGeneric } from 'domain/worker/stage.generic';
+import { StageGeneric } from '../../../../domain/worker/stage.generic';
 import { PathMixin } from './path.mixin';
 import { StageExecutionProvider } from '../../../../providers/stageExecution.provider';
+import { BodyInterface } from '../../../../interfaces/body.interface';
 
 export abstract class StagesMixin {
     parentStageConfig: any = {};
     abstract forwardInternalOptions(): any;
+    abstract stackTriggers: Array<BodyInterface>;
 
     isStageStatus(status: string) {
         return this.stageExecution.statusUid === status;
@@ -72,7 +74,7 @@ export abstract class StagesMixin {
         if (!stageUid || this.stageExecution.data.options?._triggerChildStage === 0) return;
 
         const body = await this.buildChildStageBody(options_, config_, root_);
-        return await this.triggerStageToDefaultProvider(this.worflowEventName, body);
+        return this.addTriggerToStack(body);
     }
 
     async getChildStageDefaultOptions(): Promise<any> {
@@ -110,8 +112,8 @@ export abstract class StagesMixin {
         return defaultsDeep({}, root, await this.getChildStageDefaultRoot());
     }
 
-    async buildChildStageUid() {
-        return this.buildStageUidWithCurrentExecutionUid(this.getChildStage());
+    async buildChildStageUid(stageUid = '') {
+        return this.buildStageUidWithCurrentExecutionUid(stageUid || this.getChildStage());
     }
 
     async buildChildStageBody(options_: any = {}, config_: any = {}, root_: any = {}) {
@@ -119,8 +121,27 @@ export abstract class StagesMixin {
         const config = await this.buildChildStageConfig(config_);
         const root = await this.buildChildStageRoot(root_);
 
-        const childStageUid = root.stageUid || (await this.buildChildStageUid());
+        const childStageUid = await this.buildChildStageUid(root.stageUid);
         return this.buildTriggerStageBody(childStageUid, options, config, root);
+    }
+    // #endregion
+
+    // #region stack triggers
+    getStackedTriggers() {
+        return this.stackTriggers;
+    }
+
+    addTriggerToStack(body: BodyInterface) {
+        this.stackTriggers.push(body);
+    }
+
+    async triggerStackDispatch() {
+        const stackTriggers = this.getStackedTriggers() || [];
+        if (!stackTriggers.length) return;
+
+        for (const body of stackTriggers) {
+            await this.triggerStageToDefaultProvider(this.worflowEventName, body);
+        }
     }
     // #endregion
 

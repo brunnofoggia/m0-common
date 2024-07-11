@@ -130,7 +130,7 @@ export abstract class SplitMixin {
 
         const length = await stateService.getValue(lengthKey);
         if (!length) {
-            exitRequest(`lenghKey not found to send parallel events`);
+            exitRequest(`lengthKey not found to send parallel events`);
         }
 
         await this.splitStage(length, options);
@@ -150,19 +150,16 @@ export abstract class SplitMixin {
 
         for (let counter = 0; counter < +length; counter++) {
             const indexTo = _indexTo[counter] || {};
-            const body = {
-                ...omit(_body, 'options'),
-                ...pick(indexTo, 'transactionUid'),
-                options: {
-                    ...omit(_body.options, 'index'),
-                    ...omit(indexTo, 'transactionUid'),
-                    index: counter,
-                },
+            const _options = {
+                ...omit(_body.options, 'index'),
+                ...omit(indexTo, 'transactionUid'),
+                index: counter,
             };
 
-            // debug('new event will be created', this.worflowEventName, body);
-            await this.triggerStageToDefaultProvider(this.worflowEventName, body);
-            // break;
+            await this.triggerChildStage(_options, _body.config, {
+                ...omit(_body, 'options', 'config'),
+                ...pick(indexTo, 'transactionUid', 'projectUid', 'stageUid'),
+            });
         }
 
         this.afterSplitStart && (await this.afterSplitStart());

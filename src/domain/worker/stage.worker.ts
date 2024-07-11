@@ -30,6 +30,7 @@ import { StagesMixin } from './mixins/system/stages.mixin';
 export class StageWorker extends StageGeneric implements StageParts {
     defaultConfig: any = {};
     defaultOptions: any = {};
+    stackTriggers: Array<BodyInterface> = [];
 
     body: BodyInterface;
     system: Partial<SystemInterface> = {};
@@ -147,16 +148,30 @@ export class StageWorker extends StageGeneric implements StageParts {
     }
 
     async _result(result: ResultInterface) {
+        debug('lifecycle: before result');
+        await this._onBeforeResult(result);
+
         debug('lifecycle: check result');
         if (this._checkResult(result)) {
             result = await this.sendResultAsMessage(result);
         }
+
+        debug('lifecycle: after result');
+        await this._onAfterResult(result);
 
         debug('lifecycle: on destroy');
         await this._onDestroy();
         debug('lifecycle: builder done\n-------------------------\n');
 
         return result;
+    }
+
+    async onBeforeResult(result: ResultInterface) {
+        return;
+    }
+
+    async onAfterResult(result: ResultInterface) {
+        await this.triggerStackDispatch();
     }
 
     buildExecutionError(error) {
