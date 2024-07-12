@@ -130,7 +130,7 @@ export abstract class SplitMixin {
 
         const length = await stateService.getValue(lengthKey);
         if (!length) {
-            exitRequest(`lengthKey not found to send parallel events`);
+            exitRequest(`lengthKey not found to send parallel events (${lengthKey})`);
         }
 
         await this.splitStage(length, options);
