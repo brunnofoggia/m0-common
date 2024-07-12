@@ -69,11 +69,11 @@ export abstract class StagesMixin {
     // #endregion
 
     // #region child stage
-    async triggerChildStage(options_: any = {}, config_: any = {}, root_: any = {}) {
-        const stageUid = this.getChildStage() || root_.stageUid;
+    async triggerChildStage(options: any = {}, config: any = {}, root: any = {}) {
+        const stageUid = this.getChildStage() || root.stageUid;
         if (!stageUid || this.stageExecution.data.options?._triggerChildStage === 0) return;
 
-        const body = await this.buildChildStageBody(options_, config_, root_);
+        const body = await this.buildChildStageBody(options, config, root);
         return this.addTriggerToStack(body);
     }
 
@@ -86,7 +86,8 @@ export abstract class StagesMixin {
     }
 
     async buildChildStageOptions(options: any = {}): Promise<any> {
-        return defaultsDeep({}, options, await this.getChildStageDefaultOptions(), this.forwardInternalOptions());
+        const _options = defaultsDeep({}, options, await this.getChildStageDefaultOptions(), this.forwardInternalOptions());
+        return this.setForwardedResultsToTrigger(_options);
     }
 
     async getChildStageDefaultConfig(): Promise<any> {

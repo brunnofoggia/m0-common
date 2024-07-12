@@ -11,7 +11,7 @@ export abstract class StatusMixin {
     abstract executionError: WorkerError;
     abstract executionStatusUid: any;
 
-    _status(_result: Partial<ResultInterface>, statusUid: any = null) {
+    _status(_result: Partial<ResultInterface>, statusUid: any = null): any {
         const info = size(this.executionInfo) ? { info: this.getPlainExecutionInfo() } : {};
         const error = size(this.executionError)
             ? { errorMessage: this.executionError.message, errorCode: this.executionError['code'] }
@@ -23,7 +23,7 @@ export abstract class StatusMixin {
         return options;
     }
 
-    status(result: Partial<ResultInterface> = {}, statusUid: any = null) {
+    status(result: Partial<ResultInterface> = {}, statusUid: any = null): any {
         return this._status(result, statusUid);
     }
 
