@@ -133,13 +133,15 @@ export class StageWorker extends StageGeneric implements StageParts {
                 if (typeof this[fnConfig.fn] === 'undefined') continue;
 
                 const fnResult = typeof this[fnConfig.fn] === 'function' ? await this[fnConfig.fn]() : this[fnConfig.fn];
+                if (fnResult === undefined || fnResult === null) continue;
+
                 const key = fnConfig.key || !isArray(fnResult) ? fnConfig.key : fnResult[0];
                 const value = fnConfig.key || !isArray(fnResult) ? fnResult : fnResult[1];
 
                 if (key) {
                     result.info[key] = typeof value === 'object' ? value : !!value;
                 } else if (typeof value === 'object') {
-                    result.info = { ...result.info, ...value };
+                    result.info = { ...result.info, ...(value || {}) };
                 } else {
                     throw new WorkerError('Invalid resultInfoFn config. Key couldnt be defined', StageStatusEnum.FAILED);
                 }
