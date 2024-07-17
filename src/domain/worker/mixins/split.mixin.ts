@@ -170,14 +170,17 @@ export abstract class SplitMixin {
     }
 
     splitStageGlobalOptions(options) {
-        let baseOptions: any = {};
-        const baseConfig: any = {};
+        let childOptions: any = defaultsDeep({}, this.stageConfig.config.childOptions || {});
+        const childConfig: any = defaultsDeep({}, this.stageConfig.config.childConfig || {});
+        const childRoot: any = defaultsDeep({}, this.stageConfig.config.childRoot || {});
 
+        // send callback stage to child stage
         const shouldCallback = !!this.stageConfig.config.childCallback;
         if (shouldCallback) {
-            baseConfig.callbackStage = this.buildCurrentStageUidAndExecutionUid();
+            childConfig.callbackStage = this.buildCurrentStageUidAndExecutionUid();
         }
 
+        // send options to child stage
         const shouldSendOptions = !!this.stageConfig.config.childSendOptions;
         if (shouldSendOptions) {
             const pickOptionsList = this.stageConfig.config.childSendOptions;
@@ -185,20 +188,20 @@ export abstract class SplitMixin {
             if (isArray(pickOptionsList) && size(pickOptionsList)) {
                 pickOptions = pick(pickOptions, pickOptionsList);
             }
-            baseOptions = defaultsDeep(baseOptions, pickOptions);
+            childOptions = defaultsDeep(childOptions, pickOptions);
         }
 
-        options = defaultsDeep(
+        // combine everything
+        childOptions = defaultsDeep(
+            {},
             options,
-            {
-                ...baseOptions,
-                ...omit(this.getSplitStageOptions(), '_indexTo'),
-            },
+            childOptions,
+            omit(this.getSplitStageOptions(), '_indexTo'),
             this.forwardInternalOptions(),
         );
 
         const stageUidAndExecutionUid = this.buildStageUidWithCurrentExecutionUid(this.getChildStage());
-        return this.buildTriggerStageBody(stageUidAndExecutionUid, options, baseConfig);
+        return this.buildTriggerStageBody(stageUidAndExecutionUid, childOptions, childConfig, childRoot);
     }
 
     splitExecuteOptions() {

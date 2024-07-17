@@ -21,6 +21,11 @@ export abstract class RetryMixin {
         return (this.stageExecution.system?.attempt || 0) + +increaseByOne;
     }
 
+    isFirstAttempt(beforeUpdate = false) {
+        const attempt = this.getRetryAttempt(beforeUpdate);
+        return attempt === 1;
+    }
+
     isLastAttempt(beforeUpdate = false) {
         const attempt = this.getRetryAttempt(beforeUpdate);
         const limit = this.getRetryLimit();

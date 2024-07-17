@@ -16,7 +16,7 @@ export abstract class StatusMixin {
         const error = size(this.executionError)
             ? { errorMessage: this.executionError.message, errorCode: this.executionError['code'] }
             : {};
-        const status = { statusUid: statusUid || this.executionStatusUid || StageStatusEnum.DONE };
+        const status = { statusUid: statusUid || this.executionStatusUid || this.stageConfig.config.retryStatus || StageStatusEnum.DONE };
 
         const options: any = defaultsDeep(_result, info, error, status);
 

@@ -292,8 +292,19 @@ export abstract class StageGeneric {
         };
     }
 
+    _prepareRootParams(params: any) {
+        if (!size(params)) return params;
+        if (params._parentTransaction) {
+            params.transactionUid = this.moduleExecution.data.parentTransactionUid;
+            if (!params.transactionUid) throw new Error('Parent transactionUid not found');
+            delete params._parentTransaction;
+        }
+        return params;
+    }
+
     buildTriggerStageBody(stageUidAndExecutionUid_, options: any = {}, config: any = {}, root: any = {}) {
         let stageUidAndExecutionUid = this._prepareStageUidAndExecutionUid(stageUidAndExecutionUid_);
+        root = this._prepareRootParams(root);
 
         const refData: any = {};
         // repasse do parentTransactionUid para outro modulo
