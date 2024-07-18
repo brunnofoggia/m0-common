@@ -31,6 +31,10 @@ export abstract class ExecutionInfoMixin {
         return get(info, path);
     }
 
+    setExecutionInfoValues(json) {
+        for (const key in json) this.setExecutionInfoValue(key, json[key]);
+    }
+
     setExecutionInfoValue(path, value) {
         set(this.executionInfo, path, value);
     }
