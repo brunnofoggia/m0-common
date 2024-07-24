@@ -204,14 +204,15 @@ export class StageWorker extends StageGeneric implements StageParts {
         }
     }
 
-    /*
-        for more about ANSI color customization : https://stackoverflow.com/questions/4842424/list-of-ansi-color-escape-sequences
-    */
+
     async execute(): Promise<ResultInterface | null> {
         debug('stage.builder execute()', this.stageUid);
         return { statusUid: StageStatusEnum.DONE };
     }
 
+    /*
+        for more about ANSI color customization : https://stackoverflow.com/questions/4842424/list-of-ansi-color-escape-sequences
+    */
     formatOutputJSON(obj, customColorValuesByKey = {}, config = {
         indent: {
             level: 1,
