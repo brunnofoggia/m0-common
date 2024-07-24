@@ -226,12 +226,12 @@ export class StageWorker extends StageGeneric implements StageParts {
             },
         }
     }) {
-    
-        function formatArray(arr, indentLevel, customColorValuesByKey, config) {
+
+        const formatArray =(arr, indentLevel, customColorValuesByKey, config)  => {
             const resetColor = '\x1b[0m';
             let indent = config.indent.character.repeat(indentLevel);
             let formattedString = '[\n';
-    
+
             for (let item of arr) {
                 let valueStr;
                 if (typeof item === 'object') {
@@ -248,33 +248,33 @@ export class StageWorker extends StageGeneric implements StageParts {
                     }
                     valueStr = `${color}${item}${resetColor}`;
                 }
-    
+
                 formattedString += `${indent}${valueStr},\n`;
             }
-    
+
             // Remove the last comma and close the array
             formattedString = formattedString.replace(/,\n$/, '\n');
             formattedString += config.indent.character.repeat(indentLevel - 1) + ']';
-    
+
             return formattedString;
         }
-    
-        function formatObject(obj, indentLevel, customColorValuesByKey, config) {
+
+        const formatObject = (obj, indentLevel, customColorValuesByKey, config) =>  {
             return this.formatOutputJSON(obj, customColorValuesByKey, { ...config, indent: { level: indentLevel, character: config.indent.character } });
         }
-    
+
         const resetColor = '\x1b[0m';
         const indentChar = config.indent.character;
         const indentLevel = config.indent.level;
         let indent = indentChar.repeat(indentLevel);
         let formattedString = '{\n';
-    
+
         for (let key in obj) {
             let keyStr = `${config.colors.keyValue}${key}${resetColor}`;
             let value = obj[key];
             let valueStr;
             let color = '';
-    
+
             // Check for custom key value colors
             if (customColorValuesByKey[key]) {
                 if (typeof customColorValuesByKey[key] === 'string') {
@@ -294,7 +294,7 @@ export class StageWorker extends StageGeneric implements StageParts {
                     color = config.colors.types.boolean;
                 }
             }
-    
+
             if (Array.isArray(value)) {
                 valueStr = formatArray(value, indentLevel + 1, customColorValuesByKey, config);
             } else if (typeof value === 'object') {
@@ -302,14 +302,14 @@ export class StageWorker extends StageGeneric implements StageParts {
             } else {
                 valueStr = `${color}${value}${resetColor}`;
             }
-    
+
             formattedString += `${indent}${keyStr}: ${valueStr},\n`;
         }
-    
+
         // Remove the last comma and close the object
         formattedString = formattedString.replace(/,\n$/, '\n');
         formattedString += indentChar.repeat(indentLevel - 1) + '}';
-    
+
         return formattedString;
     }
 
