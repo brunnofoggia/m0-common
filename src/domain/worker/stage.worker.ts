@@ -211,7 +211,7 @@ export class StageWorker extends StageGeneric implements StageParts {
     }
 
     /*
-        for more about ANSI color customization : https://stackoverflow.com/questions/4842424/list-of-ansi-color-escape-sequences
+        for more about ANSI color customization : https://codehs.com/uploads/7c2481e9158534231fcb3c9b6003d6b3
     */
     formatOutputJSON(obj, customColorValuesByKey = {}, config = {
         indent: {
@@ -317,11 +317,11 @@ export class StageWorker extends StageGeneric implements StageParts {
     printResult(result){
         const customColors = {
             "statusUid": {
-                "D": "\x1b[38;5;48m",
-                "F": "\x1b[38;5;48m",
-                "W": "\x1b[38;5;48m",
-                "U": "\x1b[38;5;48m",
-                "*": "\x1b[38;5;48m"
+                "D": "\x1b[38;5;154m",
+                "F": "\x1b[38;5;196m",
+                "W": "\x1b[38;5;251m",
+                "U": "\x1b[38;5;63m",
+                "*": "\x1b[38;5;180m"
             },
             "transactionUid": "\x1b[1m"
         };
