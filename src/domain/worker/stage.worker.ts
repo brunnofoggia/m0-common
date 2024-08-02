@@ -204,22 +204,145 @@ export class StageWorker extends StageGeneric implements StageParts {
         }
     }
 
+
     async execute(): Promise<ResultInterface | null> {
         debug('stage.builder execute()', this.stageUid);
         return { statusUid: StageStatusEnum.DONE };
     }
 
+    /*
+        for more about ANSI color customization : https://codehs.com/uploads/7c2481e9158534231fcb3c9b6003d6b3
+    */
+    formatOutputJSON(obj, customColorValuesByKey = {}, config = {
+        indent: {
+            level: 1,
+            character: '    '
+        },
+        colors: {
+            keyValue: "\x1b[38;2;235;137;66m", // ORANGE
+            types: {
+                number: "\x1b[38;5;51m", // CIAN
+                string: "\x1b[38;5;227m", // YELLOW
+                boolean: "\x1b[38;5;10m", // GREEN
+            },
+        }
+    }) {
+
+        const formatArray =(arr, indentLevel, customColorValuesByKey, config)  => {
+            const resetColor = '\x1b[0m';
+            let indent = config.indent.character.repeat(indentLevel);
+            let formattedString = '[\n';
+
+            for (let item of arr) {
+                let valueStr;
+                if (typeof item === 'object') {
+                    valueStr = this.formatOutputJSON(item, customColorValuesByKey, { ...config, indent: { level: indentLevel + 1, character: config.indent.character } });
+                } else {
+                    let color = '';
+                    if (typeof item === 'number') {
+                        color = config.colors.types.number;
+                    } else if (typeof item === 'string') {
+                        color = config.colors.types.string;
+                        item = `"${item}"`;  // Add double quotes around string values
+                    } else if (typeof item === 'boolean') {
+                        color = config.colors.types.boolean;
+                    }
+                    valueStr = `${color}${item}${resetColor}`;
+                }
+
+                formattedString += `${indent}${valueStr},\n`;
+            }
+
+            // Remove the last comma and close the array
+            formattedString = formattedString.replace(/,\n$/, '\n');
+            formattedString += config.indent.character.repeat(indentLevel - 1) + ']';
+
+            return formattedString;
+        }
+
+        const formatObject = (obj, indentLevel, customColorValuesByKey, config) =>  {
+            return this.formatOutputJSON(obj, customColorValuesByKey, { ...config, indent: { level: indentLevel, character: config.indent.character } });
+        }
+
+        const resetColor = '\x1b[0m';
+        const indentChar = config.indent.character;
+        const indentLevel = config.indent.level;
+        let indent = indentChar.repeat(indentLevel);
+        let formattedString = '{\n';
+
+        for (let key in obj) {
+            let keyStr = `${config.colors.keyValue}${key}${resetColor}`;
+            let value = obj[key];
+            let valueStr;
+            let color = '';
+
+            // Check for custom key value colors
+            if (customColorValuesByKey[key]) {
+                if (typeof customColorValuesByKey[key] === 'string') {
+                    color = customColorValuesByKey[key];
+                    value = `"${value}"`; // Add double quotes around string values
+                } else if (typeof customColorValuesByKey[key] === 'object') {
+                    color = customColorValuesByKey[key][value] || customColorValuesByKey[key]['*'] || '';
+                }
+            } else {
+                // Apply type-based colors
+                if (typeof value === 'number') {
+                    color = config.colors.types.number;
+                } else if (typeof value === 'string') {
+                    color = config.colors.types.string;
+                    value = `"${value}"`;  // Add double quotes around string values
+                } else if (typeof value === 'boolean') {
+                    color = config.colors.types.boolean;
+                }
+            }
+
+            if (Array.isArray(value)) {
+                valueStr = formatArray(value, indentLevel + 1, customColorValuesByKey, config);
+            } else if (typeof value === 'object') {
+                valueStr = formatObject(value, indentLevel + 1, customColorValuesByKey, config);
+            } else {
+                valueStr = `${color}${value}${resetColor}`;
+            }
+
+            formattedString += `${indent}${keyStr}: ${valueStr},\n`;
+        }
+
+        // Remove the last comma and close the object
+        formattedString = formattedString.replace(/,\n$/, '\n');
+        formattedString += indentChar.repeat(indentLevel - 1) + '}';
+
+        return formattedString;
+    }
+
+    printResult(result){
+        const customColors = {
+            "statusUid": {
+                "D": "\x1b[38;5;154m",
+                "F": "\x1b[38;5;196m",
+                "W": "\x1b[38;5;251m",
+                "U": "\x1b[38;5;63m",
+                "*": "\x1b[38;5;180m"
+            },
+            "transactionUid": "\x1b[1m"
+        };
+
+        const formatedResult = this.formatOutputJSON({
+            Index:this.getIndex(),
+            statusUid:result.statusUid || StageStatusEnum.UNKNOWN,
+            stageUid:this.stageUid,
+            projectUid:this.projectUid,
+            transactionUid:this.transactionUid,
+            executionUid:this.executionUid,
+            result:omit(result, '_options', 'statusUid'),
+        }, customColors)
+
+        console.log('\n-------\n')
+        console.log(formatedResult)
+        console.log('\n-------\n')
+    }
+
     public async sendResultAsMessage(result: ResultInterface): Promise<ResultInterface> {
-        essentialInfo(
-            `result:`,
-            omit(result, '_options'),
-            '; stage:',
-            this.stageUid,
-            '; execUid:',
-            this.executionUid,
-            '; index: ',
-            this.getIndex(),
-        );
+        this.printResult(result)
         if (typeof result === 'undefined' || result === null || this.stageExecutionMocked || this.body.options._pureExecution) return;
 
         try {
