@@ -1,4 +1,4 @@
-import { uniqueId, indexOf, size, lastIndexOf, defaultsDeep } from 'lodash';
+import { uniqueId, indexOf, size, lastIndexOf, defaultsDeep, isString } from 'lodash';
 import { applyMixins } from 'node-labs/lib/utils/mixin';
 
 import { ModuleExecutionInterface } from '../../interfaces/moduleExecution.interface';
@@ -257,6 +257,11 @@ export abstract class StageGeneric {
             queuePrefix: this.body.queuePrefix || '',
             m0QueuePrefix: this.body.m0QueuePrefix || '',
         };
+
+        // clear index from possible quotes
+        if (options.index && isString(options.index)) {
+            options.index = options.index.replace(/"/g, '');
+        }
 
         // is forced transaction empty
         const forcedEmptyTransactionUid = !_root.transactionUid;

@@ -33,7 +33,7 @@ export abstract class SnapshotMixin {
     }
 
     async _findStageConfig(projectUid, transactionUid, stageUid) {
-        const moduleConfig: ModuleConfigInterface = await SnapshotProvider.find(projectUid, transactionUid, stageUid);
+        const moduleConfig: ModuleConfigInterface = await SnapshotProvider.findModuleConfig(projectUid, transactionUid, stageUid);
         return moduleConfig.stageConfig;
     }
 
@@ -49,7 +49,9 @@ export abstract class SnapshotMixin {
         return defaultsDeep(foundStageConfig || {}, stageConfig);
     }
 
-    async _createSnapshot({ projectUid = '', transactionUid, stageUid, mergeSnapshot = {} }) {
+    async _createSnapshot() {}
+
+    async _createSnapshotForModuleConfig({ projectUid = '', transactionUid, stageUid, mergeSnapshot = {} }) {
         const moduleUid = stageUid.split('/')[0];
         const moduleConfig = await ModuleConfigProvider.findConfig(transactionUid, moduleUid);
 
@@ -57,18 +59,18 @@ export abstract class SnapshotMixin {
             throw new Error(`Module config not found (${moduleUid})`);
         }
 
-        await SnapshotProvider.save(projectUid, transactionUid, moduleUid, this.buildSnapshot(moduleConfig, mergeSnapshot));
+        await SnapshotProvider.saveModuleConfig(projectUid, transactionUid, moduleUid, this.buildSnapshot(moduleConfig, mergeSnapshot));
         return moduleConfig;
     }
 
-    async getSnapshot({ projectUid = '', transactionUid, stageUid, forceUpdate = false, mergeSnapshot = {} }) {
+    async getSnapshotForModuleConfig({ projectUid = '', transactionUid, stageUid, forceUpdate = false, mergeSnapshot = {} }) {
         const forceUpdate_ = +forceUpdate;
         let moduleConfig;
 
-        if (!forceUpdate_) moduleConfig = await SnapshotProvider.find(projectUid, transactionUid, stageUid, forceUpdate_);
+        if (!forceUpdate_) moduleConfig = await SnapshotProvider.findModuleConfig(projectUid, transactionUid, stageUid, forceUpdate_);
         if (!size(moduleConfig) || forceUpdate_) {
             // create / update a snapshot
-            moduleConfig = await this._createSnapshot({ projectUid, transactionUid, stageUid, mergeSnapshot });
+            moduleConfig = await this._createSnapshotForModuleConfig({ projectUid, transactionUid, stageUid, mergeSnapshot });
         }
 
         const stageConfig = this.getStageConfigFromModule(stageUid, moduleConfig);
@@ -76,13 +78,13 @@ export abstract class SnapshotMixin {
     }
 
     async reloadSnapshot({ projectUid = '', transactionUid, stageUid, mergeSnapshot = {} }) {
-        const moduleConfig = await this._createSnapshot({ projectUid, transactionUid, stageUid, mergeSnapshot });
+        const moduleConfig = await this._createSnapshotForModuleConfig({ projectUid, transactionUid, stageUid, mergeSnapshot });
         const stageConfig = this.getStageConfigFromModule(stageUid, moduleConfig);
         return { moduleConfig, stageConfig };
     }
 
     async createSnapshot({ projectUid = '', transactionUid, stageUid, forceUpdate = false, mergeSnapshot = {} }) {
-        let { moduleConfig, stageConfig } = await this.getSnapshot({
+        let { moduleConfig, stageConfig } = await this.getSnapshotForModuleConfig({
             projectUid,
             transactionUid,
             stageUid,

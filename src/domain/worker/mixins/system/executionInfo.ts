@@ -67,7 +67,7 @@ export abstract class ExecutionInfoMixin {
 
     setExecutionError(error, statusUid: any = StageStatusEnum.FAILED) {
         const errorMessage = error.message;
-        const errorCode = error.code + '' || '0';
+        const errorCode = (error.code || '0') + '';
         const errorStatus = statusUid || StageStatusEnum.FAILED;
 
         // if (!this.executionError) {

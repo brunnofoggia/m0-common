@@ -14,7 +14,7 @@ export class SnapshotProvider extends M0ApiProvider {
         return url.join('/');
     }
 
-    static async find(projectUid: string, transactionUid: string, stageUid: string, forceUpdate = 0) {
+    static async findModuleConfig(projectUid: string, transactionUid: string, stageUid: string, forceUpdate = 0) {
         // TODO: disabled but implemented. will work when/if projectUid become required into message body
         projectUid = '';
         if (!transactionUid) throwHttpException(ERROR.TRANSACTIONUID_EMPTY);
@@ -29,7 +29,7 @@ export class SnapshotProvider extends M0ApiProvider {
         return data;
     }
 
-    static async save(projectUid: string, transactionUid: string, stageUid: string, data = {}) {
+    static async saveModuleConfig(projectUid: string, transactionUid: string, stageUid: string, data = {}) {
         // TODO: disabled but implemented. will work when/if projectUid become required into message body
         projectUid = '';
         const url = [this.basePath].join('/');

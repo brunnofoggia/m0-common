@@ -99,7 +99,7 @@ export abstract class SplitMixin {
     async splitStagesDoneResult(results_: any = {}) {
         const results = this.mergeParallelResults(results_);
         const isTestingResult = this.isTestingResult();
-        return !isTestingResult ? this.statusDone(results) : this.statusWaiting(results);
+        return !isTestingResult ? this.status(results) : this.statusWaiting(results);
     }
 
     mergeParallelResults(results_) {
