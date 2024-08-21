@@ -1,5 +1,6 @@
 import _debug from 'debug';
 const debug = _debug('worker:module');
+const log = _debug('worker:essential:module');
 
 import { defaultsDeep, find, size } from 'lodash';
 import { HttpStatusCode } from 'axios';
@@ -66,17 +67,10 @@ export class ModuleDomain extends ModuleGeneric {
         // instantiate the builder
         debug('instantiate builder');
         this.builder = await this._builderFactory();
-        this.builder.fakeResult = this.fakeResult;
 
         // builder initialize
-        this.__debug('initialize builder');
+        debug('initialize builder');
         return await this.builder.initialize(this.uniqueId);
-    }
-
-    private async __debug(...args) {
-        if (!this.fakeResult) {
-            debug(...args);
-        }
     }
 
     async _getBuilderClass() {
@@ -86,8 +80,7 @@ export class ModuleDomain extends ModuleGeneric {
 
         let BuilderClass;
         try {
-            const { _class, found } = await this._locateBuilder(moduleUid, stageName);
-            this.fakeResult = !found;
+            const { _class } = await this._locateBuilder(moduleUid, stageName);
             BuilderClass = _class;
             return BuilderClass;
         } catch (error) {
@@ -96,7 +89,7 @@ export class ModuleDomain extends ModuleGeneric {
     }
 
     async _locateBuilder(moduleUid, stageName): Promise<any> {
-        return await importWorker(`modules/${moduleUid}/stages`, stageName, StageWorker._getWorker(this.stageConfig, this.project));
+        return importWorker(`modules/${moduleUid}/stages`, stageName, StageWorker._getWorker(this.stageConfig, this.project));
     }
 
     async getSnapshotConfig() {

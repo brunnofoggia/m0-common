@@ -23,7 +23,6 @@ export abstract class PartWorkerGeneric {
     public async execute(): Promise<ResultInterface> {
         const { index, instance, loop } = await this.setupVariables();
 
-        this.setExecutionInfoValue('lines', 0);
         const execute = async (params) => {
             const page = params.page;
             return await this.processExecution({ index, instance, loop, page });

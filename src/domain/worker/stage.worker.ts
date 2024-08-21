@@ -1,4 +1,4 @@
-import _, { size, indexOf, omit, defaultsDeep, pickBy, bind, defaults, cloneDeep, isArray, map, isString } from 'lodash';
+import { size, omit, defaultsDeep, pickBy, bind, defaults, cloneDeep, isArray, map, isString } from 'lodash';
 import _debug from 'debug';
 const debug = _debug('worker:stage');
 const essentialInfo = _debug('worker:essential:stage');
@@ -55,9 +55,7 @@ export class StageWorker extends StageGeneric implements StageParts {
     }
 
     async __debug(...args) {
-        if (!this.isFakeResult) {
-            debug(...args);
-        }
+        debug(...args);
     }
 
     public async initialize(uniqueId: string): Promise<ResultInterface> {

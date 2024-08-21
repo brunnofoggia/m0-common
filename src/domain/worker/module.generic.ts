@@ -1,4 +1,6 @@
-import { bind, uniqueId } from 'lodash';
+import _debug from 'debug';
+
+import { uniqueId } from 'lodash';
 import { exitRequest } from 'node-labs/lib/utils/errors';
 import { applyMixins } from 'node-labs/lib/utils/mixin';
 

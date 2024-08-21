@@ -85,7 +85,7 @@ export abstract class StageGeneric {
     }
 
     get isFakeResult() {
-        return this.fakeResult || !!this.stageExecution?.data?.options?.fakeResult;
+        return this.fakeResult || !!this.stageExecution?.data?.config?.fakeResult;
     }
 
     abstract initialize(uniqueId: string);

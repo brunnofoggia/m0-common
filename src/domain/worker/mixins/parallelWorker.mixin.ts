@@ -95,12 +95,12 @@ export abstract class ParallelWorkerGeneric {
         return stageExecution.result[stageExecution.result.length - 1];
     }
 
-    async calcInfoField(stageExecutionList, infoField) {
+    async calcInfoField(stageExecutionList, infoField): Promise<number> {
         const valueList = this.getValueListFromInfoField(stageExecutionList, infoField);
         return reduce(valueList, (prev, curr) => prev + curr);
     }
 
-    async calcDecimalInfoField(stageExecutionList, infoField) {
+    async calcDecimalInfoField(stageExecutionList, infoField): Promise<number> {
         const valueList = this.getValueListFromInfoField(stageExecutionList, infoField);
         let decimal = new Decimal(0);
 

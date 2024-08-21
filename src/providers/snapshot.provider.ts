@@ -15,8 +15,9 @@ export class SnapshotProvider extends M0ApiProvider {
     }
 
     static async findModuleConfig(projectUid: string, transactionUid: string, stageUid: string, forceUpdate = 0) {
-        // TODO: disabled but implemented. will work when/if projectUid become required into message body
+        // TODO: disabled but implemented. will work if/when projectUid become required into message body
         projectUid = '';
+
         if (!transactionUid) throwHttpException(ERROR.TRANSACTIONUID_EMPTY);
         const url = this.buildFindUrl(projectUid, transactionUid, stageUid) + '?forceUpdate=' + forceUpdate;
         const data = (
@@ -30,8 +31,9 @@ export class SnapshotProvider extends M0ApiProvider {
     }
 
     static async saveModuleConfig(projectUid: string, transactionUid: string, stageUid: string, data = {}) {
-        // TODO: disabled but implemented. will work when/if projectUid become required into message body
+        // TODO: disabled but implemented. will work if/when projectUid become required into message body
         projectUid = '';
+
         const url = [this.basePath].join('/');
 
         return (
