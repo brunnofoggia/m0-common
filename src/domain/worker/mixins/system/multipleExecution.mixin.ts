@@ -3,6 +3,12 @@ import { ModuleStructureProperties } from '../../../../interfaces/stageParts.int
 import { StageUidAndExecutionUid } from '../../../../interfaces/stageExecution.interface';
 
 export abstract class MultipleExecutionMixin {
+    separateModuleUidAndStageName(stageUid: string) {
+        const _stageUid = this.separateStageUidAndExecutionUid(stageUid).stageUid;
+        const [moduleUid, ...stageNameParts] = _stageUid.split('/');
+        return { moduleUid, stageName: stageNameParts.join('/') };
+    }
+
     getStageExecutionSplitter() {
         return '#';
     }
