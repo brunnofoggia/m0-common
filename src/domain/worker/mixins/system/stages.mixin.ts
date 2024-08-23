@@ -35,6 +35,10 @@ export abstract class StagesMixin {
         return this.stageConfig.config.prevStage || this.stageExecution.data.options?._calledByStage;
     }
 
+    getFirstPrevStage() {
+        return this.getPrevStageList()[0];
+    }
+
     getPrevStageList() {
         const prevStage_ = this.getPrevStage();
         return isArray(prevStage_) ? prevStage_ : [prevStage_];

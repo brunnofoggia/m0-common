@@ -2,7 +2,7 @@ import _debug from 'debug';
 const debug = _debug('worker:mixin:split');
 const log = _debug('worker:essential:split');
 
-import { defaultsDeep, result, omit, pick, isArray, cloneDeep, size } from 'lodash';
+import { defaultsDeep, result, omit, pick, isArray, cloneDeep, size, isString } from 'lodash';
 
 import { exitRequest } from 'node-labs/lib/utils/errors';
 import { StageStatusEnum } from '../../../types/stageStatus.type';
@@ -170,25 +170,22 @@ export abstract class SplitMixin {
     }
 
     splitStageGlobalOptions(options) {
-        let childOptions: any = defaultsDeep({}, this.stageConfig.config.childOptions || {});
-        const childConfig: any = defaultsDeep({}, this.stageConfig.config.childConfig || {});
+        let childOptions: any = defaultsDeep(
+            {},
+            this.stageConfig.config.childOptions || {},
+            this.combineChildSendParams(this.stageConfig.config.childSendOptions, this.stageConfig.options),
+        );
+        const childConfig: any = defaultsDeep(
+            {},
+            this.stageConfig.config.childConfig || {},
+            this.combineChildSendParams(this.stageConfig.config.childSendConfig, this.stageConfig.config),
+        );
         const childRoot: any = defaultsDeep({}, this.stageConfig.config.childRoot || {});
 
         // send callback stage to child stage
         const shouldCallback = !!this.stageConfig.config.childCallback;
         if (shouldCallback) {
             childConfig.callbackStage = this.buildCurrentStageUidAndExecutionUid();
-        }
-
-        // send options to child stage
-        const shouldSendOptions = !!this.stageConfig.config.childSendOptions;
-        if (shouldSendOptions) {
-            const pickOptionsList = this.stageConfig.config.childSendOptions;
-            let pickOptions = cloneDeep(this.stageConfig.options);
-            if (isArray(pickOptionsList) && size(pickOptionsList)) {
-                pickOptions = pick(pickOptions, pickOptionsList);
-            }
-            childOptions = defaultsDeep(childOptions, pickOptions);
         }
 
         // combine everything
@@ -202,6 +199,21 @@ export abstract class SplitMixin {
 
         const stageUidAndExecutionUid = this.buildStageUidWithCurrentExecutionUid(this.getChildStage());
         return this.buildTriggerStageBody(stageUidAndExecutionUid, childOptions, childConfig, childRoot);
+    }
+
+    // send options or config to child stage
+    combineChildSendParams(sendParams, params) {
+        if (!sendParams) return {};
+
+        let pickParamsList = sendParams;
+        if (isString(pickParamsList)) pickParamsList = [pickParamsList];
+
+        let pickParams = cloneDeep(params);
+        if (isArray(pickParamsList) && size(pickParamsList)) {
+            pickParams = pick(pickParams, ...pickParamsList);
+        }
+
+        return pickParams;
     }
 
     splitExecuteOptions() {

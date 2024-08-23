@@ -1,6 +1,7 @@
 import _ from 'lodash';
 import _debug from 'debug';
 const debug = _debug('worker:handler:insert');
+const log = _debug('worker:handler:essential:insert');
 
 import { splitFile } from '../../../utils/split';
 import { StageWorker } from '../stage.worker';
@@ -26,18 +27,26 @@ export const insert = async (worker: StageWorker, service, getData, monitorServi
 
     const options = prepareInsertOptions(stageConfig.options);
     const { storage } = await worker._getSolutions();
-    const fromDir = [rootDir, options.input.dir].join('/');
+    const fromDir = [rootDir, options.input?.dir || worker.getFirstPrevStage()].join('/');
     const fromPath_ = [fromDir];
     if (executionUid && !options._ignoreExecutionUidForStorage) {
         fromPath_.push(executionUid);
     }
     fromPath_.push(body.options.index);
-    const fromPath = fromPath_.join('/');
-    debug(`fromPath: ${fromPath}`);
+
+    let fromPath = fromPath_.join('/');
+    if (options.fileExtension) fromPath += '.' + options.fileExtension;
 
     await service.checkIfTableExists();
 
-    const createFileStream = async () => readStream(fromPath, storage);
+    const createFileStream = async () => {
+        try {
+            return readStream(fromPath, storage);
+        } catch (error) {
+            log(`file not found ${fromPath}`);
+            throw error;
+        }
+    };
     const fileStream = await createFileStream();
     if (!fileStream) return;
 
@@ -51,6 +60,7 @@ export const insert = async (worker: StageWorker, service, getData, monitorServi
         await splitFile(createFileStream, options, [], getData, async (splitNumber, content, parts) => {
             await service.insertBulkData(content, queryRunner);
             parts.finished++;
+            worker.increaseExecutionInfoValue('inserted', content.length);
         });
         await queryRunner.commitTransaction();
         done = true;

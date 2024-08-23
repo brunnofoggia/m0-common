@@ -73,8 +73,8 @@ export const splitFile = async function (createFileStream, options, splitContent
                 // used to write stream out of here
                 const breakLine = !lineInsertedCount ? '' : '\n';
                 typeof splitContent === 'string' ? (splitContent += breakLine + lineResult) : splitContent.push(lineResult);
+                lineInsertedCount++;
             }
-            lineInsertedCount++;
         }
         lineNumber++;
     }
