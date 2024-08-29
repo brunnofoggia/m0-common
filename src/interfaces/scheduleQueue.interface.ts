@@ -8,4 +8,5 @@ export interface ScheduleQueueInterface extends GenericInterface {
     config: {
         [key: string]: any;
     };
+    duplicate?: boolean;
 }

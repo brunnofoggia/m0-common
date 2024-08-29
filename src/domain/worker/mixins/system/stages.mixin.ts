@@ -56,7 +56,7 @@ export abstract class StagesMixin {
     async setParentStageConfig() {
         this.parentStageConfig = {};
 
-        const parentStage = this.getParentStage();
+        const parentStage = this.separateStageUidAndExecutionUid(this.getParentStage()).stageUid;
         if (parentStage) {
             this.parentStageConfig = await this.findStageConfig(parentStage);
         }
