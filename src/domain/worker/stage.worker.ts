@@ -83,7 +83,6 @@ export class StageWorker extends StageGeneric implements StageParts {
             } catch (error) {
                 essentialInfo('lifecycle: cought error');
                 this.logError(error);
-                console.log('stack:\n', error.stack);
 
                 execResult = this.buildExecutionError(error);
             }
@@ -195,7 +194,8 @@ export class StageWorker extends StageGeneric implements StageParts {
             errorStack = error.stack;
         }
 
-        essentialInfo(this.stageDir, errorMessage);
+        essentialInfo('stage info:', this.stageDir);
+        essentialInfo('error message:', errorMessage);
         if (errorStack) {
             essentialInfo('stack:\n');
             console.log(errorStack);
@@ -354,7 +354,7 @@ export class StageWorker extends StageGeneric implements StageParts {
     }
 
     public getDefaultOptions() {
-        return this.defaultOptions;
+        return this.defaultOptions || {};
     }
 
     get(): StageAllProperties {
