@@ -40,7 +40,7 @@ const defineBulkLimit = async (createFileStream, options) => {
     return +options.bulkLimit;
 };
 
-export const splitFile = async function (createFileStream, options, splitContent: any = '', formatLineFn, bulkFn) {
+export const splitFile = async function (createFileStream, options, splitContent: any = '', formatLineFn, bulkFn, countFalsyLines = false) {
     const bulkLimit = await defineBulkLimit(createFileStream, options);
     const fileStream = await createFileStream();
     formatLineFn === null && (formatLineFn = (s) => s);
@@ -73,8 +73,12 @@ export const splitFile = async function (createFileStream, options, splitContent
                 // used to write stream out of here
                 const breakLine = !lineInsertedCount ? '' : '\n';
                 typeof splitContent === 'string' ? (splitContent += breakLine + lineResult) : splitContent.push(lineResult);
-                lineInsertedCount++;
+                debug('line inserted', 'lineNumber: ', lineNumber, 'lineInsertedCount', lineInsertedCount, 'splitNumber', splitNumber);
+                // used to count lines for db bulk insert
+                if (!countFalsyLines) lineInsertedCount++;
             }
+            // used to count lines for split files
+            if (countFalsyLines) lineInsertedCount++;
         }
         lineNumber++;
     }

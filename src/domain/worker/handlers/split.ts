@@ -93,8 +93,8 @@ const splitItem = async ({ filePath, toDir, worker, options, storage, splitNumbe
     const createWriteStream = async (splitNumber) => {
         // writeStreamIndex = splitNumber;
         const filename = splitNumber + splitNumberStartAt;
-        debug('sending file');
         writeStreamPath = [toDir, filename].join('/');
+        debug('sending file:', writeStreamPath);
         writeStream = await storage.sendStream(writeStreamPath);
     };
 
@@ -128,6 +128,7 @@ const splitItem = async ({ filePath, toDir, worker, options, storage, splitNumbe
             // get total of files to return
             parts.ordered > splitLength && (splitLength = parts.ordered);
         },
+        true,
     );
 
     return splitLength;
