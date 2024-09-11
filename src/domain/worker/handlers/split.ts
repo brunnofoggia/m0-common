@@ -99,6 +99,7 @@ const splitItem = async ({ filePath, toDir, worker, options, storage, splitNumbe
     };
 
     debug('reading file', filePath);
+    worker.increaseExecutionInfoValue('splitFileLength', 0);
     await splitFile(
         createFileStream,
         options,
@@ -124,6 +125,7 @@ const splitItem = async ({ filePath, toDir, worker, options, storage, splitNumbe
             writeStream = null;
             parts.finished++;
             debug(`sent file ${writeStreamPath}`);
+            worker.increaseExecutionInfoValue('splitFileLength', 1);
 
             // get total of files to return
             parts.ordered > splitLength && (splitLength = parts.ordered);
