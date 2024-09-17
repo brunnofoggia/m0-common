@@ -1,10 +1,10 @@
-import { defaultsDeep, size } from 'lodash';
+import { defaultsDeep, lastIndexOf, size } from 'lodash';
 
-import { StageStatusEnum } from '../../../../types/stageStatus.type';
+import { StageStatusEnded, StageStatusEnum, StageStatusError, StageStatusProcess } from '../../../../types/stageStatus.type';
 import { StageStructureProperties } from '../../../../interfaces/stageParts.interface';
 import { WorkerError } from '../../error';
 import { ExecutionInfoMixin } from './executionInfo';
-import { ResultInterface } from 'interfaces/result.interface';
+import { ResultInterface } from '../../../../interfaces/result.interface';
 
 export abstract class StatusMixin {
     abstract executionInfo: any;
@@ -45,6 +45,23 @@ export abstract class StatusMixin {
 
     statusWaiting(result: Partial<ResultInterface> = {}) {
         return this._status(result, StageStatusEnum.WAITING);
+    }
+
+    isStatusProcessing(statusUid) {
+        return lastIndexOf(StageStatusProcess, statusUid) >= 0;
+    }
+
+    isStatusError(statusUid) {
+        return lastIndexOf(StageStatusError, statusUid) >= 0;
+    }
+
+    isStatusEnded(statusUid) {
+        return lastIndexOf(StageStatusEnded, statusUid) >= 0;
+    }
+
+    // @deprecated old method
+    isStatusAnError(statusUid) {
+        return lastIndexOf(StageStatusError, statusUid) >= 0;
     }
 }
 

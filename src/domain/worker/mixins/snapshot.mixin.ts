@@ -84,6 +84,10 @@ export abstract class SnapshotMixin {
     }
 
     async createSnapshot({ projectUid = '', transactionUid, stageUid, forceUpdate = false, mergeSnapshot = {} }) {
+        return this.persistSnapshot({ projectUid, transactionUid, stageUid, forceUpdate, mergeSnapshot });
+    }
+
+    async persistSnapshot({ projectUid = '', transactionUid, stageUid, forceUpdate = false, mergeSnapshot = {} }) {
         let { moduleConfig, stageConfig } = await this.getSnapshotForModuleConfig({
             projectUid,
             transactionUid,
@@ -104,7 +108,7 @@ export abstract class SnapshotMixin {
         }
 
         if (!size(stageConfig)) throw new Error(`Stage config not found (${stageUid})`);
-        return { moduleConfig, stageConfig };
+        return { moduleConfig, stageConfig, project: moduleConfig?.project };
     }
 }
 

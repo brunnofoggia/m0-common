@@ -1,16 +1,29 @@
+import { isNaN, size } from 'lodash';
+
 import { applyMixins } from 'node-labs/lib/utils/mixin';
+
 import { ModuleStructureProperties } from '../../../../interfaces/stageParts.interface';
-import { StageUidAndExecutionUid } from '../../../../interfaces/stageExecution.interface';
+import { StageExecutionInterface, StageUidAndExecutionUid } from '../../../../interfaces/stageExecution.interface';
+import { BodyInterface } from '../../../../interfaces/body.interface';
 
 export abstract class MultipleExecutionMixin {
-    separateModuleUidAndStageName(stageUid: string) {
-        const _stageUid = this.separateStageUidAndExecutionUid(stageUid).stageUid;
-        const [moduleUid, ...stageNameParts] = _stageUid.split('/');
-        return { moduleUid, stageName: stageNameParts.join('/') };
+    abstract body: BodyInterface;
+
+    getIndex(): number {
+        const bodyIndex = this.body.options?.index;
+
+        const index = bodyIndex;
+        return index === undefined || index === null || index === false ? -1 : +index;
     }
 
     getStageExecutionSplitter() {
         return '#';
+    }
+
+    separateModuleUidAndStageName(stageUid: string) {
+        const _stageUid = this.separateStageUidAndExecutionUid(stageUid).stageUid;
+        const [moduleUid, ...stageNameParts] = _stageUid.split('/');
+        return { moduleUid, stageName: stageNameParts.join('/') };
     }
 
     replaceStageExecutionSplitter(stageUidAndExecutionUid: string, splitter = '/') {
@@ -51,6 +64,12 @@ export abstract class MultipleExecutionMixin {
         return executionUid_.replace(':stageuid()', options.stageUid.replace(/[^a-zA-Z0-9_]/g, '-'));
     }
 
+    _buildExecutionUid_index(executionUid_, options: any = {}) {
+        if (!executionUid_) return executionUid_;
+        if (!options.index) throw new Error('executionUid: index builder cannot be used here');
+        return executionUid_.replace(':index()', options.index);
+    }
+
     _buildExecutionUid_keep(executionUid_, options: any = {}) {
         if (!executionUid_) return executionUid_;
         // disabled to allow process to move on if there is no exec uid
@@ -62,6 +81,7 @@ export abstract class MultipleExecutionMixin {
         if (!executionUid_) return executionUid_;
         const selfStageUid = options.stageUid || this['stageUid'] || '';
         const selfExecutionUid = options.executionUid || this['executionUid'] || '';
+        const selfIndex = options.index || this['getIndex']() || '-1';
 
         let executionUid = executionUid_;
         if (this.shouldFowardExecutionUid() && !executionUid.startsWith(selfExecutionUid)) {
@@ -82,6 +102,7 @@ export abstract class MultipleExecutionMixin {
                 executionUid = this[`_buildExecutionUid_${fn}`](executionUid, {
                     stageUid: selfStageUid,
                     executionUid: selfExecutionUid,
+                    index: selfIndex,
                 });
             }
         }
@@ -92,11 +113,36 @@ export abstract class MultipleExecutionMixin {
 }
 
 export abstract class MultipleExecutionStageMixin {
+    abstract stageExecution: StageExecutionInterface;
+
+    getIndex(): number {
+        const bodyIndex = this.body.options?.index;
+        const stageExecutionIndex =
+            size(this.stageExecution?.data) > 0
+                ? !isNaN(this.stageExecution.data.options?.index)
+                    ? this.stageExecution.data.options.index
+                    : !isNaN(this.stageExecution.data.index)
+                    ? this.stageExecution.data.index
+                    : undefined
+                : undefined;
+
+        const index = stageExecutionIndex || bodyIndex;
+        return index === undefined || index === null || index === false ? -1 : +index;
+    }
+
+    getExecutionUid() {
+        const executionUid =
+            this.stageExecution && this.stageExecution?.system?.executionUid
+                ? this.stageExecution?.system?.executionUid
+                : this.executionUid;
+        return executionUid || '';
+    }
+
     getStageUidAndExecutionUid() {
         return this.buildCurrentStageUidAndExecutionUid();
     }
 
-    joinStageUidWithCurrentExecutionUid(stageUid) {
+    joinStageUidWithCurrentExecutionUid(stageUid: string): string {
         return this.joinStageUidAndExecutionUid(stageUid, this.executionUid);
     }
 

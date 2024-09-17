@@ -1,14 +1,14 @@
-import { size, omit, defaultsDeep, pickBy, bind, defaults, cloneDeep, isArray, map, isString } from 'lodash';
 import _debug from 'debug';
 const debug = _debug('worker:stage');
 const essentialInfo = _debug('worker:essential:stage');
+import { size, defaultsDeep, pickBy, cloneDeep, isArray, map, isString } from 'lodash';
 
 import { exitRequest } from 'node-labs/lib/utils/errors';
 import { applyMixins } from 'node-labs/lib/utils/mixin';
 
 import { BodyInterface } from '../../interfaces/body.interface';
-import { ResultInterface, SystemInterface } from '../../interfaces/result.interface';
-import { StageFeatureMethods, StageParts, StageAllProperties } from '../../interfaces/stageParts.interface';
+import { ResultInterface } from '../../interfaces/result.interface';
+import { StageParts, StageAllProperties } from '../../interfaces/stageParts.interface';
 
 import { StageStatusEnum } from '../../types/stageStatus.type';
 import { ERROR } from '../../types/error.type';
@@ -33,16 +33,16 @@ export class StageWorker extends StageGeneric implements StageParts {
     stackTriggers: Array<BodyInterface> = [];
 
     body: BodyInterface;
-    system: Partial<SystemInterface> = {};
-
-    stageExecutionMocked = false;
 
     moduleDomain: any = {};
     stageDomain: any = {};
 
+    // unaltered options and config from database
     private _stageConfig_options;
-    private _stageConfig_options_inputed = {};
     private _stageConfig_config;
+    // stash of mixed options received along initialization process (stage options, domain options and custom options that maybe inserted along some process)
+    // necessary to avoid losing inputed options during domain loading
+    private _stageConfig_options_inputed = {};
     private _stageConfig_config_inputed = {};
 
     _set(options) {
@@ -107,6 +107,26 @@ export class StageWorker extends StageGeneric implements StageParts {
         return result;
     }
 
+    async _result(result: ResultInterface) {
+        debug('lifecycle: before result');
+        await this._onBeforeResult(result);
+
+        debug('lifecycle: check result');
+        if (this._checkResult(result)) {
+            result = await this.sendResultAsMessage(result);
+        }
+
+        debug('lifecycle: after result');
+        await this._onAfterResult(result);
+
+        debug('lifecycle: on destroy');
+        await this._onDestroy();
+        debug('lifecycle: builder done\n-------------------------\n');
+
+        return result;
+    }
+
+    // #region result info
     prepareResultInfoFn(config) {
         if (config === false || config === 0) return [];
 
@@ -145,25 +165,7 @@ export class StageWorker extends StageGeneric implements StageParts {
             }
         }
     }
-
-    async _result(result: ResultInterface) {
-        debug('lifecycle: before result');
-        await this._onBeforeResult(result);
-
-        debug('lifecycle: check result');
-        if (this._checkResult(result)) {
-            result = await this.sendResultAsMessage(result);
-        }
-
-        debug('lifecycle: after result');
-        await this._onAfterResult(result);
-
-        debug('lifecycle: on destroy');
-        await this._onDestroy();
-        debug('lifecycle: builder done\n-------------------------\n');
-
-        return result;
-    }
+    // #endregion
 
     async onBeforeResult(result: ResultInterface) {
         return;
@@ -173,68 +175,9 @@ export class StageWorker extends StageGeneric implements StageParts {
         await this.triggerStackDispatch();
     }
 
-    buildExecutionError(error) {
-        const result: any = {
-            statusUid: StageStatusEnum.UNKNOWN,
-            errorCode: error.code || '',
-            errorMessage: error.message || '',
-        };
-
-        if (error.statusUid) result.statusUid = error.statusUid;
-
-        return result;
-    }
-
-    public logError(error) {
-        let errorMessage, errorStack;
-        if (typeof error === 'string') {
-            errorMessage = error;
-        } else {
-            errorMessage = error.message;
-            errorStack = error.stack;
-        }
-
-        essentialInfo('stage info:', this.stageDir);
-        essentialInfo('error message:', errorMessage);
-        if (errorStack) {
-            essentialInfo('stack:\n');
-            console.log(errorStack);
-        }
-    }
-
     async execute(): Promise<ResultInterface | null> {
         debug('stage.builder execute()', this.stageUid);
         return { statusUid: StageStatusEnum.DONE };
-    }
-
-    public async sendResultAsMessage(result: ResultInterface): Promise<ResultInterface> {
-        essentialInfo(
-            `result:`,
-            omit(result, '_options'),
-            '; stage:',
-            this.stageUid,
-            '; execUid:',
-            this.executionUid,
-            '; index: ',
-            this.getIndex(),
-        );
-        if (typeof result === 'undefined' || result === null || this.stageExecutionMocked || this.body.options._pureExecution) return;
-
-        try {
-            result.statusUid = result.statusUid || StageStatusEnum.UNKNOWN;
-
-            !result.system && (result.system = {});
-            result.system.startedAt = this.system.startedAt;
-            result.system.finishedAt = this.system.finishedAt;
-            // runs before trigger result to catch errors
-            result._options?.after && (await result._options.after());
-        } catch (error) {
-            this.logError(error);
-            result = this.buildExecutionError(error);
-        }
-
-        await this.triggerExecutionResult(result);
-        return result;
     }
 
     async findCurrentLastStageExecution() {
@@ -266,19 +209,6 @@ export class StageWorker extends StageGeneric implements StageParts {
             debug(err);
             return null;
         }
-    }
-
-    async triggerExecutionResult(result_: ResultInterface) {
-        const result = {
-            ...omit(result_, '_options'),
-            errorMessage: (result_.errorMessage || '').split('\n')[0],
-        };
-
-        // avoid infinity loop when waiting multiple child process
-        // but with this waiting status never is saved
-        // if (result.status === StageStatusEnum.WAITING) return;
-        const body = this.buildTriggerStageResultBody({}, result);
-        return this.triggerStageToDefaultProvider(this.worflowEventName, body);
     }
 
     prepareConfig(_config: any = {}) {
@@ -320,10 +250,6 @@ export class StageWorker extends StageGeneric implements StageParts {
         });
     }
 
-    fowardInternalOptions() {
-        return this.forwardInternalOptions();
-    }
-
     omitInternalOptions() {
         return this._omitInternalOptions(this.stageExecution.data.options);
     }
@@ -357,6 +283,7 @@ export class StageWorker extends StageGeneric implements StageParts {
         return this.defaultOptions || {};
     }
 
+    // used mainly into templates
     get(): StageAllProperties {
         return {
             body: this.body,
@@ -409,38 +336,10 @@ export class StageWorker extends StageGeneric implements StageParts {
     // #endregion
 
     // #region legacy code
-    extractMethods(): StageFeatureMethods {
-        return {
-            // options
-            isStageOptionActivated: bind(this.isStageOptionActivated, this),
-            isStageOptionDeactivated: bind(this.isStageOptionDeactivated, this),
-            isModuleOptionActivated: bind(this.isModuleOptionActivated, this),
-            isModuleOptionDeactivated: bind(this.isModuleOptionDeactivated, this),
-            isInheritedOptionActivated: bind(this.isInheritedOptionActivated, this),
-            isInheritedOptionDeactivated: bind(this.isInheritedOptionDeactivated, this),
-            // service
-            getService: bind(this.getService, this),
-            // secrets
-            getGlobalSecret: bind(this.getGlobalSecret, this),
-            getModuleSecret: bind(this.getModuleSecret, this),
-            getStageSecret: bind(this.getStageSecret, this),
-            // date
-            getDate: bind(this.getDate, this),
-            getTimezoneString: bind(this.getTimezoneString, this),
-            getTimezoneOffset: bind(this.getTimezoneOffset, this),
-            // trace
-            logError: bind(this.logError, this),
-            getExecutionInfo: bind(this.getExecutionInfo, this),
-            getExecutionInfoValue: bind(this.getExecutionInfoValue, this),
-            setExecutionInfoValue: bind(this.setExecutionInfoValue, this),
-            increaseExecutionInfoValue: bind(this.increaseExecutionInfoValue, this),
-            getRetryAttempt: bind(this.getRetryAttempt, this),
-            getRetryLimit: bind(this.getRetryLimit, this),
-        };
-    }
 
-    getStageParts(): StageParts {
-        return defaults(this.extractMethods(), this.get());
+    // @deprecated old name
+    fowardInternalOptions() {
+        return this.forwardInternalOptions();
     }
     // #endregion
 }

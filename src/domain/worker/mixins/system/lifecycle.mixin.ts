@@ -4,7 +4,7 @@ const debug = _debug('worker:lifecycle');
 import { ResultInterface } from '../../../../interfaces/result.interface';
 
 export abstract class LifeCycleMixin {
-    abstract logError(error: Error): void;
+    abstract logError(error: any): void;
     abstract onBeforeExecute(): Promise<void>;
     abstract onBeforeResult(result: ResultInterface): Promise<void>;
     abstract onAfterResult(result: ResultInterface): Promise<void>;

@@ -1,4 +1,7 @@
-import { uniqueId, indexOf, size, lastIndexOf, defaultsDeep, isString } from 'lodash';
+import _debug from 'debug';
+const debug = _debug('worker:stage');
+const essentialInfo = _debug('worker:essential:stage');
+import { uniqueId, indexOf, size, defaultsDeep } from 'lodash';
 import { applyMixins } from 'node-labs/lib/utils/mixin';
 
 import { ModuleExecutionInterface } from '../../interfaces/moduleExecution.interface';
@@ -7,7 +10,7 @@ import { ModuleConfigInterface } from '../../interfaces/moduleConfig.interface';
 import { StageConfigInterface } from '../../interfaces/stageConfig.interface';
 import { StageExecutionInterface } from '../../interfaces/stageExecution.interface';
 import { StageStructureProperties } from '../../interfaces/stageParts.interface';
-import { StageStatusEnded, StageStatusEnum, StageStatusError, StageStatusProcess } from '../../types/stageStatus.type';
+import { StageStatusEnum } from '../../types/stageStatus.type';
 import { StageExecutionFindError } from '../../types/stageExecution';
 
 import { StageExecutionProvider } from '../../providers/stageExecution.provider';
@@ -21,6 +24,9 @@ import { BodyInterface } from '../../interfaces/body.interface';
 import { SnapshotMixin } from './mixins/snapshot.mixin';
 import { ExecutionInfoMixin } from './mixins/system/executionInfo';
 import { ForwardedMixin, ForwardedResultsMixin } from './mixins/system/forwarded';
+import { MessageMixin } from './mixins/system/message.mixin';
+import { ResultMixin } from './mixins/system/result.mixin';
+import { SystemInterface } from '../../interfaces/result.interface';
 
 export const worflowEventName = 'm0/workflow';
 
@@ -46,11 +52,14 @@ export abstract class StageGeneric {
     project: ProjectInterface;
 
     stageExecution: StageExecutionInterface;
+    system: Partial<SystemInterface> = {};
 
     executionInfo: any = {};
     executionError: WorkerError;
     executionStatusUid: any = null;
+
     fakeResult = false;
+    stageExecutionMocked = false;
 
     constructor(options) {
         this._set(options);
@@ -90,6 +99,7 @@ export abstract class StageGeneric {
 
     abstract initialize(uniqueId: string);
 
+    // #region getters
     static _getDefaultWorker() {
         return StageGeneric.defaultWorker;
     }
@@ -118,21 +128,6 @@ export abstract class StageGeneric {
         return this.stageExecution;
     }
 
-    getIndex(): number {
-        const bodyIndex = this.body.options?.index;
-        const stageExecutionIndex =
-            size(this.stageExecution?.data) > 0
-                ? !isNaN(this.stageExecution.data.options?.index)
-                    ? this.stageExecution.data.options.index
-                    : !isNaN(this.stageExecution.data.index)
-                    ? this.stageExecution.data.index
-                    : undefined
-                : undefined;
-
-        const index = stageExecutionIndex || bodyIndex;
-        return index === undefined || index === null || index === false ? -1 : +index;
-    }
-
     getEnv() {
         return process.env.NODE_ENV || 'dev';
     }
@@ -140,74 +135,7 @@ export abstract class StageGeneric {
     getFakeEnv() {
         return process.env.FAKE_ENV || this.getEnv();
     }
-
-    // getIndex(): string | number {
-    //     const index = this.stageExecution?.data?.index !== undefined ? this.stageExecution?.data?.index : this.body.options.index;
-    //     return index === undefined ? -1 : index;
-    // }
-
-    getExecutionUid() {
-        const executionUid =
-            this.stageExecution && this.stageExecution?.system?.executionUid
-                ? this.stageExecution?.system?.executionUid
-                : this.executionUid;
-        return executionUid || '';
-    }
-
-    async triggerStageToDefaultProvider(_name, body) {
-        const { events } = this._getSolutions();
-        return this._sendEventMessage(_name, body, events);
-    }
-
-    // #region queueprefix
-    getDefaultPrefix() {
-        const { events: defaultEvents } = this._getSolutions();
-        return defaultEvents.getPrefix();
-    }
-
-    _setBodyQueuePrefix(name, body) {
-        const defaultPrefix = this.getDefaultPrefix();
-        const workerPrefix = body.queuePrefix || defaultPrefix;
-        const m0Prefix = body.m0QueuePrefix || defaultPrefix;
-
-        const isMessageToM0 = this._isMessageToM0(name);
-        const diffPrefix = workerPrefix !== m0Prefix;
-
-        delete body.m0QueuePrefix;
-        if (!diffPrefix) {
-            delete body.queuePrefix;
-        } else if (!isMessageToM0) {
-            body.queuePrefix = workerPrefix;
-            body.m0QueuePrefix = m0Prefix;
-        }
-
-        return { body, prefix: workerPrefix, m0Prefix };
-    }
-
-    _isMessageToM0(name) {
-        return name === this.worflowEventName;
-    }
-
-    _processQueuePrefixes(name, body) {
-        const { prefix, m0Prefix } = this._setBodyQueuePrefix(name, body);
-
-        let sendPrefix = prefix;
-        const isMessageToM0 = this._isMessageToM0(name);
-        if (isMessageToM0) {
-            sendPrefix = m0Prefix;
-        }
-
-        return { sendPrefix, prefix, m0Prefix };
-    }
     // #endregion
-
-    async _sendEventMessage(_name, body, events) {
-        // events instance is not passed along. why?
-        // worker will operate with only one prefix
-        // the one that is set into env or the one received inside the body
-        const { sendPrefix } = this._processQueuePrefixes(_name, body);
-        return events.sendToQueue(_name, body, { prefix: sendPrefix });
-    }
 
     async _findCurrentLastExecution() {
         return await StageExecutionProvider.findByTransactionAndModuleAndIndex(
@@ -244,59 +172,24 @@ export abstract class StageGeneric {
         return { stageExecution: undefined, error: StageExecutionFindError.FAILED };
     }
 
-    buildStageBody(stageUidAndExecutionUid, options: any = {}, config: any = {}, root: any = {}) {
-        const { stageUid, executionUid } = this.separateStageUidAndExecutionUid(stageUidAndExecutionUid);
-        const _root = {
-            projectUid: this.projectUid,
-            transactionUid: this.transactionUid,
-            date: this.moduleExecution.date,
-            stageUid,
-            executionUid,
-            ...root,
-            // cannot be replaced
-            queuePrefix: this.body.queuePrefix || '',
-            m0QueuePrefix: this.body.m0QueuePrefix || '',
-        };
-
-        // clear index from possible quotes
-        if (options.index && isString(options.index)) {
-            options.index = options.index.replace(/"/g, '');
+    logError(error: any) {
+        let errorMessage, errorStack;
+        if (typeof error === 'string') {
+            errorMessage = error;
+        } else {
+            errorMessage = error.message;
+            errorStack = error.stack;
         }
 
-        // is forced transaction empty
-        const forcedEmptyTransactionUid = !_root.transactionUid;
-        if (forcedEmptyTransactionUid) {
-            const parentTransactionUid = this.transactionUid;
-            options = defaultsDeep(
-                {
-                    moduleExecutionData: {
-                        parentTransactionUid,
-                    },
-                },
-                options,
-            );
+        essentialInfo('stage info:', this.stageDir);
+        essentialInfo('error message:', errorMessage);
+        if (errorStack) {
+            essentialInfo('stack:\n');
+            console.log(errorStack);
         }
-
-        return {
-            ..._root,
-            options,
-            config,
-        };
     }
 
-    buildTriggerStageResultBody(options: any = {}, result: any = {}) {
-        let stageUidAndExecutionUid = this.stageUid;
-        options = {
-            index: this.getIndex(),
-        };
-
-        stageUidAndExecutionUid = this.joinStageUidWithCurrentExecutionUid(stageUidAndExecutionUid);
-        return {
-            ...this.buildStageBody(stageUidAndExecutionUid, options),
-            result,
-        };
-    }
-
+    // #region trigger.mixin soon
     _prepareRootParams(params: any) {
         if (!size(params)) return params;
         if (params._parentTransaction) {
@@ -337,23 +230,7 @@ export abstract class StageGeneric {
         stageUidAndExecutionUid = this.fowardExecutionUid(stageUidAndExecutionUid);
         return this.buildStageBody(stageUidAndExecutionUid, options, config, root);
     }
-
-    isStatusProcessing(statusUid) {
-        return lastIndexOf(StageStatusProcess, statusUid) >= 0;
-    }
-
-    // legacy
-    isStatusAnError(statusUid) {
-        return lastIndexOf(StageStatusError, statusUid) >= 0;
-    }
-
-    isStatusError(statusUid) {
-        return lastIndexOf(StageStatusError, statusUid) >= 0;
-    }
-
-    isStatusEnded(statusUid) {
-        return lastIndexOf(StageStatusEnded, statusUid) >= 0;
-    }
+    // #endregion
 }
 
 export interface StageGeneric
@@ -365,7 +242,9 @@ export interface StageGeneric
         SnapshotMixin,
         ExecutionInfoMixin,
         ForwardedMixin,
-        ForwardedResultsMixin {}
+        ForwardedResultsMixin,
+        MessageMixin,
+        ResultMixin {}
 
 applyMixins(StageGeneric, [
     ConfigMixin,
@@ -376,4 +255,6 @@ applyMixins(StageGeneric, [
     ExecutionInfoMixin,
     ForwardedMixin,
     ForwardedResultsMixin,
+    MessageMixin,
+    ResultMixin,
 ]);

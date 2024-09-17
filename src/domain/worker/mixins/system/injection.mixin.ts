@@ -5,13 +5,13 @@ import { StageAllProperties, StageParts, StageStructureProperties } from '../../
 import { DomainOptions } from '../../../../interfaces/domain.interface';
 
 import { DynamicWorkerMixin } from './dynamicWorker.mixin';
+import { cloneDeep } from 'lodash';
 
 const _result = function (method, ...args) {
     if (this[method]) return this[method](...args);
 };
 
 export abstract class InjectionMixin {
-    abstract getStageParts(): StageParts;
     abstract get(): StageAllProperties;
     abstract prepareOptions(options: any);
     abstract replaceStageExecutionSplitter(stageUid: string, executionUid?: string): string;
@@ -57,7 +57,8 @@ export abstract class InjectionMixin {
             await instance._call('setStageParts', this, domainOptions);
         }
 
-        this.prepareOptions(instance.defaultOptions || {});
+        const defaultOptions = cloneDeep(instance.getDefaultOptions ? instance.getDefaultOptions() : instance.defaultOptions || {});
+        this.prepareOptions(defaultOptions);
         return instance;
     }
 

@@ -55,7 +55,12 @@ export abstract class ModuleGeneric {
         return (this.uniqueId = _uniqueId);
     }
 
+    // @deprecated to be removed. changed to setBody
     set(body: BodyInterface) {
+        this.setBody(body);
+    }
+
+    setBody(body: BodyInterface) {
         const [moduleUid, stageKey] = body.stageUid.split('/');
         const { stageUid, executionUid } = this.separateStageUidAndExecutionUid(body.stageUid);
 
@@ -64,10 +69,23 @@ export abstract class ModuleGeneric {
         this.moduleUid = moduleUid;
         this.stageName = stageKey;
         this.stageUid = stageUid;
-        this.executionUid = body.executionUid = this._buildExecutionUid(body.executionUid || executionUid);
+        if (body.date) body.date = this.formatExecDate(body.date);
 
         this.body = body;
+
+        // only after set body property
+        this.executionUid = body.executionUid = this._buildExecutionUid(body.executionUid || executionUid);
+
         this.body.options = this.body.options || {};
+    }
+
+    formatExecDate(dateInput): any {
+        const splitter = dateInput.indexOf('T') > -1 ? 'T' : ' ';
+        let [date, time] = dateInput.split(splitter);
+        if (!time) time = '12:00:00Z';
+
+        date = date.replace(/^([0-9]{4})-?([0-9]{2})-?([0-9]{2})$/, '$1-$2-$3');
+        return `${date}T${time}`;
     }
 
     _getBuilderOptions() {
