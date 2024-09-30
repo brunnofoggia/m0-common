@@ -8,7 +8,7 @@ import { MultipleExecutionMixin } from '../../../domain/worker/mixins/system/mul
 import { applyMixins } from 'node-labs/lib/utils/mixin';
 
 export class StageExecutionService extends DynamicDatabase<StageExecutionEntity> {
-    protected entity = StageExecutionEntity;
+    protected override entity = StageExecutionEntity;
 
     async addWhereWithModuleExecutionAndStageUidAndExecutionUidAndIndex(
         queryBuilder,

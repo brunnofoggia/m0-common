@@ -4,7 +4,7 @@ import { DynamicDatabase } from 'node-labs/lib/services/dynamicDatabase.service'
 import { ModuleExecutionEntity } from '../entities/moduleExecution.entity';
 
 export class ModuleExecutionService extends DynamicDatabase<ModuleExecutionEntity> {
-    protected entity = ModuleExecutionEntity;
+    protected override entity = ModuleExecutionEntity;
 
     async findByTransactionAndModuleUid(transactionUid: string, moduleUid: string, options: any = {}): Promise<ModuleExecutionEntity> {
         return (
@@ -66,7 +66,7 @@ export class ModuleExecutionService extends DynamicDatabase<ModuleExecutionEntit
         );
     }
 
-    async findById(id: number | string, options: any = {}): Promise<ModuleExecutionEntity> {
+    override async findById(id: number | string, options: any = {}): Promise<ModuleExecutionEntity> {
         const result = await super.findById(id, {
             ...options,
             relations: {

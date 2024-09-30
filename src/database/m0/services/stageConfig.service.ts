@@ -3,10 +3,12 @@ import { DynamicDatabase } from 'node-labs/lib/services/dynamicDatabase.service'
 import { StageConfigEntity } from '../entities/stageConfig.entity';
 
 export class StageConfigService extends DynamicDatabase<StageConfigEntity> {
-    protected entity = StageConfigEntity;
+    protected override entity = StageConfigEntity;
 
     async findScheduleByConfig(config: any = {}): Promise<StageConfigEntity[]> {
-        const queryBuilder = this.getRepository().createQueryBuilder('stageConfig').innerJoinAndSelect('stageConfig.moduleConfig', 'moduleConfig');
+        const queryBuilder = this.getRepository()
+            .createQueryBuilder('stageConfig')
+            .innerJoinAndSelect('stageConfig.moduleConfig', 'moduleConfig');
 
         for (const [key, value] of Object.entries(config)) {
             const data: any = {};

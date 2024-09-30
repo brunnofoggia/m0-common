@@ -4,9 +4,9 @@ import { ModuleConfigEntity } from '../entities/moduleConfig.entity';
 import { ModuleConfigInterface } from 'interfaces/moduleConfig.interface';
 
 export class ModuleConfigService extends DynamicDatabase<ModuleConfigEntity> {
-    protected entity = ModuleConfigEntity;
+    protected override entity = ModuleConfigEntity;
 
-    async findById(id: number | string, options: any = {}): Promise<ModuleConfigEntity> {
+    override async findById(id: number | string, options: any = {}): Promise<ModuleConfigEntity> {
         const result = await super.findById(id, {
             ...options,
             relations: {

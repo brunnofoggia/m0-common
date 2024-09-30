@@ -1,7 +1,5 @@
 {
-    "include": [
-        "./src/**/*"
-    ],
+    "include": ["./src/**/*"],
     "compilerOptions": {
         "module": "nodenext",
         "moduleResolution": "nodenext",
@@ -17,17 +15,14 @@
         "incremental": true,
         "skipLibCheck": true,
         "strictNullChecks": false,
+        "noImplicitOverride": true,
         "noImplicitAny": false,
         "strictBindCallApply": false,
         "forceConsistentCasingInFileNames": false,
         "noFallthroughCasesInSwitch": false,
         "esModuleInterop": true,
         "resolveJsonModule": true,
-        "typeRoots": [
-            "./src/@types",
-            "./node_modules/@types"
-        ],
-        "paths": {
-        }
+        "typeRoots": ["./src/@types", "./node_modules/@types"],
+        "paths": {}
     }
 }

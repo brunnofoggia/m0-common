@@ -7,7 +7,7 @@ import { MemoryUtil } from 'node-labs/lib/utils/memory';
 import { ProcessUtil } from 'node-labs/lib/utils/process';
 
 export class MonitorService<ENTITY> extends DynamicDatabase<ENTITY> {
-    protected idAttribute = 'key';
+    protected override idAttribute = 'key';
     protected _deleteRecords = true;
 
     static async _save(key, value) {

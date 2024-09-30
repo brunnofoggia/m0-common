@@ -9,6 +9,11 @@ export class WorkerController {
 
     @Post()
     async initialize(@Body() body: BodyInterface): Promise<any> {
+        return this.domain.initialize(body);
+    }
+
+    @Post('async')
+    async execute(@Body() body: BodyInterface): Promise<any> {
         this.domain.initialize(body);
         return { status: 'executing' };
     }

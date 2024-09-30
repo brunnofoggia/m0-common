@@ -15,7 +15,7 @@ export abstract class ParallelWorkerGeneric {
     parallelResults: any = {};
 
     public getDefaultOptions() {
-        const defaultOptions = defaultsDeep({}, this['defaultOptions'], {
+        const defaultOptions = defaultsDeep({}, this.defaultOptions, {
             bulkLimit: 50000,
             lengthLimit: 0,
         });
@@ -30,9 +30,9 @@ export abstract class ParallelWorkerGeneric {
 
     public async execute(): Promise<ResultInterface | null> {
         try {
-            return await this['splitExecute'](this['splitExecuteOptions']());
+            return await this.splitExecute(this.splitExecuteOptions());
         } catch (error) {
-            this['logError'](error);
+            this.logError(error);
 
             return { statusUid: StageStatusEnum.FAILED, errorMessage: error.message };
         }
@@ -69,7 +69,7 @@ export abstract class ParallelWorkerGeneric {
         return { bulkLimit };
     }
 
-    async findSplitStageExecutionList() {
+    async findChildStageExecutionList() {
         const stageExecutionList = await StageExecutionProvider.findAllByTransactionAndModule(
             this.transactionUid,
             this.getChildStage(),
@@ -158,6 +158,13 @@ export abstract class ParallelWorkerGeneric {
     }
 
     abstract getLocalService();
+
+    // #region legacy code
+    async findSplitStageExecutionList() {
+        return this.findChildStageExecutionList();
+    }
+
+    // #endregion
 }
 
 applyMixins(ParallelWorkerGeneric, [SplitMixin]);

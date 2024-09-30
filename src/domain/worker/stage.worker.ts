@@ -26,13 +26,12 @@ import { StageGeneric } from './stage.generic';
 import { PathMixin } from './mixins/system/path.mixin';
 import { validateOptionsByRuleSet } from './utils/validate';
 import { StagesMixin } from './mixins/system/stages.mixin';
+import { formatExecDate } from '../../utils/execDate';
 
 export class StageWorker extends StageGeneric implements StageParts {
     defaultConfig: any = {};
     defaultOptions: any = {};
     stackTriggers: Array<BodyInterface> = [];
-
-    body: BodyInterface;
 
     moduleDomain: any = {};
     stageDomain: any = {};
@@ -45,7 +44,7 @@ export class StageWorker extends StageGeneric implements StageParts {
     private _stageConfig_options_inputed = {};
     private _stageConfig_config_inputed = {};
 
-    _set(options) {
+    override _set(options) {
         super._set(options);
         this.setPaths();
     }
@@ -58,7 +57,8 @@ export class StageWorker extends StageGeneric implements StageParts {
         debug(...args);
     }
 
-    public async initialize(uniqueId: string): Promise<ResultInterface> {
+    // readonly initialize: (uniqueId: string) => Promise<ResultInterface> = async (uniqueId: string) => {
+    async initialize(uniqueId: string): Promise<ResultInterface> {
         this.__debug('-------------------------\ninitialize');
         this.__debug('set unique id', uniqueId);
         this._setUniqueId(uniqueId);
@@ -95,7 +95,7 @@ export class StageWorker extends StageGeneric implements StageParts {
         return result;
     }
 
-    async _execute(): Promise<ResultInterface | null> {
+    private async _execute(): Promise<ResultInterface | null> {
         await this.checkExecution();
 
         debug('lifecycle: before execute');
@@ -104,12 +104,16 @@ export class StageWorker extends StageGeneric implements StageParts {
         debug('lifecycle: execute');
         const result = await this.execute();
 
+        debug('lifecycle: after execute');
+        await this._onAfterExecute();
+
         return result;
     }
 
-    async _result(result: ResultInterface) {
+    private async _result(result: ResultInterface) {
         debug('lifecycle: before result');
-        await this._onBeforeResult(result);
+        const _result = await this._onBeforeResult(result);
+        if (_result !== undefined) result = _result;
 
         debug('lifecycle: check result');
         if (this._checkResult(result)) {
@@ -140,7 +144,7 @@ export class StageWorker extends StageGeneric implements StageParts {
         });
     }
 
-    async _resultInfoFn(result: ResultInterface) {
+    private async _resultInfoFn(result: ResultInterface) {
         if (result?.statusUid !== StageStatusEnum.DONE) return;
         const resultInfoFn = this.prepareResultInfoFn(this.stageConfig.config.resultInfoFn || '_resultInfo');
 
@@ -164,6 +168,10 @@ export class StageWorker extends StageGeneric implements StageParts {
                 }
             }
         }
+    }
+
+    async _resultInfo(): Promise<any> {
+        return {};
     }
     // #endregion
 
@@ -242,12 +250,22 @@ export class StageWorker extends StageGeneric implements StageParts {
     mockStageExecution() {
         this.stageExecutionMocked = true;
         const mock = typeof this.body.mockStageExecution === 'object' ? this.body.mockStageExecution : {};
-        return defaultsDeep(mock, {
+        const stageExecution = defaultsDeep(mock, {
+            moduleExecution: {
+                date: new Date().toISOString(),
+                data: {
+                    options: {},
+                    config: {},
+                },
+            },
             moduleExecutionId: 0,
             stageConfigId: 0,
             data: {},
             statusUid: StageStatusEnum.ASYNC,
         });
+
+        stageExecution.moduleExecution.date = formatExecDate(stageExecution.moduleExecution.date);
+        return stageExecution;
     }
 
     omitInternalOptions() {
@@ -330,7 +348,7 @@ export class StageWorker extends StageGeneric implements StageParts {
         return new Service(this.uniqueId);
     }
 
-    getRetryAttempt(increaseByOne = true) {
+    override getRetryAttempt(increaseByOne = true) {
         return super.getRetryAttempt(increaseByOne);
     }
     // #endregion

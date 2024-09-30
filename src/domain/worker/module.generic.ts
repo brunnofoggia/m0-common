@@ -12,6 +12,7 @@ import { ModuleConfigInterface } from '../../interfaces/moduleConfig.interface';
 import { StageConfigInterface } from '../../interfaces/stageConfig.interface';
 import { ProjectInterface } from '../../interfaces/project.interface';
 import { MultipleExecutionStageMixin } from './mixins/system/multipleExecution.mixin';
+import { formatExecDate } from '../../utils/execDate';
 
 export abstract class ModuleGeneric {
     static getSolutions;
@@ -69,7 +70,7 @@ export abstract class ModuleGeneric {
         this.moduleUid = moduleUid;
         this.stageName = stageKey;
         this.stageUid = stageUid;
-        if (body.date) body.date = this.formatExecDate(body.date);
+        if (body.date) body.date = formatExecDate(body.date);
 
         this.body = body;
 
@@ -77,15 +78,6 @@ export abstract class ModuleGeneric {
         this.executionUid = body.executionUid = this._buildExecutionUid(body.executionUid || executionUid);
 
         this.body.options = this.body.options || {};
-    }
-
-    formatExecDate(dateInput): any {
-        const splitter = dateInput.indexOf('T') > -1 ? 'T' : ' ';
-        let [date, time] = dateInput.split(splitter);
-        if (!time) time = '12:00:00Z';
-
-        date = date.replace(/^([0-9]{4})-?([0-9]{2})-?([0-9]{2})$/, '$1-$2-$3');
-        return `${date}T${time}`;
     }
 
     _getBuilderOptions() {

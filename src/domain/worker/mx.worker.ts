@@ -1,7 +1,7 @@
-import { isArray } from 'lodash';
 import { DynamicDatabase } from 'node-labs/lib/services/dynamicDatabase.service';
 
 import { StageWorker } from './stage.worker';
+import { ResultInterface } from 'interfaces/result.interface';
 
 export class MXWorker extends StageWorker {
     public async closeConnections() {

@@ -3,10 +3,10 @@ import { DynamicDatabase } from 'node-labs/lib/services/dynamicDatabase.service'
 import { ModuleEntity } from '../entities/module.entity';
 
 export class ModuleService extends DynamicDatabase<ModuleEntity> {
-    protected entity = ModuleEntity;
-    protected idAttribute = 'uid';
+    protected override entity = ModuleEntity;
+    protected override idAttribute = 'uid';
 
-    async findById(id: number | string, options: any = {}): Promise<ModuleEntity> {
+    override async findById(id: number | string, options: any = {}): Promise<ModuleEntity> {
         const result = await super.findById(id, {
             ...options,
             relations: {

@@ -69,7 +69,6 @@ export abstract class ResultMixin {
             '; index: ',
             this.getIndex(),
         );
-        if (typeof result === 'undefined' || result === null || this.stageExecutionMocked || this.body.options._pureExecution) return;
 
         try {
             result.statusUid = result.statusUid || StageStatusEnum.UNKNOWN;
@@ -84,8 +83,14 @@ export abstract class ResultMixin {
             result = this.buildExecutionError(error);
         }
 
-        await this.triggerExecutionResult(result);
+        if (!this.skipPersistResult(result)) {
+            await this.triggerExecutionResult(result);
+        }
         return result;
+    }
+
+    skipPersistResult(result: ResultInterface) {
+        return typeof result === 'undefined' || result === null || this.stageExecutionMocked || this.body.options._pureExecution;
     }
 
     buildExecutionError(error) {

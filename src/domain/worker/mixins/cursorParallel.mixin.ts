@@ -15,7 +15,7 @@ export interface PaginatorOptions {
 }
 
 export abstract class CursorParallelGeneric extends ParallelWorkerGeneric {
-    async count(options: any = {}): Promise<any> {
+    override async count(options: any = {}): Promise<any> {
         const localService = this.getLocalService();
         const queryFindBuilder = this.countRecordsQueryBuilder(localService);
 

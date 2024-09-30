@@ -5,48 +5,65 @@ import { ResultInterface } from '../../../../interfaces/result.interface';
 
 export abstract class LifeCycleMixin {
     abstract logError(error: any): void;
-    abstract onBeforeExecute(): Promise<void>;
-    abstract onBeforeResult(result: ResultInterface): Promise<void>;
-    abstract onAfterResult(result: ResultInterface): Promise<void>;
+    // abstract onInitialize(): Promise<void>;
+    // abstract onBeforeExecute(): Promise<void>;
+    // abstract onAfterExecute(): Promise<void>;
+    // abstract onBeforeResult(result: ResultInterface): Promise<any>;
+    // abstract onAfterResult(result: ResultInterface): Promise<void>;
+    // abstract onDestroy(): Promise<void>;
+
+    async onInitialize(): Promise<void> {}
+    async onBeforeExecute(): Promise<void> {}
+    async onAfterExecute(): Promise<void> {}
+    async onBeforeResult(result: ResultInterface): Promise<any> {}
+    async onAfterResult(result: ResultInterface): Promise<void> {}
+    async onDestroy(): Promise<void> {}
 
     async _onInitialize(): Promise<void> {
         try {
-            await this.onInitialize();
+            this.onInitialize && (await this.onInitialize());
         } catch (error) {
             debug('error at "_onInitialize"');
             throw error;
         }
     }
 
-    async onInitialize(): Promise<void> {
-        return;
-    }
-
     async _onBeforeExecute(): Promise<void> {
         try {
-            await this.onBeforeExecute();
+            this.onBeforeExecute && (await this.onBeforeExecute());
         } catch (error) {
             debug('error at "_onBeforeExecute"');
             throw error;
         }
     }
 
+    async _onAfterExecute(): Promise<void> {
+        try {
+            this.onAfterExecute && (await this.onAfterExecute());
+        } catch (error) {
+            debug('error at "_onAfterExecute"');
+            throw error;
+        }
+    }
+
     async _onDestroy(): Promise<void> {
         try {
-            await this.onDestroy();
+            this.onDestroy && (await this.onDestroy());
         } catch (error) {
             debug('error at "_onDestroy"');
             this.logError(error);
         }
     }
 
-    async onDestroy(): Promise<void> {
-        return;
-    }
-
-    async _onBeforeResult(result: ResultInterface): Promise<void> {
+    async _onBeforeResult(result: ResultInterface): Promise<any> {
         try {
-            this.onBeforeResult && (await this.onBeforeResult(result));
+            if (this.onBeforeResult) {
+                const _result = await this.onBeforeResult(result);
+                if (_result !== undefined) {
+                    result = _result;
+                }
+            }
+            return result;
         } catch (error) {
             debug('error at "_onBeforeResult"');
             throw error;
