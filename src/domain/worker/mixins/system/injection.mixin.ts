@@ -73,8 +73,8 @@ export abstract class InjectionMixin {
         return Class_;
     }
 
-    async loadModuleDomains(domains) {
-        const path = this.buildWorkerModuleDomainsPath();
+    async loadModuleDomains(domains, moduleUid = '') {
+        const path = this.buildWorkerModuleDomainsPath(moduleUid);
         await this._loadDomains(domains, path, Domain.module);
     }
 
@@ -112,8 +112,8 @@ export abstract class InjectionMixin {
         return this.stageConfig.config.stageSourceUid && this.stageConfig.config.stageSourceUid !== this.stageUid;
     }
 
-    buildWorkerModulePath() {
-        const moduleUid = !this.isFromAnotherSource() ? this.moduleUid : this.readSourceUid().moduleUid;
+    buildWorkerModulePath(customModuleUid = '') {
+        const moduleUid = customModuleUid ? customModuleUid : !this.isFromAnotherSource() ? this.moduleUid : this.readSourceUid().moduleUid;
         return `modules/${moduleUid}`;
     }
 
@@ -137,8 +137,8 @@ export abstract class InjectionMixin {
         return `${this.buildWorkerModulePath()}/stages/${stageName}`;
     }
 
-    buildWorkerModuleDomainsPath() {
-        return `${this.buildWorkerModulePath()}/${this.domainDirName()}`;
+    buildWorkerModuleDomainsPath(customModuleUid = '') {
+        return `${this.buildWorkerModulePath(customModuleUid)}/${this.domainDirName()}`;
     }
 
     buildWorkerModuleDomainsFactoryPath(factoryDirName) {
