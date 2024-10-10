@@ -57,6 +57,7 @@ export class StageWorker extends StageGeneric implements StageParts {
         debug(...args);
     }
 
+    // #region lifecycle
     // readonly initialize: (uniqueId: string) => Promise<ResultInterface> = async (uniqueId: string) => {
     async initialize(uniqueId: string): Promise<ResultInterface> {
         this.__debug('-------------------------\ninitialize');
@@ -88,11 +89,20 @@ export class StageWorker extends StageGeneric implements StageParts {
             }
             this.system.finishedAt = new Date().toISOString();
             result = await this._result(execResult);
+
+            debug('lifecycle: on destroy');
+            await this._onDestroy();
+            debug('lifecycle: builder done\n-------------------------\n');
         } else {
             result = await this.sendResultAsMessage(this.statusDone());
         }
 
         return result;
+    }
+    async onInitialize(): Promise<void> {}
+
+    async onBeforeExecute(): Promise<void> {
+        await this.validateOptions();
     }
 
     private async _execute(): Promise<ResultInterface | null> {
@@ -110,6 +120,12 @@ export class StageWorker extends StageGeneric implements StageParts {
         return result;
     }
 
+    async onAfterExecute(): Promise<void> {}
+
+    async onBeforeResult(result: ResultInterface): Promise<void> {
+        return;
+    }
+
     private async _result(result: ResultInterface) {
         debug('lifecycle: before result');
         const _result = await this._onBeforeResult(result);
@@ -123,12 +139,15 @@ export class StageWorker extends StageGeneric implements StageParts {
         debug('lifecycle: after result');
         await this._onAfterResult(result);
 
-        debug('lifecycle: on destroy');
-        await this._onDestroy();
-        debug('lifecycle: builder done\n-------------------------\n');
-
         return result;
     }
+
+    async onAfterResult(result: ResultInterface): Promise<void> {
+        await this.triggerStackDispatch();
+    }
+
+    async onDestroy(): Promise<void> {}
+    // #endregion
 
     // #region result info
     prepareResultInfoFn(config) {
@@ -174,14 +193,6 @@ export class StageWorker extends StageGeneric implements StageParts {
         return {};
     }
     // #endregion
-
-    async onBeforeResult(result: ResultInterface) {
-        return;
-    }
-
-    async onAfterResult(result: ResultInterface) {
-        await this.triggerStackDispatch();
-    }
 
     async execute(): Promise<ResultInterface | null> {
         debug('stage.builder execute()', this.stageUid);
@@ -285,10 +296,6 @@ export class StageWorker extends StageGeneric implements StageParts {
 
     async validateOptions() {
         validateOptionsByRuleSet(this, await this.getRequiredRuleSet());
-    }
-
-    async onBeforeExecute() {
-        await this.validateOptions();
     }
     // #endregion
 

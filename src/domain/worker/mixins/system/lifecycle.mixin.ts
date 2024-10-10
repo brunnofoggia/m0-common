@@ -5,19 +5,13 @@ import { ResultInterface } from '../../../../interfaces/result.interface';
 
 export abstract class LifeCycleMixin {
     abstract logError(error: any): void;
-    // abstract onInitialize(): Promise<void>;
-    // abstract onBeforeExecute(): Promise<void>;
-    // abstract onAfterExecute(): Promise<void>;
-    // abstract onBeforeResult(result: ResultInterface): Promise<any>;
-    // abstract onAfterResult(result: ResultInterface): Promise<void>;
-    // abstract onDestroy(): Promise<void>;
 
-    async onInitialize(): Promise<void> {}
-    async onBeforeExecute(): Promise<void> {}
-    async onAfterExecute(): Promise<void> {}
-    async onBeforeResult(result: ResultInterface): Promise<any> {}
-    async onAfterResult(result: ResultInterface): Promise<void> {}
-    async onDestroy(): Promise<void> {}
+    abstract onInitialize(): Promise<void>;
+    abstract onBeforeExecute(): Promise<void>;
+    abstract onAfterExecute(): Promise<void>;
+    abstract onBeforeResult(result: ResultInterface): Promise<any>;
+    abstract onAfterResult(result: ResultInterface): Promise<void>;
+    abstract onDestroy(): Promise<void>;
 
     async _onInitialize(): Promise<void> {
         try {
