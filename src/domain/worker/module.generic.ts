@@ -1,6 +1,5 @@
 import _debug from 'debug';
 
-import { uniqueId } from 'lodash';
 import { exitRequest } from 'node-labs/lib/utils/errors';
 import { applyMixins } from 'node-labs/lib/utils/mixin';
 
@@ -13,6 +12,7 @@ import { StageConfigInterface } from '../../interfaces/stageConfig.interface';
 import { ProjectInterface } from '../../interfaces/project.interface';
 import { MultipleExecutionStageMixin } from './mixins/system/multipleExecution.mixin';
 import { formatExecDate } from '../../utils/execDate';
+import { processUniqueId } from './utils/uniqueId';
 
 export abstract class ModuleGeneric {
     static getSolutions;
@@ -52,7 +52,7 @@ export abstract class ModuleGeneric {
     abstract _getBuilderClass();
 
     protected setUniqueId(_uniqueId = '') {
-        !_uniqueId && (_uniqueId = [uniqueId('worker:'), new Date().toISOString()].join(':'));
+        !_uniqueId && (_uniqueId = processUniqueId());
         return (this.uniqueId = _uniqueId);
     }
 

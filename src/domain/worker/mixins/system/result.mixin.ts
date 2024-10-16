@@ -85,6 +85,8 @@ export abstract class ResultMixin {
 
         if (!this.skipPersistResult(result)) {
             await this.triggerExecutionResult(result);
+        } else {
+            debug('skipping persist result');
         }
         return result;
     }
