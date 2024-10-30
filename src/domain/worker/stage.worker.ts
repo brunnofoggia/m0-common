@@ -331,17 +331,47 @@ export class StageWorker extends StageGeneric implements StageParts {
         };
     }
 
+    // #region worker name, version, file
     static _getWorker(stageConfig, project) {
-        return stageConfig?.config?.worker || project?._config?.defaultWorker;
+        return stageConfig?.config?.worker || project?._config?.defaultWorker || StageGeneric._getDefaultWorker();
+    }
+
+    static _getWorkerVersion(stageConfig, project) {
+        return stageConfig?.config?.version || project?._config?.defaultVersion || '';
+    }
+
+    static _getWorkerFile(stageConfig, project) {
+        const worker = StageWorker._getWorker(stageConfig, project);
+        const version = StageWorker._getWorkerVersion(stageConfig, project) + '';
+
+        const file = [worker];
+        if (version) {
+            if (/[^0-9]/.test(version)) {
+                throw new WorkerError('Invalid version format. Only major version format are allowed.', StageStatusEnum.FAILED);
+            }
+            file.push('v' + version);
+        }
+
+        const workerFile = file.join('_');
+        return workerFile;
     }
 
     getWorker() {
-        return StageWorker._getWorker(this.stageConfig, this.project) || this.getDefaultWorker();
+        return StageWorker._getWorker(this.stageConfig, this.project);
+    }
+
+    getWorkerVersion() {
+        return StageWorker._getWorkerVersion(this.stageConfig, this.project);
+    }
+
+    getWorkerFile() {
+        return StageWorker._getWorkerFile(this.stageConfig, this.project);
     }
 
     getDefaultWorker() {
         return StageGeneric._getDefaultWorker();
     }
+    // #endregion
 
     getRootDir() {
         return this.rootDir;

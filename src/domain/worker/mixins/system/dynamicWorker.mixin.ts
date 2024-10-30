@@ -5,7 +5,7 @@ import { StageStructureProperties } from '../../../../interfaces/stageParts.inte
 import { importMixin } from '../../../../utils/importWorker';
 
 export abstract class DynamicWorkerMixin {
-    abstract getWorker(): string;
+    abstract getWorkerFile(): string;
     abstract getDefaultWorker(): string;
 
     async _loadWorkerClass(name, path, worker) {

@@ -66,11 +66,11 @@ export abstract class InjectionMixin {
         const domainPath = `${path}/${name}`;
         const domainOptions: DomainOptions = { name, path: domainPath, basePath: path };
 
-        const Class_ = await this.loadWorkerClass(name, path);
-        if (!Class_) throw new Error(`Domain "${name}" not found`);
+        const { Class_: DomainClass } = await this.loadWorkerClass(name, path);
+        if (!DomainClass) throw new Error(`Domain "${name}" not found`);
 
-        await this._prepareDomain(Class_, domainOptions, true);
-        return Class_;
+        await this._prepareDomain(DomainClass, domainOptions, true);
+        return DomainClass;
     }
 
     async loadModuleDomains(domains, moduleUid = '') {
@@ -94,12 +94,12 @@ export abstract class InjectionMixin {
     }
 
     /* mixins */
-    async loadMixins(mixins, _class) {
+    async loadMixins(mixins, BaseClass) {
         const path = this.buildWorkerStagePath();
 
         for (const name of mixins) {
-            const Mixin = await this.loadWorkerClass(name, path);
-            applyMixins(_class, [Mixin]);
+            const { Class_: MixinClass } = await this.loadWorkerClass(name, path);
+            applyMixins(BaseClass, [MixinClass]);
         }
     }
 
@@ -159,8 +159,9 @@ export abstract class InjectionMixin {
 
     async loadWorkerClass(name, path = null) {
         !path && (path = this.buildWorkerStageDomainsPath());
-        const worker = this.getWorker();
-        return this._loadWorkerClass(name, path, worker);
+        const worker = this.getWorkerFile();
+
+        return { Class_: this._loadWorkerClass(name, path, worker) };
     }
 }
 

@@ -24,6 +24,7 @@ const importWorker = async (basePath, name, handler = '', defaultHandler = 'inde
         if (errorFirstLine.indexOf('Cannot find module') >= 0 && errorFirstLine.indexOf(fileLocation) > 0) {
             debug('import worker could not find builder at', filePath);
             if (defaultHandler && handler != defaultHandler) {
+                debug('import worker will load default instead', defaultHandler);
                 const { _class } = await importWorker(basePath, name, defaultHandler);
                 return { _class, found: false };
             }

@@ -89,7 +89,8 @@ export class ModuleDomain extends ModuleGeneric {
     }
 
     async _locateBuilder(moduleUid, stageName): Promise<any> {
-        return importWorker(`modules/${moduleUid}/stages`, stageName, StageWorker._getWorker(this.stageConfig, this.project));
+        const workerFile = StageWorker._getWorkerFile(this.stageConfig, this.project);
+        return importWorker(`modules/${moduleUid}/stages`, stageName, workerFile);
     }
 
     async getSnapshotConfig() {
