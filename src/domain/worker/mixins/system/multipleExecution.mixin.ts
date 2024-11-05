@@ -163,6 +163,10 @@ export abstract class MultipleExecutionStageMixin {
         return this.shouldFowardExecutionUid() ? this.executionUid : '';
     }
 
+    getForwardedExecutionUidWithoutAlias() {
+        return this.shouldFowardExecutionUid() ? this.executionUid.split('-')[0] : '';
+    }
+
     // trick to execute the workflow everyday
     fowardExecutionUid(stageUidAndExecutionUid_) {
         let stageUidAndExecutionUid = stageUidAndExecutionUid_;
