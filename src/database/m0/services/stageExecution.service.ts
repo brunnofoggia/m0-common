@@ -1,14 +1,15 @@
-import { IsNull, MoreThanOrEqual } from 'typeorm';
-import { bind } from 'lodash';
+import { IsNull } from 'typeorm';
 
 import { DynamicDatabase } from 'node-labs/lib/services/dynamicDatabase.service';
+import { applyMixins } from 'node-labs/lib/utils/mixin';
 
 import { StageExecutionEntity } from '../entities/stageExecution.entity';
 import { MultipleExecutionMixin } from '../../../domain/worker/mixins/system/multipleExecution.mixin';
-import { applyMixins } from 'node-labs/lib/utils/mixin';
+import { BodyInterface } from '../../../interfaces/body.interface';
 
 export class StageExecutionService extends DynamicDatabase<StageExecutionEntity> {
     protected override entity = StageExecutionEntity;
+    body: BodyInterface;
 
     async addWhereWithModuleExecutionAndStageUidAndExecutionUidAndIndex(
         queryBuilder,
