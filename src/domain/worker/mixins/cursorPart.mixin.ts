@@ -88,6 +88,8 @@ export abstract class CursorPartGeneric {
     async getPaginator() {
         if (!this.paginator) {
             const paginatorOptions = this.getPaginatorOptions();
+            const paginationKeys = this.getPaginationKeys();
+
             const queryBuilder = await this.getPaginatorBuilder();
             const entity = this.getLocalEntity();
             if (!entity) throw new WorkerError('getLocalEntity not configured properly', StageStatusEnum.FAILED);
@@ -96,7 +98,7 @@ export abstract class CursorPartGeneric {
                 {
                     entity,
                     alias: paginatorOptions.alias,
-                    paginationKeys: this.getPaginationKeys(),
+                    paginationKeys,
                     Paginator: PaginatorJoin,
                     query: {
                         limit: this.getPaginatorPageLimit(),
@@ -111,7 +113,10 @@ export abstract class CursorPartGeneric {
     }
 
     async getPaginatorBuilder() {
-        const alias = this.getPaginatorOptions().alias;
+        const paginatorOptions = this.getPaginatorOptions();
+        const alias = paginatorOptions.alias;
+        const paginationKeyString = paginatorOptions.paginationKeyString || false;
+
         const cursorKey = this.getCursorKey();
         const pk = `"${alias}"."${cursorKey}"`;
 
@@ -127,11 +132,14 @@ export abstract class CursorPartGeneric {
                 if (firstRow[cursorKey] === undefined)
                     throw new WorkerError('invalid initial cursor value or cursor key field not present', StageStatusEnum.FAILED);
 
+                let value = firstRow[cursorKey];
+                if (paginationKeyString) value = `'${value}'`;
+
                 // i did this at first but it makes no sense to capture all the keys
                 // const splitDelimiters = this.getSplitDelimiters();
                 // const where = `${pk} >= ${splitDelimiters[0]} AND ${pk} <= ${splitDelimiters[1]}`;
                 // then I realized that the first row could be calculated using limit and offset (see findFirstRow method)
-                const where = `${pk} >= ${firstRow[cursorKey]}`;
+                const where = `${pk} >= ${value}`;
 
                 queryBuilder.andWhere(where);
             } else if (!ignoreFirstRowError) {

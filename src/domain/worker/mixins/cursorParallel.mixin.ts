@@ -1,6 +1,6 @@
 import _debug from 'debug';
 const debug = _debug('worker:stage:CursorParallelWorker');
-import { isArray } from 'lodash';
+import { cloneDeep, defaultsDeep, isArray } from 'lodash';
 import { Order } from 'typeorm-cursor-pagination';
 
 import { ParallelWorkerGeneric } from './parallelWorker.mixin';
@@ -11,6 +11,7 @@ export interface PaginatorOptions {
     alias: string;
     orderDirection: Order;
     paginationKeys: any[];
+    paginationKeyString: string;
     cursorKey: string;
 }
 
@@ -27,12 +28,13 @@ export abstract class CursorParallelGeneric extends ParallelWorkerGeneric {
     }
 
     getPaginatorOptions(): Partial<PaginatorOptions> {
-        return this.stageConfig.options.paginator || {};
+        return defaultsDeep({}, this.stageConfig.options.paginator, this.parentStageConfig?.options?.paginator);
     }
 
     getPaginationKeys() {
         let keys = ['id'];
         const paginatorOptions = this.getPaginatorOptions();
+
         if (paginatorOptions.paginationKeys) {
             const _keys = paginatorOptions.paginationKeys;
             keys = isArray(_keys) ? _keys : [_keys];
