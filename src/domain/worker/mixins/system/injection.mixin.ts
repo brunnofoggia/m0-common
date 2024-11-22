@@ -99,6 +99,8 @@ export abstract class InjectionMixin {
 
         for (const name of mixins) {
             const { Class_: MixinClass } = await this.loadWorkerClass(name, path);
+            if (!MixinClass) throw new Error(`Mixin "${name}" could not be loaded`);
+
             applyMixins(BaseClass, [MixinClass]);
         }
     }
@@ -161,7 +163,8 @@ export abstract class InjectionMixin {
         !path && (path = this.buildWorkerStageDomainsPath());
         const worker = this.getWorkerFile();
 
-        return { Class_: this._loadWorkerClass(name, path, worker) };
+        const Class_ = await this._loadWorkerClass(name, path, worker);
+        return { Class_ };
     }
 }
 
