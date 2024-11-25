@@ -99,12 +99,19 @@ export abstract class ResultMixin {
         const result: any = {
             statusUid: StageStatusEnum.UNKNOWN,
             errorCode: error.code || '',
-            errorMessage: error.message || '',
+            errorMessage: this.formatErrorMessage(error),
         };
 
         if (error.statusUid) result.statusUid = error.statusUid;
 
         return result;
+    }
+
+    formatErrorMessage(error: any) {
+        let errorMessage = error?.message || '';
+        errorMessage = (errorMessage + '').replace(/[\n\r]/g, ' ');
+
+        return errorMessage;
     }
 
     async triggerExecutionResult(result_: ResultInterface) {
