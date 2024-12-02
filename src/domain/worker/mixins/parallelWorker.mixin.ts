@@ -1,6 +1,6 @@
 import _debug from 'debug';
 const debug = _debug('worker:stage:ParallelWorker');
-import { defaultsDeep, filter, map, omit, reduce, sortBy } from 'lodash';
+import { defaultsDeep, filter, map, omit, reduce, reverse, sortBy } from 'lodash';
 import Decimal from 'decimal.js';
 
 import { applyMixins } from 'node-labs/lib/utils/mixin';
@@ -38,32 +38,6 @@ export abstract class ParallelWorkerGeneric {
         }
     }
 
-    getLengthKeyPrefix() {
-        return [this.rootDir, this.getChildStage()].join('/');
-    }
-
-    getLengthKey() {
-        return [this.getLengthKeyPrefix(), 'length'].join('/');
-    }
-
-    async getLengthValue() {
-        const stateService = this['getStateService']();
-        return await stateService.getValue(this.getLengthKey());
-    }
-
-    async setLengthValue(value: number) {
-        const stateService = this['getStateService']();
-        await stateService.save(this.getLengthKey(), value);
-    }
-
-    async beforeSplitResult(params: any = {}) {
-        await this.setLengthValue(+params.length);
-        this.splitStageOptions = {
-            ...(this.splitStageOptions || {}),
-            ...omit(params, 'length', 'count'),
-        };
-    }
-
     defineLimits(options) {
         const bulkLimit = !this.isProjectConfigActivated('limitRows') ? options.bulkLimit : this.limitRows;
         return { bulkLimit };
@@ -76,11 +50,24 @@ export abstract class ParallelWorkerGeneric {
             this.executionUid,
             'none',
         );
-        const filteredStageExecutionList = sortBy(
-            filter(stageExecutionList, (stageExecution) => stageExecution.id > this.stageExecution.id),
-            'id',
+
+        const filteredStageExecutionList = reverse(
+            sortBy(
+                filter(stageExecutionList, (stageExecution) => stageExecution.id > this.stageExecution.id),
+                'id',
+            ),
         );
-        const length = await this.getLengthValue();
+
+        const indexFoundList = [];
+        const removedDuplicatedStageExecutionList = [];
+        filteredStageExecutionList.forEach((stageExecution) => {
+            if (indexFoundList.indexOf(stageExecution.index) === -1) {
+                indexFoundList.push(stageExecution.index);
+                removedDuplicatedStageExecutionList.push(stageExecution);
+            }
+        });
+
+        const length = await this._getChildLengthValue();
         return filteredStageExecutionList.slice(0, length);
     }
 
@@ -111,6 +98,14 @@ export abstract class ParallelWorkerGeneric {
         return +decimal.toFixed(4);
     }
 
+    async beforeSplitResult(params: any = {}) {
+        await this.setLengthValue(+params.length);
+        this.splitStageOptions = {
+            ...(this.splitStageOptions || {}),
+            ...omit(params, 'length', 'count'),
+        };
+    }
+
     /* replace methods bellow if needed */
     async beforeSplitStart() {
         const options = this.stageConfig.options;
@@ -135,6 +130,12 @@ export abstract class ParallelWorkerGeneric {
         await this.beforeSplitResult(params);
     }
 
+    async count(options: any = {}): Promise<any> {
+        const service = this.getLocalService();
+        return await service.count(options);
+    }
+
+    /* optional */
     async afterSplitStart() {
         null;
     }
@@ -143,12 +144,6 @@ export abstract class ParallelWorkerGeneric {
         null;
     }
 
-    async count(options: any = {}): Promise<any> {
-        const service = this.getLocalService();
-        return await service.count(options);
-    }
-
-    /* optional */
     async up(): Promise<any> {
         return null;
     }
