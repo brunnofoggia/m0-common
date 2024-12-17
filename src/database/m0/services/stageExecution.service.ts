@@ -10,6 +10,7 @@ import { BodyInterface } from '../../../interfaces/body.interface';
 export class StageExecutionService extends DynamicDatabase<StageExecutionEntity> {
     protected override entity = StageExecutionEntity;
     body: BodyInterface;
+    uniqueId: string;
 
     async addWhereWithModuleExecutionAndStageUidAndExecutionUidAndIndex(
         queryBuilder,

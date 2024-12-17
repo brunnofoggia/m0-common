@@ -16,7 +16,7 @@ import { processUniqueId } from './utils/uniqueId';
 
 export abstract class ModuleGeneric {
     static getSolutions;
-    protected uniqueId: string;
+    uniqueId: string;
 
     body: BodyInterface;
 

@@ -1,4 +1,4 @@
-import { isNaN, size } from 'lodash';
+import { isNaN, size, uniqueId } from 'lodash';
 
 import { applyMixins } from 'node-labs/lib/utils/mixin';
 
@@ -8,6 +8,7 @@ import { BodyInterface } from '../../../../interfaces/body.interface';
 
 export abstract class MultipleExecutionMixin {
     abstract body: BodyInterface;
+    abstract uniqueId: string;
 
     getIndex(): number {
         const bodyIndex = this.body.options?.index;
@@ -75,6 +76,21 @@ export abstract class MultipleExecutionMixin {
         // disabled to allow process to move on if there is no exec uid
         // if (!options.executionUid) throw new Error('executionUid: keep builder called, but there is no execution uid');
         return executionUid_.replace(':keep()', options.executionUid || '');
+    }
+
+    _buildExecutionUid_uniqueid(executionUid_) {
+        if (!executionUid_) return executionUid_;
+        const uniqueid = uniqueId();
+
+        return executionUid_.replace(':uniqueid()', uniqueid);
+    }
+
+    _buildExecutionUid_counter(executionUid_) {
+        if (!executionUid_) return executionUid_;
+        if (!this['_MultipleExecutionMixinCounter']) this['_MultipleExecutionMixinCounter'] = 0;
+        const counter = this['_MultipleExecutionMixinCounter']++;
+
+        return executionUid_.replace(':counter()', counter);
     }
 
     _buildExecutionUid(executionUid_, options: any = {}) {
