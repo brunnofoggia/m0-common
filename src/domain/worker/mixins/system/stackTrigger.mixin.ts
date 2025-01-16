@@ -40,12 +40,13 @@ export abstract class StackTriggerMixin {
     }
 
     async saveTriggerStack() {
-        const stackTriggers = this.getStackedTriggers() || [];
-        const saveTriggerStack = !!+process.env.TRANSFERSTACKTRIGGERS;
-        if (!saveTriggerStack || !stackTriggers.length) return;
+        const _stackTriggers = this.getStackedTriggers() || [];
+        // const saveTriggerStack = !!+process.env.TRANSFERSTACKTRIGGERS;
+        // if (!saveTriggerStack) return;
+        if (!_stackTriggers.length) return;
 
         await this.clearStageTriggerStack(this.stageExecution.id);
-        for (const body of stackTriggers) {
+        for (const body of _stackTriggers) {
             await this.saveTrigger(this.stageExecution.id, body);
         }
 
@@ -54,8 +55,9 @@ export abstract class StackTriggerMixin {
 
     async triggerStackDispatch(stackTriggers = null) {
         const _stackTriggers = stackTriggers || this.getStackedTriggers() || [];
-        const sendTriggerStack = !+process.env.TRANSFERSTACKTRIGGERS;
-        if (!sendTriggerStack || !_stackTriggers.length) return;
+        // const sendTriggerStack = !+process.env.TRANSFERSTACKTRIGGERS;
+        // if (!sendTriggerStack) return;
+        if (!_stackTriggers.length) return;
 
         for (const body of _stackTriggers) {
             await this.triggerStageToDefaultProvider(this.worflowEventName, body);
