@@ -31,7 +31,6 @@ import { formatExecDate } from '../../utils/execDate';
 export class StageWorker extends StageGeneric implements StageParts {
     defaultConfig: any = {};
     defaultOptions: any = {};
-    stackTriggers: Array<BodyInterface> = [];
 
     moduleDomain: any = {};
     stageDomain: any = {};
@@ -123,7 +122,7 @@ export class StageWorker extends StageGeneric implements StageParts {
     async onAfterExecute(): Promise<void> {}
 
     async onBeforeResult(result: ResultInterface): Promise<void> {
-        return;
+        await this.saveTriggerStack();
     }
 
     private async _result(result: ResultInterface) {

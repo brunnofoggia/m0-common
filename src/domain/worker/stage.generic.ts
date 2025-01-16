@@ -25,6 +25,7 @@ import { SnapshotMixin } from './mixins/snapshot.mixin';
 import { ExecutionInfoMixin } from './mixins/system/executionInfo';
 import { ForwardedMixin, ForwardedResultsMixin } from './mixins/system/forwarded';
 import { MessageMixin } from './mixins/system/message.mixin';
+import { StackTriggerMixin } from './mixins/system/stackTrigger.mixin';
 import { ResultMixin } from './mixins/system/result.mixin';
 import { SystemInterface } from '../../interfaces/result.interface';
 
@@ -58,6 +59,7 @@ export abstract class StageGeneric {
     executionError: WorkerError;
     executionStatusUid: any = null;
 
+    stackTriggers: Array<BodyInterface> = [];
     fakeResult = false;
     stageExecutionMocked = false;
 
@@ -244,6 +246,7 @@ export interface StageGeneric
         ForwardedMixin,
         ForwardedResultsMixin,
         MessageMixin,
+        StackTriggerMixin,
         ResultMixin {}
 
 applyMixins(StageGeneric, [
@@ -256,5 +259,6 @@ applyMixins(StageGeneric, [
     ForwardedMixin,
     ForwardedResultsMixin,
     MessageMixin,
+    StackTriggerMixin,
     ResultMixin,
 ]);

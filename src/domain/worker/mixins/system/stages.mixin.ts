@@ -8,7 +8,6 @@ import { BodyInterface } from '../../../../interfaces/body.interface';
 export abstract class StagesMixin {
     parentStageConfig: any = {};
     abstract forwardInternalOptions(): any;
-    abstract stackTriggers: Array<BodyInterface>;
 
     isStageStatus(status: string) {
         return this.stageExecution.statusUid === status;
@@ -128,25 +127,6 @@ export abstract class StagesMixin {
 
         const childStageUid = await this.buildChildStageUid(root.stageUid);
         return this.buildTriggerStageBody(childStageUid, options, config, root);
-    }
-    // #endregion
-
-    // #region stack triggers
-    getStackedTriggers() {
-        return this.stackTriggers;
-    }
-
-    addTriggerToStack(body: BodyInterface) {
-        this.stackTriggers.push(body);
-    }
-
-    async triggerStackDispatch() {
-        const stackTriggers = this.getStackedTriggers() || [];
-        if (!stackTriggers.length) return;
-
-        for (const body of stackTriggers) {
-            await this.triggerStageToDefaultProvider(this.worflowEventName, body);
-        }
     }
     // #endregion
 

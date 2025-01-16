@@ -63,12 +63,8 @@ export abstract class SplitMixin {
                 }
 
                 await this._setChildStatusTo(StageStatusEnum.WAITING);
-                return {
-                    statusUid: StageStatusEnum.WAITING,
-                    _options: {
-                        after: () => this.splitStagesTrigger({ stateService, lengthKeyPrefix }),
-                    },
-                };
+                await this.splitStagesTrigger({ stateService, lengthKeyPrefix });
+                return this.statusWaiting();
             }
 
             return this.splitStagesResult();

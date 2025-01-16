@@ -93,6 +93,14 @@ export abstract class MultipleExecutionMixin {
         return executionUid_.replace(':counter()', counter);
     }
 
+    _buildExecutionUid_count(executionUid_) {
+        if (!executionUid_) return executionUid_;
+        if (!this['_MultipleExecutionMixinCount']) this['_MultipleExecutionMixinCount'] = 0;
+        const counter = this['_MultipleExecutionMixinCount']++;
+
+        return executionUid_.replace(':count()', counter);
+    }
+
     _buildExecutionUid(executionUid_, options: any = {}) {
         if (!executionUid_) return executionUid_;
         const selfStageUid = options.stageUid || this['stageUid'] || '';

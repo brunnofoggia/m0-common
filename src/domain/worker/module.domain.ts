@@ -70,7 +70,10 @@ export class ModuleDomain extends ModuleGeneric {
 
         // builder initialize
         debug('initialize builder');
-        return await this.builder.initialize(this.uniqueId);
+        const result = await this.builder.initialize(this.uniqueId);
+        delete this.builder;
+
+        return result;
     }
 
     async _getBuilderClass() {
