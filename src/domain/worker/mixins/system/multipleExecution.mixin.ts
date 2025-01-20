@@ -1,4 +1,4 @@
-import { isNaN, size, uniqueId } from 'lodash';
+import { isNaN, random, size, uniqueId } from 'lodash';
 
 import { applyMixins } from 'node-labs/lib/utils/mixin';
 
@@ -11,7 +11,7 @@ export abstract class MultipleExecutionMixin {
     abstract uniqueId: string;
 
     getIndex(): number {
-        const bodyIndex = this.body.options?.index;
+        const bodyIndex = this.body?.options?.index;
 
         const index = bodyIndex;
         return index === undefined || index === null || index === false ? -1 : +index;
@@ -76,6 +76,13 @@ export abstract class MultipleExecutionMixin {
         // disabled to allow process to move on if there is no exec uid
         // if (!options.executionUid) throw new Error('executionUid: keep builder called, but there is no execution uid');
         return executionUid_.replace(':keep()', options.executionUid || '');
+    }
+
+    _buildExecutionUid_random(executionUid_) {
+        if (!executionUid_) return executionUid_;
+        const _random = [random(100, 999) + '', random(100, 999) + ''].join('_');
+
+        return executionUid_.replace(':random()', _random);
     }
 
     _buildExecutionUid_uniqueid(executionUid_) {
