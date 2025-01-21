@@ -31,7 +31,13 @@ export abstract class StagesMixin {
     }
 
     getPrevStage() {
-        return this.stageConfig.config.prevStage || this.stageExecution.data.options?._calledByStage;
+        const prevStage = this.stageConfig.config.prevStage || this.stageExecution.data.options?._calledByStage;
+        if (!prevStage) {
+            throw new Error(
+                'prevStage could not be determined. Please check the stageConfig.config.prevStage or provide into options._calledByStage',
+            );
+        }
+        return prevStage;
     }
 
     getFirstPrevStage() {
@@ -47,7 +53,9 @@ export abstract class StagesMixin {
         const parentStage =
             this.stageConfig.config.callbackStage || this._getParentStage() || this.stageExecution.data.options?._calledByStage;
         if (!parentStage) {
-            throw new Error('Parent stage could not be determined');
+            throw new Error(
+                'parentStage could not be determined. Please check the stageConfig.config.parentStage or provide into options._calledByStage or even maybe it should be provided at the request inside config.callbackStage',
+            );
         }
         return parentStage;
     }
