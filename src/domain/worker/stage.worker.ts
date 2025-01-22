@@ -65,6 +65,11 @@ export class StageWorker extends StageGeneric implements StageParts {
         this.__debug('find module+stage execution');
         this.stageExecution = await this.findCurrentLastStageExecution();
         if (!size(this.stageExecution)) return;
+        // if worker dies, when deploying maybe, and someone trigger the stage again
+        // this will avoid to run the stage again by detecting that the stage is already done
+        // reason: queue is not cleared when worker dies. so if someone trigger the stage there will be two queues
+        // and it would run twice
+        if (this.stageExecution.statusUid === StageStatusEnum.DONE) return;
 
         this.moduleExecution = this.stageExecution.moduleExecution;
 
