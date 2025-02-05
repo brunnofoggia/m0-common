@@ -68,10 +68,13 @@ export abstract class SplitMixin {
             }
 
             return this.splitStagesResult();
-        } catch (error) {
+        } catch (_error) {
+            const error = isString(_error) ? new Error(_error) : _error;
+
             this.logError(error);
-            if (error.statusUid) return error;
-            return { statusUid: StageStatusEnum.FAILED, errorMessage: error.message };
+            this.setExecutionError(error, error.statusUid);
+
+            return this.status();
         }
     }
 

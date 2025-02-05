@@ -206,13 +206,13 @@ export abstract class StageGeneric {
         let stageUidAndExecutionUid = this._prepareStageUidAndExecutionUid(stageUidAndExecutionUid_);
         root = this._prepareRootParams(root);
 
+        const isTransactionUidForcedBlank = 'transactionUid' in root && root.transactionUid === '';
         const refData: any = {};
         // repasse do parentTransactionUid para outro modulo
         if ('parentTransactionUid' in this.moduleExecution.data) {
             const parentTransactionUid = this.moduleExecution.data.parentTransactionUid;
             const triggeredModuleUid = stageUidAndExecutionUid.split('/')[0];
 
-            const isTransactionUidForcedBlank = 'transactionUid' in root && root.transactionUid === '';
             // reenvia o parentTransactionUid para o modulo seguinte dentro da mesma transaction
             if (this.moduleUid !== triggeredModuleUid && !isTransactionUidForcedBlank) {
                 refData.moduleExecutionData = {
@@ -228,6 +228,11 @@ export abstract class StageGeneric {
             options,
             refData,
         );
+
+        // to ensure date from past day to be kept when triggering new transactions
+        if (isTransactionUidForcedBlank) {
+            root.date = this.moduleExecution.date;
+        }
 
         stageUidAndExecutionUid = this.fowardExecutionUid(stageUidAndExecutionUid);
         return this.buildStageBody(stageUidAndExecutionUid, options, config, root);

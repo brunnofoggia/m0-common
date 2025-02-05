@@ -38,7 +38,7 @@ export abstract class ResultMixin {
         }
 
         // is forced transaction empty
-        const forcedEmptyTransactionUid = !_root.transactionUid;
+        const forcedEmptyTransactionUid = 'transactionUid' in _root && !_root.transactionUid;
         if (forcedEmptyTransactionUid) {
             const parentTransactionUid = this.transactionUid;
             options = defaultsDeep(
@@ -73,9 +73,14 @@ export abstract class ResultMixin {
         try {
             result.statusUid = result.statusUid || StageStatusEnum.UNKNOWN;
 
-            !result.system && (result.system = {});
+            !result.system && (result.system = { executionList: [] });
             result.system.startedAt = this.system.startedAt;
             result.system.finishedAt = this.system.finishedAt;
+            result.system.executionList.push({
+                startedAt: this.system.startedAt,
+                finishedAt: this.system.finishedAt,
+            });
+
             // runs before trigger result to catch errors
             result._options?.after && (await result._options.after());
         } catch (error) {

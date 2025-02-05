@@ -1,6 +1,6 @@
 import _debug from 'debug';
 const debug = _debug('worker:stage:ParallelWorker');
-import { defaultsDeep, filter, map, omit, reduce, reverse, sortBy } from 'lodash';
+import { defaultsDeep, filter, isString, map, omit, reduce, reverse, sortBy } from 'lodash';
 import Decimal from 'decimal.js';
 
 import { applyMixins } from 'node-labs/lib/utils/mixin';
@@ -29,13 +29,7 @@ export abstract class ParallelWorkerGeneric {
     }
 
     public async execute(): Promise<ResultInterface | null> {
-        try {
-            return await this.splitExecute(this.splitExecuteOptions());
-        } catch (error) {
-            this.logError(error);
-
-            return { statusUid: StageStatusEnum.FAILED, errorMessage: error.message };
-        }
+        return await this.splitExecute(this.splitExecuteOptions());
     }
 
     defineLimits(options) {

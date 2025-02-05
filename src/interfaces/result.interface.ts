@@ -1,6 +1,12 @@
-export interface SystemInterface {
+export interface ExecutionListInterface {
     startedAt: string;
     finishedAt: string;
+}
+
+export interface SystemInterface extends ExecutionListInterface {
+    startedAt: string;
+    finishedAt: string;
+    executionList?: ExecutionListInterface[];
 }
 
 export interface ResultInterface {
