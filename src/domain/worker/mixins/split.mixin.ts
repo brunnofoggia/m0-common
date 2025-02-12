@@ -154,7 +154,7 @@ export abstract class SplitMixin {
         )
             return;
 
-        const _body = this.splitStageGlobalOptions(options);
+        const _body = await this.splitStageGlobalOptions(options);
         const _indexTo = this.getSplitStageOptions()['_indexTo'] || [];
         debug(`length: ${length}`);
 
@@ -179,7 +179,7 @@ export abstract class SplitMixin {
         return (this.splitStageOptions ? result(this, 'splitStageOptions') : {}) as any;
     }
 
-    splitStageGlobalOptions(options) {
+    async splitStageGlobalOptions(options) {
         let childOptions: any = defaultsDeep(
             {},
             this.stageConfig.config.childOptions || {},
@@ -208,7 +208,7 @@ export abstract class SplitMixin {
         );
 
         const stageUidAndExecutionUid = this.buildStageUidWithCurrentExecutionUid(this.getChildStage());
-        return this.buildTriggerStageBody(stageUidAndExecutionUid, childOptions, childConfig, childRoot);
+        return await this.buildTriggerStageBody(stageUidAndExecutionUid, childOptions, childConfig, childRoot);
     }
 
     // send options or config to child stage

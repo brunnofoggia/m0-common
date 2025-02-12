@@ -51,7 +51,7 @@ export class ModuleDomain extends ModuleGeneric {
         // body
         this._checkBody(body);
         debug('set body');
-        this.set(body);
+        await this.setBody(body);
         debug('check body');
         await this.checkData();
 

@@ -56,12 +56,7 @@ export abstract class ModuleGeneric {
         return (this.uniqueId = _uniqueId);
     }
 
-    // @deprecated to be removed. changed to setBody
-    set(body: BodyInterface) {
-        this.setBody(body);
-    }
-
-    setBody(body: BodyInterface) {
+    async setBody(body: BodyInterface) {
         const [moduleUid, stageKey] = body.stageUid.split('/');
         const { stageUid, executionUid } = this.separateStageUidAndExecutionUid(body.stageUid);
 
@@ -75,7 +70,7 @@ export abstract class ModuleGeneric {
         this.body = body;
 
         // only after set body property
-        this.executionUid = body.executionUid = this._buildExecutionUid(body.executionUid || executionUid);
+        this.executionUid = body.executionUid = await this._buildExecutionUid(body.executionUid || executionUid);
 
         this.body.options = this.body.options || {};
     }

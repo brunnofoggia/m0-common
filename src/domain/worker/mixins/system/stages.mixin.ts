@@ -134,7 +134,7 @@ export abstract class StagesMixin {
         const root = await this.buildChildStageRoot(root_);
 
         const childStageUid = await this.buildChildStageUid(root.stageUid);
-        return this.buildTriggerStageBody(childStageUid, options, config, root);
+        return await this.buildTriggerStageBody(childStageUid, options, config, root);
     }
     // #endregion
 

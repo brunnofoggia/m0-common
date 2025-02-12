@@ -108,7 +108,7 @@ export abstract class MultipleExecutionMixin {
         return executionUid_.replace(':count()', counter);
     }
 
-    _buildExecutionUid(executionUid_, options: any = {}) {
+    async _buildExecutionUid(executionUid_, options: any = {}) {
         if (!executionUid_) return executionUid_;
         const selfStageUid = options.stageUid || this['stageUid'] || '';
         const selfExecutionUid = options.executionUid || this['executionUid'] || '';
@@ -213,9 +213,9 @@ export abstract class MultipleExecutionStageMixin {
         return stageUidAndExecutionUidList.map((stageUidAndExecutionUid) => this.fowardExecutionUid(stageUidAndExecutionUid));
     }
 
-    _prepareStageUidAndExecutionUid(stageUidAndExecutionUid) {
+    async _prepareStageUidAndExecutionUid(stageUidAndExecutionUid) {
         const { stageUid, executionUid } = this.separateStageUidAndExecutionUid(stageUidAndExecutionUid);
-        const executionUid_ = this._buildExecutionUid(executionUid);
+        const executionUid_ = await this._buildExecutionUid(executionUid);
         return this.joinStageUidAndExecutionUid(stageUid, executionUid_);
     }
 }

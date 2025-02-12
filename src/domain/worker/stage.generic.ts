@@ -202,8 +202,8 @@ export abstract class StageGeneric {
         return params;
     }
 
-    buildTriggerStageBody(stageUidAndExecutionUid_, options: any = {}, config: any = {}, root: any = {}) {
-        let stageUidAndExecutionUid = this._prepareStageUidAndExecutionUid(stageUidAndExecutionUid_);
+    async buildTriggerStageBody(stageUidAndExecutionUid_, options: any = {}, config: any = {}, root: any = {}) {
+        let stageUidAndExecutionUid = await this._prepareStageUidAndExecutionUid(stageUidAndExecutionUid_);
         root = this._prepareRootParams(root);
 
         const isTransactionUidForcedBlank = 'transactionUid' in root && root.transactionUid === '';
@@ -235,7 +235,7 @@ export abstract class StageGeneric {
         }
 
         stageUidAndExecutionUid = this.fowardExecutionUid(stageUidAndExecutionUid);
-        return this.buildStageBody(stageUidAndExecutionUid, options, config, root);
+        return await this.buildStageBody(stageUidAndExecutionUid, options, config, root);
     }
     // #endregion
 }
