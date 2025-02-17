@@ -75,7 +75,7 @@ export abstract class PartWorkerGeneric {
         const { totalLimit, pageLimit } = this.loopLimitVariables();
         const count = await this.count(index * totalLimit, totalLimit);
         debug('total records available', count);
-        const totalPages = Math.ceil(count / pageLimit);
+        const totalPages = count > pageLimit ? Math.ceil(count / pageLimit) : 1;
         debug('totalLimit', totalLimit, 'count', count, 'pageLimit', pageLimit, 'totalPages', totalPages);
 
         return { totalLimit, pageLimit, count, totalPages };
@@ -84,7 +84,9 @@ export abstract class PartWorkerGeneric {
     loopLimitVariables() {
         const options = this.stageConfig.options;
         const totalLimit = +options.totalLimit;
-        const pageLimit = +(totalLimit && options.pageLimit >= totalLimit ? totalLimit / 10 : options.pageLimit);
+        const pageLimit = Math.ceil(
+            +(totalLimit && options.pageLimit >= totalLimit && totalLimit > 10 ? totalLimit / 10 : options.pageLimit),
+        );
         debug({ totalLimit, pageLimit });
         return { totalLimit, pageLimit };
     }
