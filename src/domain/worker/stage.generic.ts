@@ -14,20 +14,23 @@ import { StageStatusEnum } from '../../types/stageStatus.type';
 import { StageExecutionFindError } from '../../types/stageExecution';
 
 import { StageExecutionProvider } from '../../providers/stageExecution.provider';
+import { SystemInterface } from '../../interfaces/result.interface';
+import { WorkerError } from './error';
+import { BodyInterface } from '../../interfaces/body.interface';
 
 import { ConfigMixin } from './mixins/system/config.mixin';
 import { StatusMixin } from './mixins/system/status.mixin';
 import { RetryMixin } from './mixins/system/retry.mixin';
 import { MultipleExecutionStageMixin } from './mixins/system/multipleExecution.mixin';
-import { WorkerError } from './error';
-import { BodyInterface } from '../../interfaces/body.interface';
 import { SnapshotMixin } from './mixins/snapshot.mixin';
 import { ExecutionInfoMixin } from './mixins/system/executionInfo';
 import { ForwardedMixin, ForwardedResultsMixin } from './mixins/system/forwarded';
 import { MessageMixin } from './mixins/system/message.mixin';
 import { StackTriggerMixin } from './mixins/system/stackTrigger.mixin';
 import { ResultMixin } from './mixins/system/result.mixin';
-import { SystemInterface } from '../../interfaces/result.interface';
+import { TemplateMixin } from './mixins/system/template.mixin';
+import { DateMixin } from './mixins/system/date.mixin';
+import { PathMixin } from './mixins/system/path.mixin';
 
 export const worflowEventName = 'm0/workflow';
 
@@ -252,7 +255,10 @@ export interface StageGeneric
         ForwardedResultsMixin,
         MessageMixin,
         StackTriggerMixin,
-        ResultMixin {}
+        ResultMixin,
+        DateMixin,
+        PathMixin,
+        TemplateMixin {}
 
 applyMixins(StageGeneric, [
     ConfigMixin,
@@ -266,4 +272,7 @@ applyMixins(StageGeneric, [
     MessageMixin,
     StackTriggerMixin,
     ResultMixin,
+    DateMixin,
+    PathMixin,
+    TemplateMixin,
 ]);

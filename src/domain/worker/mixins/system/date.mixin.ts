@@ -1,7 +1,8 @@
+import dayjs from 'dayjs';
 import { getDateForTimezone } from 'node-labs/lib/utils';
+
 import { ModuleExecutionInterface } from '../../../../interfaces/moduleExecution.interface';
 import { StageStructureProperties } from '../../../../interfaces/stageParts.interface';
-import { ManipulateType } from 'dayjs';
 
 export abstract class DateMixin {
     abstract moduleExecution: ModuleExecutionInterface;
@@ -20,7 +21,7 @@ export abstract class DateMixin {
         return timezoneString + (addMinutes ? ':00' : '');
     }
 
-    getDate(date = undefined, keepLocalTime = false, _customTimezoneOffset = null) {
+    getDate(date = undefined, keepLocalTime = false, _customTimezoneOffset = null): dayjs.Dayjs {
         (typeof date === 'undefined' || date === null) && (date = this.moduleExecution?.date || new Date());
         const timezoneOffset = this.getTimezoneOffset(_customTimezoneOffset);
         return getDateForTimezone(timezoneOffset, date, keepLocalTime);

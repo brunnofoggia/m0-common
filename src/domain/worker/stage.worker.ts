@@ -377,14 +377,6 @@ export class StageWorker extends StageGeneric implements StageParts {
     }
     // #endregion
 
-    getRootDir() {
-        return this.rootDir;
-    }
-
-    getStageDir() {
-        return this.stageDir;
-    }
-
     getService(Service): any {
         return new Service(this.uniqueId);
     }
@@ -403,14 +395,6 @@ export class StageWorker extends StageGeneric implements StageParts {
     // #endregion
 }
 
-export interface StageWorker
-    extends LifeCycleMixin,
-        DynamicWorkerMixin,
-        InjectionMixin,
-        DateMixin,
-        PathMixin,
-        SecretsMixin,
-        ExecutionInfoMixin,
-        StagesMixin {}
+export interface StageWorker extends LifeCycleMixin, DynamicWorkerMixin, InjectionMixin, SecretsMixin, ExecutionInfoMixin, StagesMixin {}
 
-applyMixins(StageWorker, [LifeCycleMixin, DynamicWorkerMixin, InjectionMixin, DateMixin, PathMixin, SecretsMixin, StagesMixin]);
+applyMixins(StageWorker, [LifeCycleMixin, DynamicWorkerMixin, InjectionMixin, SecretsMixin, StagesMixin]);
