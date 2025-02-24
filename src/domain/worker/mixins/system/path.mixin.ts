@@ -6,11 +6,15 @@ export interface PathProperties {
     moduleDir: string;
     stageDir: string;
     executionDir: string;
-    sharedDir: string;
+    projectSharedDir: string;
 
     projectPath: string;
     projectModulePath: string;
     projectStagePath: string;
+
+    sharedPath: string;
+    sharedModulePath: string;
+    sharedStagePath: string;
 }
 
 export abstract class PathMixin {
@@ -23,11 +27,16 @@ export abstract class PathMixin {
     moduleDir: string;
     stageDir: string;
     executionDir: string;
-    sharedDir: string;
 
+    internalPath: string;
     projectPath: string;
     projectModulePath: string;
     projectStagePath: string;
+    projectSharedPath: string;
+
+    sharedPath: string;
+    sharedModulePath: string;
+    sharedStagePath: string;
 
     getStorageEnv() {
         return process.env.STORAGE_ENV || this.getFakeEnv();
@@ -37,7 +46,11 @@ export abstract class PathMixin {
         this.setPathRoot();
         this.setPathModule();
         this.setPathStage();
-        this.setSharedDir();
+        this.setProjectSharedPath();
+
+        this.setSharedPath();
+        this.setSharedModulePath();
+        this.setSharedStagePath();
     }
 
     setPathRoot() {
@@ -73,12 +86,35 @@ export abstract class PathMixin {
         return rootDir.join('/');
     }
 
-    setSharedDir() {
+    setProjectSharedPath() {
+        const projectSharedDir = [];
+        projectSharedDir.push(this.projectPath);
+        projectSharedDir.push('shared');
+
+        this.projectSharedPath = projectSharedDir.join('/');
+    }
+
+    setSharedPath() {
         const sharedDir = [];
-        sharedDir.push(this.projectPath);
         sharedDir.push('shared');
 
-        this.sharedDir = sharedDir.join('/');
+        this.sharedPath = sharedDir.join('/');
+    }
+
+    setSharedModulePath() {
+        const sharedModuleDir = [];
+        sharedModuleDir.push(this.sharedPath);
+        sharedModuleDir.push(this.moduleConfig.moduleUid);
+
+        this.sharedModulePath = sharedModuleDir.join('/');
+    }
+
+    setSharedStagePath() {
+        const sharedStageDir = [];
+        sharedStageDir.push(this.sharedPath);
+        sharedStageDir.push(this.stageConfig.stageUid);
+
+        this.sharedStagePath = sharedStageDir.join('/');
     }
 
     // buildExecutionDir(stageUid: string, executionUid: string) {
@@ -145,10 +181,13 @@ export abstract class PathMixin {
             moduleDir: this.moduleDir,
             stageDir: this.stageDir,
             executionDir: this.executionDir,
-            sharedDir: this.sharedDir,
             projectPath: this.projectPath,
             projectModulePath: this.projectModulePath,
             projectStagePath: this.projectStagePath,
+            projectSharedDir: this.projectSharedPath,
+            sharedPath: this.sharedPath,
+            sharedModulePath: this.sharedModulePath,
+            sharedStagePath: this.sharedStagePath,
         };
     }
     // #endregion
