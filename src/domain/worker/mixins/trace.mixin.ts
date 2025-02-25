@@ -49,7 +49,13 @@ export abstract class TraceMixin<ENTITY> {
 
     async saveTraceStack() {
         if (!this.isTraceOn) return;
-        await this.getTraceService().insertBulkData(this.traceStack);
+
+        try {
+            await this.getTraceService().insertBulkData(this.traceStack);
+        } catch (error) {
+            this.setExecutionInfoValue('saveTraceStackError', error.message);
+            this.setExecutionInfoValue('saveTraceStackErrorStack', this.traceStack);
+        }
         this.traceStack = [];
     }
 
@@ -77,7 +83,7 @@ export abstract class TraceMixin<ENTITY> {
 
     buildPersistentTraceShortKey(key) {
         const prefix = this.buildPersistentTraceKeyPrefix();
-        return `${prefix}/${key}/${this.stageExecution.id}`;
+        return `${prefix}/${key}`;
     }
 
     buildPersistentTraceKey(key) {
