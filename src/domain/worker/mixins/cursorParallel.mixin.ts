@@ -13,6 +13,7 @@ export interface PaginatorOptions {
     paginationKeys: any[];
     paginationKeyString: string;
     cursorKey: string;
+    avoidOrderBy: boolean;
 }
 
 export abstract class CursorParallelGeneric extends ParallelWorkerGeneric {

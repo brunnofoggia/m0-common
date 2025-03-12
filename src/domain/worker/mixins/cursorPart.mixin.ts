@@ -70,6 +70,7 @@ export abstract class CursorPartGeneric {
         const cursorKey = this.getCursorKey();
         const pk = `"${alias}"."${cursorKey}"`;
         const offset = +this.getIndex() * loop.totalLimit;
+        const avoidOrderBy = this.getPaginatorOptions().avoidOrderBy;
 
         // here I find dynamically the first record of the subprocess by using
         // limit to get only one
@@ -77,7 +78,7 @@ export abstract class CursorPartGeneric {
         // that way I will *AVOID* the mistake of considering id sequence that wont be sequential
         const queryBuilder = this.paginateRecordsQueryBuilder(this.getLocalService());
         queryBuilder.limit(1);
-        queryBuilder.orderBy(pk, Order.ASC);
+        if (!avoidOrderBy) queryBuilder.orderBy(pk, Order.ASC);
         queryBuilder.offset(offset);
 
         const row = (await queryBuilder.getRawMany())?.shift() || null;
