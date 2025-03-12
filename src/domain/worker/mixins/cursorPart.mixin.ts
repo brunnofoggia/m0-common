@@ -34,12 +34,11 @@ export abstract class CursorPartGeneric {
         const { totalLimit, pageLimit } = this.loopLimitVariables();
         // will keep total in mind but stop after reaching 0 or less then pageLimit
         const count = totalLimit;
-        debug('total records available', count);
         if (count % pageLimit > 0)
             throw new WorkerError('invalid totalLimit/pageLimit. one must be multiple of the other', StageStatusEnum.FAILED);
 
         const totalPages = Math.ceil(count / pageLimit);
-        debug('totalLimit', totalLimit, 'count', count, 'pageLimit', pageLimit, 'totalPages', totalPages);
+        debug('totalLimit', totalLimit, 'pageLimit', pageLimit, 'totalPages', totalPages);
 
         return { totalLimit, pageLimit, count, totalPages };
     }
@@ -146,6 +145,10 @@ export abstract class CursorPartGeneric {
             } else if (!ignoreFirstRowError) {
                 throw new WorkerError('invalid page. no first row', StageStatusEnum.FAILED);
             }
+        } else {
+            const loop = this.loopLimitVariables();
+            const offset = +this.getIndex() * loop.totalLimit;
+            queryBuilder.offset(offset);
         }
         return queryBuilder;
     }
