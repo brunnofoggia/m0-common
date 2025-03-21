@@ -39,14 +39,7 @@ export const insert = async (worker: StageWorker, service, getData, monitorServi
 
     await service.checkIfTableExists();
 
-    const createFileStream = async () => {
-        try {
-            return readStream(fromPath, storage);
-        } catch (error) {
-            log(`file not found ${fromPath}`);
-            throw error;
-        }
-    };
+    const createFileStream = async () => await readStream(fromPath, storage);
     const fileStream = await createFileStream();
     if (!fileStream) return;
 
@@ -88,9 +81,12 @@ export const insert = async (worker: StageWorker, service, getData, monitorServi
 
 const readStream = async (fromPath, storage) => {
     try {
+        debug(`reading file: ${fromPath}`);
+        await storage.getFileInfo(fromPath);
         return await storage.readStream(fromPath);
     } catch (error) {
-        debug(`file not found ${fromPath}`);
+        log(`file not found: ${fromPath}`);
+        error.message = `file not found at "${fromPath}". ${error.message}`;
         throw error;
     }
 };
