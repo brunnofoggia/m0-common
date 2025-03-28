@@ -21,7 +21,7 @@ const prepareConfig = (_config, worker) => {
 };
 
 const split = async (worker: StageWorker, stateService = null, monitorService = null, fromDir = '', toDir = '') => {
-    const { stageConfig, rootDir, executionDir } = worker.get();
+    const { stageConfig, rootDir, executionDir, executionUid } = worker.get();
     if (!toDir) toDir = executionDir;
 
     const { storage } = await worker._getSolutions();
@@ -35,7 +35,12 @@ const split = async (worker: StageWorker, stateService = null, monitorService = 
     const options = prepareConfig(stageConfig.options, worker);
     const config = stageConfig.config;
     if (!fromDir) fromDir = [rootDir, options.input?.dir || config.prevStage].join('/');
+    const fromPath_ = [fromDir];
+    if (executionUid && !options._ignoreExecutionUidForStorage) {
+        fromPath_.push(executionUid);
+    }
 
+    const fromPath = fromPath_.join('/');
     let splitLength = 0;
     let done = false;
     let error;
@@ -46,7 +51,7 @@ const split = async (worker: StageWorker, stateService = null, monitorService = 
             await storage.deleteDirectory(toDir + '/');
         }
 
-        const files = await storage.readDirectory(fromDir);
+        const files = await storage.readDirectory(fromPath);
         debug('split files', files);
 
         for (const filePath of files) {
