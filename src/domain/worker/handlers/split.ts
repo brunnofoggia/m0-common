@@ -1,6 +1,7 @@
 import _ from 'lodash';
 import _debug from 'debug';
 const debug = _debug('worker:handler:split');
+const essentialLog = _debug('worker:essential:handler:split');
 
 import { splitFile } from '../../../utils/split';
 import { StageWorker } from '../stage.worker';
@@ -21,6 +22,8 @@ const prepareConfig = (_config, worker) => {
 };
 
 const split = async (worker: StageWorker, stateService = null, monitorService = null, fromDir = '', toDir = '') => {
+    worker.increaseExecutionInfoValue('splitFileLength', 0);
+
     const { stageConfig, rootDir, executionDir, executionUid } = worker.get();
     if (!toDir) toDir = executionDir;
 
@@ -33,8 +36,7 @@ const split = async (worker: StageWorker, stateService = null, monitorService = 
     monitorService?.memoryInterval();
 
     const options = prepareConfig(stageConfig.options, worker);
-    const config = stageConfig.config;
-    if (!fromDir) fromDir = [rootDir, options.input?.dir || config.prevStage].join('/');
+    if (!fromDir) fromDir = [rootDir, options.input?.dir || worker.getPrevStage()].join('/');
     const fromPath_ = [fromDir];
     if (executionUid && !options._ignoreExecutionUidForStorage) {
         fromPath_.push(executionUid);
@@ -51,11 +53,13 @@ const split = async (worker: StageWorker, stateService = null, monitorService = 
             await storage.deleteDirectory(toDir + '/');
         }
 
+        essentialLog('reading directory', fromPath);
         const files = await storage.readDirectory(fromPath);
-        debug('split files', files);
+        essentialLog('split files', files);
 
         for (const filePath of files) {
             if (filePath.endsWith('/')) continue;
+            essentialLog('splitting file', filePath);
             splitLength += await splitItem({ filePath, toDir, worker, options, storage, splitNumberStartAt: splitLength });
         }
 
@@ -71,6 +75,7 @@ const split = async (worker: StageWorker, stateService = null, monitorService = 
     debug(`timer ${key}: `, timeSpent);
 
     if (!done) throw error;
+    return { splitLength };
 };
 
 const readStream = async (fromPath, storage) => {
@@ -104,20 +109,24 @@ const splitItem = async ({ filePath, toDir, worker, options, storage, splitNumbe
     };
 
     debug('reading file', filePath);
-    worker.increaseExecutionInfoValue('splitFileLength', 0);
     await splitFile(
         createFileStream,
         options,
         '',
         async (content, lineNumber, lineCount, splitNumber, bulkLimit) => {
             const skip = limitRows && (lineCount >= worker['skipLimit'] || splitNumber >= worker['skipLimit']);
-            if (content && lineNumber > 0 && !skip) {
+
+            const hasHeader = !options.noHeader;
+            const skipHeader = !hasHeader || lineNumber > 0;
+
+            if (content && skipHeader && !skip) {
                 // create next stream when number changes
                 if (!writeStream) {
                     await createWriteStream(splitNumber);
                 }
 
                 await writeStream.writeLine(content);
+                worker.increaseExecutionInfoValue('lines', 1);
                 return false; // empty but increase line inserted count
             }
 
