@@ -14,4 +14,5 @@ export enum StageStatusEnum {
 
 export const StageStatusProcess = [StageStatusEnum.INITIAL, StageStatusEnum.WAITING, StageStatusEnum.PROCESS, StageStatusEnum.ASYNC];
 export const StageStatusError = [StageStatusEnum.ERROR, StageStatusEnum.FAILED, StageStatusEnum.UNKNOWN];
+export const StageStatusDead = [StageStatusEnum.FAILED, StageStatusEnum.UNKNOWN];
 export const StageStatusEnded = [StageStatusEnum.DONE, StageStatusEnum.FAILED, StageStatusEnum.UNKNOWN];

@@ -121,6 +121,7 @@ export abstract class ParallelWorkerGeneric {
 
         debug(count, params.length, params);
         // length = 0;
+        this.setExecutionInfoValue('childs', params.length);
         await this.beforeSplitResult(params);
     }
 
