@@ -1,6 +1,12 @@
 import { defaultsDeep, lastIndexOf, size } from 'lodash';
 
-import { StageStatusEnded, StageStatusEnum, StageStatusError, StageStatusProcess } from '../../../../types/stageStatus.type';
+import {
+    StageStatusDead,
+    StageStatusEnded,
+    StageStatusEnum,
+    StageStatusError,
+    StageStatusProcess,
+} from '../../../../types/stageStatus.type';
 import { StageStructureProperties } from '../../../../interfaces/stageParts.interface';
 import { WorkerError } from '../../error';
 import { ExecutionInfoMixin } from './executionInfo';
@@ -53,6 +59,10 @@ export abstract class StatusMixin {
 
     isStatusError(statusUid) {
         return lastIndexOf(StageStatusError, statusUid) >= 0;
+    }
+
+    isStatusDead(statusUid) {
+        return lastIndexOf(StageStatusDead, statusUid) >= 0;
     }
 
     isStatusEnded(statusUid) {
