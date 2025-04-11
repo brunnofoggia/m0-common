@@ -23,15 +23,19 @@ export abstract class PartWorkerGeneric {
     public async execute(): Promise<ResultInterface> {
         const { index, instance, loop } = await this.setupVariables();
 
+        // loop counter lives inside this object and the object is passed on each execution
+        const params: any = { page: -1, stopProcessing: false };
+
         const execute = async (params) => {
             const page = params.page;
-            return await this.processExecution({ index, instance, loop, page });
+            const result = await this.processExecution({ index, instance, loop, page });
+
+            if (result === false) params.stopProcessing = true;
+            return result;
         };
 
         // will execute while condition is true
-        const condition = (params) => ++params.page < loop.totalPages;
-        // loop counter lives inside this object and the object is passed on each execution
-        const params: any = { page: -1 };
+        const condition = (params) => ++params.page < loop.totalPages && !params.stopProcessing;
         // executions will run one at a time
         await queuelize(condition, execute, {
             async: 0,
@@ -84,9 +88,7 @@ export abstract class PartWorkerGeneric {
     loopLimitVariables() {
         const options = this.stageConfig.options;
         const totalLimit = +options.totalLimit;
-        const pageLimit = Math.ceil(
-            +(totalLimit && options.pageLimit >= totalLimit && totalLimit > 10 ? totalLimit / 10 : options.pageLimit),
-        );
+        const pageLimit = Math.ceil(+(totalLimit && options.pageLimit >= totalLimit ? totalLimit : options.pageLimit));
         debug({ totalLimit, pageLimit });
         return { totalLimit, pageLimit };
     }
@@ -100,8 +102,9 @@ export abstract class PartWorkerGeneric {
         return null;
     }
 
-    async count(skip, take) {
-        return 0;
+    async count(skip, take): Promise<any> {
+        const { totalLimit } = this.loopLimitVariables();
+        return totalLimit;
     }
 
     async paginateRecords(service, skip, take) {
