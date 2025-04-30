@@ -102,7 +102,7 @@ export abstract class PartWorkerGeneric {
         return null;
     }
 
-    async count(skip, take): Promise<any> {
+    async count(skip, take): Promise<number> {
         const { totalLimit } = this.loopLimitVariables();
         return totalLimit;
     }
