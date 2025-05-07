@@ -232,10 +232,8 @@ export abstract class StageGeneric {
             refData,
         );
 
-        // to ensure date from past day to be kept when triggering new transactions
-        if (isTransactionUidForcedBlank) {
-            root.date = this.moduleExecution.date;
-        }
+        // to ensure date from past day to be kept when triggering new transactions or transactions of past days in another modules
+        root.date = this.moduleExecution.date;
 
         stageUidAndExecutionUid = this.fowardExecutionUid(stageUidAndExecutionUid);
         return await this.buildStageBody(stageUidAndExecutionUid, options, config, root);
