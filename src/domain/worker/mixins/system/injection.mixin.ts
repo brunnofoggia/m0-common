@@ -1,12 +1,13 @@
 import { applyMixins } from 'node-labs/lib/utils/mixin';
 
 import { Domain } from '../../../../types/domain.type';
-import { StageAllProperties, StageParts, StageStructureProperties } from '../../../../interfaces/stageParts.interface';
+import { StageAllProperties, StageStructureProperties } from '../../../../interfaces/stageParts.interface';
 import { DomainOptions } from '../../../../interfaces/domain.interface';
 
 import { DynamicWorkerMixin } from './dynamicWorker.mixin';
 import { cloneDeep } from 'lodash';
 
+// used to call methods from the domain instance (kinda copy of lodash.result)
 const _result = function (method, ...args) {
     if (this[method]) return this[method](...args);
 };
@@ -16,29 +17,20 @@ export abstract class InjectionMixin {
     abstract prepareOptions(options: any);
     abstract replaceStageExecutionSplitter(stageUid: string, executionUid?: string): string;
 
-    /* domains */
+    readSourceUid() {
+        const sourceUidData = this.stageConfig.config.stageSourceUid.split('/');
+        return { moduleUid: sourceUidData[0], stageName: sourceUidData[1] };
+    }
+
+    isFromAnotherSource() {
+        return this.stageConfig.config.stageSourceUid && this.stageConfig.config.stageSourceUid !== this.stageUid;
+    }
+
+    // #region domain loaders
     async _loadDomains(domains, path, type: Domain) {
         for (const name of domains) {
             const instance = await this._loadDomain(name, path);
             this[type + 'Domain'][name] = instance;
-        }
-    }
-
-    async _instantiateDomain(Domain, { domainOptions }) {
-        const instance = !Domain.getInstance ? new Domain(this, domainOptions) : await Domain.getInstance(this, domainOptions);
-        instance._call = _result;
-
-        return instance;
-    }
-
-    async _prepareDomain(domain, domainOptions, ignoreInitialized = false) {
-        if (!domain['_initialized'] || ignoreInitialized) {
-            domain._call = _result;
-
-            // lifecycle
-            await domain._call('initialize', this, domainOptions);
-
-            domain['_initialized'] = true;
         }
     }
 
@@ -73,6 +65,11 @@ export abstract class InjectionMixin {
         return DomainClass;
     }
 
+    async loadGlobalDomains(domains) {
+        const path = this.buildWorkerGlobalDomainsPath();
+        await this._loadDomains(domains, path, Domain.global);
+    }
+
     async loadModuleDomains(domains, moduleUid = '') {
         const path = this.buildWorkerModuleDomainsPath(moduleUid);
         await this._loadDomains(domains, path, Domain.module);
@@ -92,28 +89,42 @@ export abstract class InjectionMixin {
         const path = this.buildWorkerPartStageDomainsPath();
         await this._loadDomains(domains, path, Domain.stage);
     }
+    // #endregion
 
-    /* mixins */
-    async loadMixins(mixins, BaseClass) {
-        const path = this.buildWorkerStagePath();
+    // #region domain lifecycle
+    async _instantiateDomain(Domain, { domainOptions }) {
+        const instance = !Domain.getInstance ? new Domain(this, domainOptions) : await Domain.getInstance(this, domainOptions);
+        instance._call = _result;
 
-        for (const name of mixins) {
-            const { Class_: MixinClass } = await this.loadWorkerClass(name, path);
-            if (!MixinClass) throw new Error(`Mixin "${name}" could not be loaded`);
+        return instance;
+    }
 
-            applyMixins(BaseClass, [MixinClass]);
+    async _prepareDomain(domain, domainOptions, ignoreInitialized = false) {
+        if (!domain['_initialized'] || ignoreInitialized) {
+            domain._call = _result;
+
+            // lifecycle
+            await domain._call('onInitialize', this, domainOptions);
+            // TODO: legacy. remove later
+            await domain._call('initialize', this, domainOptions);
+
+            domain['_initialized'] = true;
         }
     }
 
-    readSourceUid() {
-        const sourceUidData = this.stageConfig.config.stageSourceUid.split('/');
-        return { moduleUid: sourceUidData[0], stageName: sourceUidData[1] };
-    }
+    async _destroyDomain(domain) {
+        if (!domain['_destroyed']) {
+            domain._call = _result;
 
-    isFromAnotherSource() {
-        return this.stageConfig.config.stageSourceUid && this.stageConfig.config.stageSourceUid !== this.stageUid;
-    }
+            // lifecycle
+            await domain._call('onDestroy');
 
+            domain['_destroyed'] = true;
+        }
+    }
+    // #endregion
+
+    // #region paths
     buildWorkerModulePath(customModuleUid = '') {
         const moduleUid = customModuleUid ? customModuleUid : !this.isFromAnotherSource() ? this.moduleUid : this.readSourceUid().moduleUid;
         return `modules/${moduleUid}`;
@@ -139,6 +150,10 @@ export abstract class InjectionMixin {
         return `${this.buildWorkerModulePath()}/stages/${stageName}`;
     }
 
+    buildWorkerGlobalDomainsPath() {
+        return `${this.domainDirName()}`;
+    }
+
     buildWorkerModuleDomainsPath(customModuleUid = '') {
         return `${this.buildWorkerModulePath(customModuleUid)}/${this.domainDirName()}`;
     }
@@ -158,7 +173,19 @@ export abstract class InjectionMixin {
     buildWorkerPartStageDomainsPath() {
         return `${this.buildWorkerPartStagePath()}/${this.domainDirName()}`;
     }
+    // #endregion
 
+    // #region core loaders
+    async loadMixins(mixins, BaseClass) {
+        const path = this.buildWorkerStagePath();
+
+        for (const name of mixins) {
+            const { Class_: MixinClass } = await this.loadWorkerClass(name, path);
+            if (!MixinClass) throw new Error(`Mixin "${name}" could not be loaded`);
+
+            applyMixins(BaseClass, [MixinClass]);
+        }
+    }
     async loadWorkerClass(name, path = null) {
         !path && (path = this.buildWorkerStageDomainsPath());
         const worker = this.getWorkerFile();
@@ -166,6 +193,7 @@ export abstract class InjectionMixin {
         const Class_ = await this._loadWorkerClass(name, path, worker);
         return { Class_ };
     }
+    // #endregion
 }
 
 export interface InjectionMixin extends StageStructureProperties, DynamicWorkerMixin {}
