@@ -1,5 +1,6 @@
 export enum MODULE {
     M0 = 'm0', // value is the name of the directory (ex. /modules/m0)
+    MX = 'mx',
     M1 = 'm1',
     M2 = 'm2',
     M3 = 'm3',

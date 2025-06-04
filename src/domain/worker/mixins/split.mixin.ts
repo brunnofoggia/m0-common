@@ -5,6 +5,7 @@ const log = _debug('worker:essential:split');
 import { defaultsDeep, result, omit, pick, isArray, cloneDeep, size, isString } from 'lodash';
 
 import { exitRequest } from 'node-labs/lib/utils/errors';
+
 import { StageStatusEnum } from '../../../types/stageStatus.type';
 import { ResultInterface } from '../../../interfaces/result.interface';
 
@@ -21,12 +22,12 @@ export abstract class SplitMixin {
     abstract splitStageOptions;
     abstract parallelResults;
 
-    abstract beforeSplitStart();
-    abstract beforeSplitEnd();
+    abstract beforeSplitStart(): Promise<void>;
+    abstract beforeSplitEnd(): Promise<void>;
 
-    abstract afterSplitStart();
+    abstract afterSplitStart(): Promise<void>;
     // this method will be called when all child stages are done
-    abstract afterSplitEnd();
+    abstract afterSplitEnd(): Promise<void>;
 
     abstract getChildStage();
 
@@ -82,8 +83,14 @@ export abstract class SplitMixin {
         this._stateService = stateService;
         this._lengthKeyPrefix = lengthKeyPrefix;
         this._setChildKeys(lengthKeyPrefix);
-        const statusValue = await this._setInitialStatus();
+        const childStage = this.getChildStage();
 
+        if (!stateService) throw new Error(`State service undefined`);
+        if (!stateService?.getValue) throw new Error(`State service getValue method not found. Please check the service implementation`);
+
+        if (!childStage) throw new Error(`Child stage not found`);
+
+        const statusValue = await this._setInitialStatus();
         return { statusValue };
     }
 
@@ -98,6 +105,7 @@ export abstract class SplitMixin {
 
         if (ordered === finished || isTestingResult) {
             const saved = (await stateService.saveBy(this._childKeys.next, '1', '0')) || isTestingResult;
+            await stateService.clearByPrefix(this.getBaseKeyPrefix());
             if (!saved) {
                 // will get here when concurrent updates find each other
                 return null;
@@ -226,9 +234,9 @@ export abstract class SplitMixin {
         return pickParams;
     }
 
-    splitExecuteOptions() {
+    async splitExecuteOptions() {
         return {
-            stateService: this['getStateService'](),
+            stateService: await this['getStateService'](),
             lengthKeyPrefix: this.getLengthKeyPrefix(),
         };
     }
@@ -241,12 +249,11 @@ export abstract class SplitMixin {
             lengthKeyPrefix = lengthKeyPrefixArr.join('/');
         }
 
-        const stageDir = this.executionDir;
-
-        const statusKey = [lengthKeyPrefix, this.stageExecution.id, 'status'].join('/');
+        const basePrefix = this.getBaseKeyPrefix();
+        const statusKey = [basePrefix, 'status'].join('/');
         const lengthKey = [lengthKeyPrefix, 'length'].join('/');
-        const processKey = [stageDir, 'process'].join('/');
-        const nextKey = [stageDir, 'next'].join('/');
+        const processKey = [basePrefix, 'process'].join('/');
+        const nextKey = [basePrefix, 'next'].join('/');
 
         return { lengthKey, processKey, nextKey, statusKey };
     }
@@ -278,22 +285,27 @@ export abstract class SplitMixin {
     }
 
     async _getChildStatus() {
-        const stateService = this['getStateService']();
+        const stateService = this._stateService;
         return await stateService.getValue(this._childKeys.status);
     }
 
     async _setChildStatusTo(status: StageStatusEnum) {
-        const stateService = this['getStateService']();
+        const stateService = this._stateService;
         await stateService.save(this._childKeys.status, status);
         return status;
     }
 
-    getLengthKeyPrefix() {
-        const prefix = [this.rootDir, this.getChildStage()];
-        if (this.executionUid) {
-            prefix.push(this.executionUid);
-        }
+    getBaseKeyPrefix() {
+        const stageDir = this.executionDir;
+        const basePrefix = [stageDir];
+        const stageExecutionId = this.stageExecution.id + '';
+        if (stageExecutionId) basePrefix.push(stageExecutionId);
 
+        return basePrefix.join('/');
+    }
+
+    getLengthKeyPrefix() {
+        const prefix = [this.getBaseKeyPrefix(), this.getChildStage()];
         return prefix.join('/');
     }
 

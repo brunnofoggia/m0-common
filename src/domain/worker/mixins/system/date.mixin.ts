@@ -26,5 +26,9 @@ export abstract class DateMixin {
         const timezoneOffset = this.getTimezoneOffset(_customTimezoneOffset);
         return getDateForTimezone(timezoneOffset, date, keepLocalTime);
     }
+
+    getTimezone() {
+        return this.getTimezoneOffset();
+    }
 }
 export interface DateMixin extends StageStructureProperties {}

@@ -1,12 +1,11 @@
 import _debug from 'debug';
 const debug = _debug('worker:stage');
 const essentialInfo = _debug('worker:essential:stage');
-import { size, defaultsDeep, pickBy, cloneDeep, isArray, map, isString } from 'lodash';
+import { size, defaultsDeep, pickBy, cloneDeep, isArray, map, isString, uniqueId } from 'lodash';
 
 import { exitRequest } from 'node-labs/lib/utils/errors';
 import { applyMixins } from 'node-labs/lib/utils/mixin';
 
-import { BodyInterface } from '../../interfaces/body.interface';
 import { ResultInterface } from '../../interfaces/result.interface';
 import { StageParts, StageAllProperties } from '../../interfaces/stageParts.interface';
 
@@ -18,13 +17,13 @@ import { StageExecutionFindError } from '../../types/stageExecution';
 import { DynamicWorkerMixin } from './mixins/system/dynamicWorker.mixin';
 import { InjectionMixin } from './mixins/system/injection.mixin';
 import { LifeCycleMixin } from './mixins/system/lifecycle.mixin';
-import { SecretsMixin } from './mixins/system/secrets.mixin';
 import { ExecutionInfoMixin } from './mixins/system/executionInfo';
 
 import { StageGeneric } from './stage.generic';
 import { validateOptionsByRuleSet } from './utils/validate';
 import { StagesMixin } from './mixins/system/stages.mixin';
 import { formatExecDate } from '../../utils/execDate';
+import { DynamicDatabaseMixin } from './mixins/dynamicDatabase.mixin';
 
 export class StageWorker extends StageGeneric implements StageParts {
     defaultConfig: any = {};
@@ -101,7 +100,10 @@ export class StageWorker extends StageGeneric implements StageParts {
 
         return result;
     }
-    async onInitialize(): Promise<void> {}
+
+    async onInitialize(): Promise<void> {
+        await this.connectM0Database();
+    }
 
     async onBeforeExecute(): Promise<void> {
         await this.validateOptions();
@@ -264,6 +266,7 @@ export class StageWorker extends StageGeneric implements StageParts {
         this.stageExecutionMocked = true;
         const mock = typeof this.body.mockStageExecution === 'object' ? this.body.mockStageExecution : {};
         const stageExecution = defaultsDeep(mock, {
+            id: uniqueId(),
             moduleExecution: {
                 date: new Date().toISOString(),
                 data: {
@@ -333,6 +336,11 @@ export class StageWorker extends StageGeneric implements StageParts {
         };
     }
 
+    override getRetryAttempt(increaseByOne = true) {
+        return super.getRetryAttempt(increaseByOne);
+    }
+    // #endregion
+
     // #region worker name, version, file
     static _getWorker(stageConfig, project) {
         return stageConfig?.config?.worker || project?._config?.defaultWorker || StageGeneric._getDefaultWorker();
@@ -375,15 +383,6 @@ export class StageWorker extends StageGeneric implements StageParts {
     }
     // #endregion
 
-    getService(Service): any {
-        return new Service(this.uniqueId);
-    }
-
-    override getRetryAttempt(increaseByOne = true) {
-        return super.getRetryAttempt(increaseByOne);
-    }
-    // #endregion
-
     // #region legacy code
 
     // @deprecated old name
@@ -393,6 +392,12 @@ export class StageWorker extends StageGeneric implements StageParts {
     // #endregion
 }
 
-export interface StageWorker extends LifeCycleMixin, DynamicWorkerMixin, InjectionMixin, SecretsMixin, ExecutionInfoMixin, StagesMixin {}
+export interface StageWorker
+    extends LifeCycleMixin,
+        DynamicWorkerMixin,
+        InjectionMixin,
+        ExecutionInfoMixin,
+        StagesMixin,
+        DynamicDatabaseMixin {}
 
-applyMixins(StageWorker, [LifeCycleMixin, DynamicWorkerMixin, InjectionMixin, SecretsMixin, StagesMixin]);
+applyMixins(StageWorker, [LifeCycleMixin, DynamicWorkerMixin, InjectionMixin, StagesMixin, DynamicDatabaseMixin]);

@@ -40,7 +40,7 @@ export abstract class StagesMixin {
         return prevStage;
     }
 
-    getFirstPrevStage() {
+    getFirstPrevStage(): string {
         return this.getPrevStageList()[0];
     }
 

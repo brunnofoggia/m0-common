@@ -1,10 +1,9 @@
 import _debug from 'debug';
 const debug = _debug('worker:stage:ParallelWorker');
-import { defaultsDeep, filter, isString, map, omit, reduce, reverse, sortBy } from 'lodash';
+import { defaultsDeep, filter, map, omit, reduce, reverse, sortBy } from 'lodash';
 import Decimal from 'decimal.js';
 
 import { applyMixins } from 'node-labs/lib/utils/mixin';
-import { StageStatusEnum } from '../../../types/stageStatus.type';
 import { ResultInterface } from '../../../interfaces/result.interface';
 import { StageExecutionProvider } from '../../../providers/stageExecution.provider';
 import { SplitMixin } from './split.mixin';
@@ -24,12 +23,13 @@ export abstract class ParallelWorkerGeneric {
 
     /* do not replace methods bellow */
     /* split lifecycle */
-    public async afterSplitEnd(): Promise<void> {
+    async afterSplitEnd(): Promise<void> {
         await this.down();
     }
 
     public async execute(): Promise<ResultInterface | null> {
-        return await this.splitExecute(this.splitExecuteOptions());
+        const options = await this.splitExecuteOptions();
+        return await this.splitExecute(options);
     }
 
     defineLimits(options) {
@@ -101,7 +101,9 @@ export abstract class ParallelWorkerGeneric {
     }
 
     /* replace methods bellow if needed */
-    async beforeSplitStart() {
+    async beforeSplitStart(): Promise<void> {
+        await this._stateService.clearByPrefix(this.getBaseKeyPrefix());
+
         const options = this.stageConfig.options;
         await this.up();
         const { bulkLimit } = this.defineLimits(options);
@@ -109,7 +111,7 @@ export abstract class ParallelWorkerGeneric {
         let count = 0;
 
         count = await this.count();
-        // debug('count', count);
+        // console.log('count', count);
 
         const params: any = { count };
         params.length = Math.ceil(count / bulkLimit);
@@ -131,11 +133,11 @@ export abstract class ParallelWorkerGeneric {
     }
 
     /* optional */
-    async afterSplitStart() {
+    async afterSplitStart(): Promise<void> {
         null;
     }
 
-    async beforeSplitEnd() {
+    async beforeSplitEnd(): Promise<void> {
         null;
     }
 
@@ -156,7 +158,5 @@ export abstract class ParallelWorkerGeneric {
 
     // #endregion
 }
-
 applyMixins(ParallelWorkerGeneric, [SplitMixin]);
-
 export interface ParallelWorkerGeneric extends SplitMixin {}

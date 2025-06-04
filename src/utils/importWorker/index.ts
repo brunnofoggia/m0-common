@@ -39,9 +39,20 @@ const importMixin = async (basePath, name, handler = ''): Promise<any> => {
     if (!handler) handler = 'index';
     const stagePath = [...path];
     name && stagePath.push(name);
-    const filePath = [...stagePath, handler].join('/');
+    // const filePath = [...stagePath, handler].join('/');
 
-    return (await _import(filePath)).default;
+    return (await importFileMixin(stagePath, handler)).default;
+    // return (await _import(filePath)).default;
 };
 
-export { importWorker, importMixin, setImportFn };
+const importFileMixin = async (basePath, name): Promise<any> => {
+    const path = [basePath];
+
+    const finalPath = [...path];
+    name && finalPath.push(name);
+    const filePath = finalPath.join('/');
+
+    return await _import(filePath);
+};
+
+export { importWorker, importMixin, setImportFn, importFileMixin };

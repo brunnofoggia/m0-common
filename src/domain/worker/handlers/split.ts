@@ -46,6 +46,7 @@ const split = async (worker: StageWorker, stateService = null, monitorService = 
     let splitLength = 0;
     let done = false;
     let error;
+    const headers = [];
     try {
         debug('deleting directory');
         if (await storage.checkDirectoryExists(toDir + '/')) {
@@ -60,7 +61,9 @@ const split = async (worker: StageWorker, stateService = null, monitorService = 
         for (const filePath of files) {
             if (filePath.endsWith('/')) continue;
             essentialLog('splitting file', filePath);
-            splitLength += await splitItem({ filePath, toDir, worker, options, storage, splitNumberStartAt: splitLength });
+            const result = await splitItem({ filePath, toDir, worker, options, storage, splitNumberStartAt: splitLength });
+            splitLength += result.splitLength;
+            if (result.header) headers.push(result.header);
         }
 
         await stateService?.save(lengthKey, splitLength);
@@ -75,7 +78,7 @@ const split = async (worker: StageWorker, stateService = null, monitorService = 
     debug(`timer ${key}: `, timeSpent);
 
     if (!done) throw error;
-    return { splitLength };
+    return { splitLength, headers };
 };
 
 const readStream = async (fromPath, storage) => {
@@ -89,6 +92,7 @@ const readStream = async (fromPath, storage) => {
 
 const splitItem = async ({ filePath, toDir, worker, options, storage, splitNumberStartAt }) => {
     let splitLength = 0;
+    let header = null;
 
     const createFileStream = async () => await readStream(filePath, storage);
     const fileStream = await createFileStream();
@@ -114,12 +118,15 @@ const splitItem = async ({ filePath, toDir, worker, options, storage, splitNumbe
         options,
         '',
         async (content, lineNumber, lineCount, splitNumber, bulkLimit) => {
-            const skip = limitRows && (lineCount >= worker['skipLimit'] || splitNumber >= worker['skipLimit']);
+            const skipLimitReached = limitRows && (lineCount >= worker['skipLimit'] || splitNumber >= worker['skipLimit']);
 
             const hasHeader = !options.noHeader;
-            const skipHeader = !hasHeader || lineNumber > 0;
+            const isHeader = hasHeader && lineNumber === 0;
+            const isNotHeader = !hasHeader || lineNumber > 0;
 
-            if (content && skipHeader && !skip) {
+            if (isHeader) {
+                header = content;
+            } else if (content && !skipLimitReached) {
                 // create next stream when number changes
                 if (!writeStream) {
                     await createWriteStream(splitNumber);
@@ -147,7 +154,7 @@ const splitItem = async ({ filePath, toDir, worker, options, storage, splitNumbe
         true,
     );
 
-    return splitLength;
+    return { splitLength, header };
 };
 
 export { split };

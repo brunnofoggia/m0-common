@@ -77,7 +77,7 @@ export class ModuleDomain extends ModuleGeneric {
     }
 
     async _getBuilderClass() {
-        const stageSourceUid = (this.body.options?._fakeStageUid || this.stageConfig.config.stageSourceUid || '').split('/');
+        const stageSourceUid = (this.body.options?._fakeStageUid || this.stageConfig.config?.stageSourceUid || '').split('/');
         const moduleUid = stageSourceUid[0] || this.moduleUid;
         const stageName = stageSourceUid[1] || this.stageName;
 

@@ -31,6 +31,8 @@ import { ResultMixin } from './mixins/system/result.mixin';
 import { TemplateMixin } from './mixins/system/template.mixin';
 import { DateMixin } from './mixins/system/date.mixin';
 import { PathMixin } from './mixins/system/path.mixin';
+import { SecretsMixin } from './mixins/system/secrets.mixin';
+import { DatabaseMixin } from './mixins/system/database.mixin';
 
 export const worflowEventName = 'm0/workflow';
 
@@ -256,7 +258,9 @@ export interface StageGeneric
         ResultMixin,
         DateMixin,
         PathMixin,
-        TemplateMixin {}
+        TemplateMixin,
+        SecretsMixin,
+        DatabaseMixin {}
 
 applyMixins(StageGeneric, [
     ConfigMixin,
@@ -273,4 +277,6 @@ applyMixins(StageGeneric, [
     DateMixin,
     PathMixin,
     TemplateMixin,
+    SecretsMixin,
+    DatabaseMixin,
 ]);
