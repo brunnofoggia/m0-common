@@ -40,8 +40,9 @@ const importMixin = async (basePath, name, handler = ''): Promise<any> => {
     const stagePath = [...path];
     name && stagePath.push(name);
     // const filePath = [...stagePath, handler].join('/');
+    const filePath = stagePath.join('/');
 
-    return (await importFileMixin(stagePath, handler)).default;
+    return (await importFileMixin(filePath, handler)).default;
     // return (await _import(filePath)).default;
 };
 
@@ -50,8 +51,8 @@ const importFileMixin = async (basePath, name): Promise<any> => {
 
     const finalPath = [...path];
     name && finalPath.push(name);
-    const filePath = finalPath.join('/');
 
+    const filePath = finalPath.join('/');
     return await _import(filePath);
 };
 

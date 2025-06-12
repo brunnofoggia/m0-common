@@ -20,6 +20,8 @@ export enum ChildStageStatusEnum {
 
 export abstract class SplitMixin {
     abstract splitStageOptions;
+    abstract childStageOptions;
+    abstract childStageConfig;
     abstract parallelResults;
 
     abstract beforeSplitStart(): Promise<void>;
@@ -184,7 +186,12 @@ export abstract class SplitMixin {
     }
 
     getSplitStageOptions() {
-        return (this.splitStageOptions ? result(this, 'splitStageOptions') : {}) as any;
+        const options = { ...((result(this, 'splitStageOptions') || {}) as any), ...((result(this, 'childStageOptions') || {}) as any) };
+        return options as any;
+    }
+
+    getChildStageConfig() {
+        return (this.childStageConfig ? result(this, 'childStageConfig') : {}) as any;
     }
 
     async splitStageGlobalOptions(options) {
@@ -193,7 +200,7 @@ export abstract class SplitMixin {
             this.stageConfig.config.childOptions || {},
             this.combineChildSendParams(this.stageConfig.config.childSendOptions, this.stageConfig.options),
         );
-        const childConfig: any = defaultsDeep(
+        let childConfig: any = defaultsDeep(
             {},
             this.stageConfig.config.childConfig || {},
             this.combineChildSendParams(this.stageConfig.config.childSendConfig, this.stageConfig.config),
@@ -214,6 +221,7 @@ export abstract class SplitMixin {
             omit(this.getSplitStageOptions(), '_indexTo'),
             this.forwardInternalOptions(),
         );
+        childConfig = defaultsDeep({}, childConfig, omit(this.getChildStageConfig(), '_indexTo'));
 
         const stageUidAndExecutionUid = this.buildStageUidWithCurrentExecutionUid(this.getChildStage());
         return await this.buildTriggerStageBody(stageUidAndExecutionUid, childOptions, childConfig, childRoot);

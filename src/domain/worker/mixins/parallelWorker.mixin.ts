@@ -11,6 +11,8 @@ import { SplitMixin } from './split.mixin';
 export abstract class ParallelWorkerGeneric {
     limitRows = 1000;
     splitStageOptions: any = {};
+    childStageOptions: any = {};
+    childStageConfig: any = {};
     parallelResults: any = {};
 
     public getDefaultOptions() {

@@ -12,7 +12,7 @@ export abstract class MessageMixin {
         // worker will operate with only one prefix
         // the one that is set into env or the one received inside the body
         const { sendPrefix } = this._processQueuePrefixes(_name, body);
-        return events.sendToQueue(_name, body, { prefix: sendPrefix });
+        return await events.sendToQueue(_name, body, { prefix: sendPrefix });
     }
 
     // #region queueprefix
