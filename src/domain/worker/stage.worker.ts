@@ -1,5 +1,5 @@
 import _debug from 'debug';
-const debug = _debug('worker:stage');
+const debug = _debug('worker:debug:stage');
 const essentialInfo = _debug('worker:essential:stage');
 import { size, defaultsDeep, pickBy, cloneDeep, isArray, map, isString, uniqueId } from 'lodash';
 
@@ -52,6 +52,19 @@ export class StageWorker extends StageGeneric implements StageParts {
     async __debug(...args) {
         debug(...args);
     }
+
+    // #region log
+    _log;
+    log(...args) {
+        if (!this._log) this._setLog();
+        this._log(...args);
+    }
+
+    _setLog() {
+        this._log = _debug('worker:stage:logs:' + this.executionDir);
+        return this;
+    }
+    // #endregion
 
     // #region lifecycle
     // readonly initialize: (uniqueId: string) => Promise<ResultInterface> = async (uniqueId: string) => {
