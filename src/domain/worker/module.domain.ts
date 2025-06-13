@@ -20,6 +20,7 @@ import { ModuleConfigProvider } from '../../providers/moduleConfig.provider';
 import { importWorker } from '../../utils/importWorker';
 import { ERROR } from '../../types/error.type';
 import { StageStatusEnum } from '../../types/stageStatus.type';
+import { m0RequestErrorHandler } from '../../utils/request';
 
 export class ModuleDomain extends ModuleGeneric {
     static skipQueues = false;
@@ -35,7 +36,7 @@ export class ModuleDomain extends ModuleGeneric {
 
     async checkData() {
         if (this.body.mockStageExecution || this.body.options._pureExecution) return;
-        const config = await ModuleConfigProvider.findConfig(this.transactionUid, this.moduleUid);
+        const config = await this._findModuleConfig();
         if (!config || !size(config)) {
             throwHttpException(ERROR.TRANSACTIONUID_NOT_INITIALIZED, HttpStatusCode.Ok);
         }
@@ -99,12 +100,20 @@ export class ModuleDomain extends ModuleGeneric {
     async getSnapshotConfig() {
         if (!this.body.mockStageExecution || this.body.options._pureExecution) {
             // moduleConfig.stagesConfig comes empty by purpose. configs are too big
-            this.moduleConfig = await SnapshotProvider.findModuleConfig(this.projectUid, this.transactionUid, this.body.stageUid);
+            this.moduleConfig = await this._getSnapshotConfig();
         }
         this.moduleConfig = this.buildSnapshot((this.moduleConfig || {}) as never, this.body.mergeSnapshot);
         this.stageConfig = this.getStageConfigFromSnapshot(this.stageUid, this.moduleConfig || {});
 
         this.project = this.moduleConfig?.project;
+    }
+
+    async _getSnapshotConfig() {
+        try {
+            return await SnapshotProvider.findModuleConfig(this.projectUid, this.transactionUid, this.body.stageUid);
+        } catch (error) {
+            m0RequestErrorHandler(error);
+        }
     }
 
     getStageConfigFromSnapshot(stageUid, moduleConfig) {

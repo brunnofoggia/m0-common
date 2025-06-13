@@ -1,9 +1,9 @@
-import { M0ApiProvider } from './m0Api.provider';
+import { M0ApiProvider, M0ApiProviderV2 } from './m0Api.provider';
 
-export class ScheduleQueueProvider extends M0ApiProvider {
-    static basePath = 'm0/scheduleQueue';
+export class ScheduleQueueProviderV2 extends M0ApiProviderV2 {
+    basePath = 'm0/scheduleQueue';
 
-    static async execute() {
+    async execute() {
         const url = [this.basePath, 'execute'].join('/');
 
         return await this.request({
@@ -12,7 +12,7 @@ export class ScheduleQueueProvider extends M0ApiProvider {
         });
     }
 
-    static async save(data = {}) {
+    async save(data = {}) {
         const url = [this.basePath].join('/');
 
         return (
@@ -22,5 +22,27 @@ export class ScheduleQueueProvider extends M0ApiProvider {
                 data,
             })
         ).data;
+    }
+}
+
+export class ScheduleQueueProvider extends M0ApiProvider {
+    static instance;
+
+    static async setInstance() {
+        if (!this.instance) {
+            this.instance = new ScheduleQueueProviderV2();
+            await this.instance.initialize();
+        }
+        return this.instance;
+    }
+
+    static async execute() {
+        await this.setInstance();
+        return this.instance.execute();
+    }
+
+    static async save(data = {}) {
+        await this.setInstance();
+        return this.instance.save(data);
     }
 }

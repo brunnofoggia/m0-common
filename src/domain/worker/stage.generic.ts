@@ -1,6 +1,6 @@
 import _debug from 'debug';
 const debug = _debug('worker:stage');
-const essentialInfo = _debug('worker:essential:stage');
+const essentialInfo = _debug('worker:stage:essential');
 import { uniqueId, indexOf, size, defaultsDeep } from 'lodash';
 import { applyMixins } from 'node-labs/lib/utils/mixin';
 
@@ -33,6 +33,7 @@ import { DateMixin } from './mixins/system/date.mixin';
 import { PathMixin } from './mixins/system/path.mixin';
 import { SecretsMixin } from './mixins/system/secrets.mixin';
 import { DatabaseMixin } from './mixins/system/database.mixin';
+import { m0RequestErrorHandler } from '../../utils/request';
 
 export const worflowEventName = 'm0/workflow';
 
@@ -67,6 +68,11 @@ export abstract class StageGeneric {
     stackTriggers: Array<BodyInterface> = [];
     fakeResult = false;
     stageExecutionMocked = false;
+
+    private _stageConfig_options;
+    private _stageConfig_config;
+    private _stageConfig_options_inputed = {};
+    private _stageConfig_config_inputed = {};
 
     constructor(options) {
         this._set(options);
@@ -145,12 +151,16 @@ export abstract class StageGeneric {
     // #endregion
 
     async _findCurrentLastExecution() {
-        return await StageExecutionProvider.findByTransactionAndModuleAndIndex(
-            this.transactionUid,
-            this.stageConfig.stageUid,
-            this.getExecutionUid(),
-            this.getIndex(),
-        );
+        try {
+            return await StageExecutionProvider.findByTransactionAndModuleAndIndex(
+                this.transactionUid,
+                this.stageConfig.stageUid,
+                this.getExecutionUid(),
+                this.getIndex(),
+            );
+        } catch (error) {
+            m0RequestErrorHandler(error);
+        }
     }
 
     async _findCurrentNonFailedLastStageExecution() {

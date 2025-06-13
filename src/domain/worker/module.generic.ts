@@ -13,6 +13,8 @@ import { ProjectInterface } from '../../interfaces/project.interface';
 import { MultipleExecutionStageMixin } from './mixins/system/multipleExecution.mixin';
 import { formatExecDate } from '../../utils/execDate';
 import { processUniqueId } from './utils/uniqueId';
+import { ModuleConfigProvider } from '../../providers/moduleConfig.provider';
+import { m0RequestErrorHandler } from '../../utils/request';
 
 export abstract class ModuleGeneric {
     static getSolutions;
@@ -94,6 +96,15 @@ export abstract class ModuleGeneric {
         const builder = new BuilderClass(this._getBuilderOptions());
 
         return builder;
+    }
+
+    async _findModuleConfig() {
+        const { transactionUid, moduleUid } = this;
+        try {
+            return await ModuleConfigProvider.findConfig(transactionUid, moduleUid);
+        } catch (error) {
+            m0RequestErrorHandler(error, { transactionUid, moduleUid });
+        }
     }
 }
 

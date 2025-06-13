@@ -4,7 +4,7 @@ import { StageConfigInterface } from './stageConfig.interface';
 import { StageExecutionInterface } from './stageExecution.interface';
 import { ProjectInterface } from './project.interface';
 import { ModuleExecutionInterface } from './moduleExecution.interface';
-import { PathProperties } from 'domain/worker/mixins/system/path.mixin';
+import { PathProperties } from '../domain/worker/mixins/system/path.mixin';
 
 export interface ModuleStructureProperties {
     body: BodyInterface;

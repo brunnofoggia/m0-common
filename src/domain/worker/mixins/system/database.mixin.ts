@@ -2,9 +2,7 @@ import { defaultsDeep, omit } from 'lodash';
 import { DynamicDatabase } from 'node-labs/lib/services/dynamicDatabase.service';
 
 import { MODULE } from '../../../../types/module.type';
-// import { ProjectInterface } from '../../../../interfaces/project.interface';
-// import { ModuleStructureProperties, StageAllProperties } from 'interfaces/stageParts.interface';
-import { InjectionMixin } from './injection.mixin';
+import { StageStructureProperties } from '../../../../interfaces/stageParts.interface';
 import { importFileMixin } from '../../../../utils/importWorker';
 import { StateService } from '../../../../database/m0/mx/services/state.service';
 import { MonitorService } from '../../../../database/m0/mx/services/monitor.service';
@@ -193,4 +191,4 @@ export abstract class DatabaseMixin {
     }
 }
 
-export interface DatabaseMixin extends InjectionMixin {}
+export interface DatabaseMixin extends StageStructureProperties {}

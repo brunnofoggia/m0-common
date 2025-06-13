@@ -32,14 +32,6 @@ export class StageWorker extends StageGeneric implements StageParts {
     moduleDomain: any = {};
     stageDomain: any = {};
 
-    // unaltered options and config from database
-    private _stageConfig_options;
-    private _stageConfig_config;
-    // stash of mixed options received along initialization process (stage options, domain options and custom options that maybe inserted along some process)
-    // necessary to avoid losing inputed options during domain loading
-    private _stageConfig_options_inputed = {};
-    private _stageConfig_config_inputed = {};
-
     override _set(options) {
         super._set(options);
         this.setPaths();
@@ -217,62 +209,29 @@ export class StageWorker extends StageGeneric implements StageParts {
     }
 
     async findCurrentLastStageExecution() {
-        try {
-            const index = this.getIndex();
-            if (this.body.mockStageExecution || this.body.options._pureExecution) return this.mockStageExecution();
-            // const stageExecution = await this._findCurrentLastExecution();
-            const { stageExecution, error } = await this._findCurrentNonFailedLastStageExecution();
+        const index = this.getIndex();
+        if (this.body.mockStageExecution || this.body.options._pureExecution) return this.mockStageExecution();
+        // const stageExecution = await this._findCurrentLastExecution();
+        const { stageExecution, error } = await this._findCurrentNonFailedLastStageExecution();
 
-            switch (error) {
-                case StageExecutionFindError.NOT_FOUND:
-                    throw new WorkerError(
-                        `stageExecution not found for
+        switch (error) {
+            case StageExecutionFindError.NOT_FOUND:
+                throw new WorkerError(
+                    `stageExecution not found for
                         transactionUid:${this.transactionUid} , stageUid: ${this.stageConfig?.stageUid} , index: ${index}
                         ("${JSON.stringify(stageExecution)}")`,
-                        StageStatusEnum.UNKNOWN,
-                    );
-                case StageExecutionFindError.FAILED:
-                    throw new WorkerError(
-                        `invalid stageExecution for
+                    StageStatusEnum.UNKNOWN,
+                );
+            case StageExecutionFindError.FAILED:
+                throw new WorkerError(
+                    `invalid stageExecution for
                     transactionUid:${this.transactionUid} , stageUid: ${this.stageConfig?.stageUid} , index: ${index}
                     ("${JSON.stringify(stageExecution)}")`,
-                        StageStatusEnum.FAILED,
-                    );
-            }
-
-            return stageExecution;
-        } catch (err) {
-            debug(err);
-            return null;
+                    StageStatusEnum.FAILED,
+                );
         }
-    }
 
-    prepareConfig(_config: any = {}) {
-        if (!this._stageConfig_config) this._stageConfig_config = cloneDeep(this.stageConfig.config);
-        this._stageConfig_config_inputed = defaultsDeep(this._stageConfig_config_inputed, _config);
-
-        this.stageConfig.config = defaultsDeep(
-            {},
-            this.stageExecution.data.config,
-            this._stageConfig_config,
-            this._stageConfig_config_inputed,
-            this.getDefaultConfig(),
-        );
-        return this.stageConfig.config;
-    }
-
-    prepareOptions(_options: any = {}) {
-        if (!this._stageConfig_options) this._stageConfig_options = cloneDeep(this.stageConfig.options);
-        this._stageConfig_options_inputed = defaultsDeep(this._stageConfig_options_inputed, _options);
-
-        this.stageConfig.options = defaultsDeep(
-            {},
-            this.stageExecution.data.options,
-            this._stageConfig_options,
-            this._stageConfig_options_inputed,
-            this.getDefaultOptions(),
-        );
-        return this.stageConfig.options;
+        return stageExecution;
     }
 
     mockStageExecution() {
@@ -318,14 +277,6 @@ export class StageWorker extends StageGeneric implements StageParts {
     // #endregion
 
     // #region getters
-    public getDefaultConfig() {
-        return this.defaultConfig;
-    }
-
-    public getDefaultOptions() {
-        return this.defaultOptions || {};
-    }
-
     // used mainly into templates
     get(): StageAllProperties {
         return {

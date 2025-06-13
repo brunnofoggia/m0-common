@@ -13,8 +13,8 @@ const _result = function (method, ...args) {
 };
 
 export abstract class InjectionMixin {
-    abstract get(): StageAllProperties;
-    abstract prepareOptions(options: any);
+    // abstract get(): StageAllProperties;
+    abstract prepareOptions(options?: any): any;
     abstract replaceStageExecutionSplitter(stageUid: string, executionUid?: string): string;
 
     readSourceUid() {
