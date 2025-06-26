@@ -8,5 +8,5 @@ export class M0ApiProvider extends ApiMasterKeyProvider {
 
 export class M0ApiProviderV2 extends MasterKeyApi {
     override baseUrl = process.env.M0_API;
-    token = process.env.M0_API_AUTH_MASTERKEY;
+    token = Buffer.from(process.env.M0_API_AUTH_MASTERKEY, 'utf8').toString('base64');
 }
