@@ -82,7 +82,7 @@ export class StageWorker extends StageGeneric implements StageParts {
         let result, execResult;
         if (!this.isFakeResult) {
             try {
-                debug('lifecycle: on initialize');
+                this.__debug('lifecycle: on initialize');
                 await this._onInitialize();
 
                 execResult = await this._execute();
@@ -107,6 +107,7 @@ export class StageWorker extends StageGeneric implements StageParts {
     }
 
     async onInitialize(): Promise<void> {
+        this.log('StageWorker onInitialize - opening M0 database connection');
         await this.connectM0Database();
     }
 

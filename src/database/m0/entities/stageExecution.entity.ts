@@ -1,4 +1,4 @@
-import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm';
+import { Column, Entity, Index, JoinColumn, ManyToOne } from 'typeorm';
 import { GenericEntity } from 'node-labs/lib/entities/generic';
 import { set } from 'node-labs/lib/utils/entities';
 
@@ -7,6 +7,7 @@ import { StageConfigEntity } from './stageConfig.entity';
 import { MODULE } from '../../../types/module.type';
 import { StageStatusEnum } from '../../../types/stageStatus.type';
 
+@Index('stage_execution_idx_0', ['moduleExecutionId', 'statusUid'])
 @Entity({ name: 'stage_execution', schema: MODULE.M0 })
 export class StageExecutionEntity extends GenericEntity {
     @Column({ name: 'module_execution_id' })

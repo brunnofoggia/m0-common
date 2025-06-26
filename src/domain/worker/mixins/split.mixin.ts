@@ -52,6 +52,7 @@ export abstract class SplitMixin {
                 return null;
             }
 
+            // esse status nao é o stageExecution.stageStatusUid do m0
             const isStartingParallelization = statusValue === StageStatusEnum.INITIAL;
             const nextValueRemovedFromDb = typeof nextValue === 'undefined';
 
@@ -96,14 +97,27 @@ export abstract class SplitMixin {
         return { statusValue };
     }
 
+    async getFinished(stateService) {
+        const childIndex = this.body.options?.childResultInfo?.index;
+        if (typeof childIndex === 'undefined') throw new Error('childResultInfo.index not found in body options');
+
+        let finishedArr = await stateService.getArray(this._childKeys.process);
+        const finishedArrLengthBefore = finishedArr.length;
+        await stateService.push(this._childKeys.process, childIndex);
+        finishedArr = await stateService.getArray(this._childKeys.process);
+        const finished = finishedArr.length;
+        if (finishedArrLengthBefore === finished) this.log(`Child index ${childIndex} already processed, skipping duplicated call...`);
+
+        return finished;
+    }
+
     async splitStagesResult(): Promise<ResultInterface | null> {
         const stateService = this._stateService;
         this.beforeSplitEnd && (await this.beforeSplitEnd());
         const isTestingResult = this.isTestingResult();
 
-        await stateService.increment(this._childKeys.process);
         const ordered = +(await stateService.getValue(this._childKeys.length));
-        const finished = +(await stateService.getValue(this._childKeys.process));
+        const finished = await this.getFinished(stateService);
 
         if (ordered === finished || isTestingResult) {
             const saved = (await stateService.saveBy(this._childKeys.next, '1', '0')) || isTestingResult;
@@ -145,7 +159,6 @@ export abstract class SplitMixin {
     }
 
     async splitStagesTrigger({ stateService, lengthKeyPrefix }, options: any = {}) {
-        await stateService.save(this._childKeys.process, 0);
         await stateService.save(this._childKeys.next, 0);
 
         const length = await stateService.getValue(this._childKeys.length);
@@ -273,6 +286,7 @@ export abstract class SplitMixin {
         this._childKeys.process = processKey;
         this._childKeys.next = nextKey;
         this._childKeys.status = statusKey;
+        this.log('Setting child keys:', this._childKeys);
     }
 
     async _getChildNextValue() {

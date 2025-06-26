@@ -1,5 +1,6 @@
 import { Like } from 'typeorm';
 import { DynamicDatabase } from 'node-labs/lib/services/dynamicDatabase.service';
+import { map } from 'lodash';
 
 export class StateService<ENTITY> extends DynamicDatabase<ENTITY> {
     async _save(key, value) {
@@ -82,5 +83,21 @@ export class StateService<ENTITY> extends DynamicDatabase<ENTITY> {
 
     async getValue(key) {
         return ((await this.getRepository().find({ where: { key } }))[0] || {}).value;
+    }
+
+    async getValuesByPrefix(key) {
+        return map(await this.getRepository().find({ where: { key: Like(key + '%') } }), (item) => item.value);
+    }
+
+    async push(key, value) {
+        if (!value && value !== 0) return [];
+
+        return await this.save(key + '.' + value, value + '');
+    }
+
+    async getArray(key) {
+        const value = await this.getValuesByPrefix(key);
+        if (!value) return [];
+        return value;
     }
 }
