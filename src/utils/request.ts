@@ -12,7 +12,7 @@ export function m0RequestErrorHandler(error: any, data = null, shouldThrow = tru
         m0RequestLog('details');
 
         console.log(
-            `host: ${error.request?.protocol}${error.request?.host}:${error.request?.port || '80'}\n`,
+            `host: ${error.request?.protocol}//${error.request?.host}:${error.request?.port || '80'}\n`,
             `basepath: ${_path}\n`,
             `fullpath: ${error.request?.path}\n`,
             `method: ${error.request?.method}\n`,
