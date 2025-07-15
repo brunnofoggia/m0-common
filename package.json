@@ -1,6 +1,6 @@
 {
     "name": "m0-common",
-    "version": "2.93.0-alpha",
+    "version": "2.93.1-alpha",
     "description": "",
     "license": "ISC",
     "author": "Bruno Foggia",
@@ -64,7 +64,6 @@
         "rimraf": "^5.0.7",
         "rxjs": "^7.8.1",
         "source-map-support": "^0.5.21",
-        "sqlite3": "^5.1.7",
         "supertest": "^7.0.0",
         "ts-jest": "^29.1.2",
         "ts-loader": "^9.5.1",
