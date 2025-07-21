@@ -1,11 +1,6 @@
-import { BuildSelectColumnOptions, buildSelectColumn } from './service';
+import { BuildSelectColumnOptions, SelectColumnOptions, buildSelectColumn } from './service';
 
-export interface SelectColumnOptions {
-    clearSelection: boolean;
-    makeAlias: boolean;
-}
-
-const defaultSelectColumnOptions: SelectColumnOptions = {
+export const defaultSelectColumnOptions: SelectColumnOptions = {
     clearSelection: false,
     makeAlias: false,
 };

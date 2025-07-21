@@ -40,16 +40,16 @@ export abstract class DatabaseMixin {
 
     // database name is equal to product name
     async connectProductDatabaseByModule(module, _options: any = {}) {
-        const product = this.getProductName();
+        const product = _options.product || this.getProductName();
         const options = defaultsDeep(
             {
                 poolId: this.getPoolId(),
                 database: product,
                 alias: module,
                 databaseDir: [product, module].join('/'),
-                secretPath: this.getDatabaseSecretPath(),
+                secretPath: _options.secretPath || this.getDatabaseSecretPath(),
             },
-            _options,
+            omit(_options, 'product', 'secretPath'),
         );
         return await DynamicDatabase.setDataSource(options);
     }
@@ -62,9 +62,9 @@ export abstract class DatabaseMixin {
                 poolId: this.getPoolId(),
                 alias: module,
                 databaseDir: product,
-                secretPath: this.getDatabaseSecretPath(),
+                secretPath: _options.secretPath || this.getDatabaseSecretPath(),
             },
-            omit(_options, 'product'),
+            omit(_options, 'product', 'secretPath'),
         );
 
         return await DynamicDatabase.setDataSource(options);
@@ -109,12 +109,13 @@ export abstract class DatabaseMixin {
     }
 
     async connectM0Database(_options: any = {}) {
+        const product = MODULE.M0;
         const options = defaultsDeep(
             {
                 poolId: this.getPoolId(),
-                alias: MODULE.M0,
+                alias: product,
                 database: MODULE.M0,
-                databaseDir: MODULE.M0,
+                databaseDir: product,
                 secretPath: this.getDatabaseSecretPath(),
             },
             _options,
