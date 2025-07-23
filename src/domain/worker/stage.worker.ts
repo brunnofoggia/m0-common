@@ -239,7 +239,7 @@ export class StageWorker extends StageGeneric implements StageParts {
         this.stageExecutionMocked = true;
         const mock = typeof this.body.mockStageExecution === 'object' ? this.body.mockStageExecution : {};
         const stageExecution = defaultsDeep(mock, {
-            id: uniqueId(),
+            id: +[''.padStart(16, '9'), uniqueId()].join(''),
             moduleExecution: {
                 date: new Date().toISOString(),
                 data: {

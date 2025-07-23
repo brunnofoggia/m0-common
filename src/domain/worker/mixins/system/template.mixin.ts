@@ -1,4 +1,6 @@
-import { isString, template } from 'lodash';
+import _debug from 'debug';
+const debug = _debug('worker:mixin:template');
+import { isArray, isObject, isString, template } from 'lodash';
 
 import { PathMixin } from './path.mixin';
 import { DateMixin } from './date.mixin';
@@ -28,9 +30,49 @@ export abstract class TemplateMixin {
         return _text === 'true' || _text === '1';
     }
 
+    compileTemplates(data: any) {
+        if (isString(data)) {
+            try {
+                return template(data);
+            } catch (error) {
+                debug(`Error building template for input "${data}":`, error);
+                throw new Error(`Invalid template: ${data}`);
+            }
+        }
+
+        for (const key in data) {
+            let value = data[key];
+            if (isArray(value) || isObject(value) || isString(value)) value = this.compileTemplates(value);
+            data[key] = value;
+        }
+
+        return data;
+    }
+
+    renderTemplates(data: any, options: renderOptions | any = {}, templateEngine = null): any {
+        if (isString(data)) {
+            try {
+                return this.renderTemplate(data, options, templateEngine);
+            } catch (error) {
+                debug(`Error building template for input "${data}":`, error);
+                throw new Error(`Invalid template: ${data}`);
+            }
+        }
+
+        for (const key in data) {
+            let value = data[key];
+            if (isArray(value) || isObject(value) || isString(value)) {
+                value = this.renderTemplates(value, options, templateEngine);
+            }
+            data[key] = value;
+        }
+
+        return data;
+    }
+
     renderTemplate(text, options: renderOptions | any = {}, templateEngine = null): string {
         const _templateEngine = templateEngine || template;
-        const _template = _templateEngine(text);
+        const _template = isString(text) ? _templateEngine(text) : text;
 
         const _options = {
             ...options,
@@ -48,6 +90,9 @@ export abstract class TemplateMixin {
             // other data
             date: this.getDate(),
             env: this.getStorageEnv(),
+            transactionUid: this.transactionUid,
+            executionUid: this.executionUid,
+            projectUid: this.getProjectUid(),
             worker: this,
         };
         return _template(_options);

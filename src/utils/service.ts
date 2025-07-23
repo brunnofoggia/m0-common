@@ -14,9 +14,13 @@ export interface SelectColumnOptions {
 }
 
 export interface PlainQueryOptions {
+    alias?: string;
     where: string | string[];
     orderBy: string | string[];
+    groupBy: string | string[];
     columns: string | string[];
+    offset?: number;
+    limit?: number;
 }
 
 export const countQueryBuilder = async (service, queryBuilder) => {
@@ -42,18 +46,29 @@ export const countQuery = async (dataSource, query) => {
 };
 
 export const buildColumnName = (tableAlias, columnName_) => {
+    // to allow use of functions like SUM, AVG, etc.
+    if (/\W+/.test(columnName_)) {
+        return columnName_;
+    }
+
     return `"${tableAlias}"."${columnName_}"`;
 };
 
-export const buildColumnAlias = (tableAlias, columnName) => {
-    return `${tableAlias}_${columnName}`;
+export const buildColumnAlias = (tableAlias, columnAlias, options: Partial<BuildSelectColumnOptions> = {}) => {
+    let alias = columnAlias;
+    if (options.makeAlias) alias = `${tableAlias}_${columnAlias}`;
+
+    // to allow use of functions like SUM, AVG, etc.
+    if (/\W+/.test(alias)) alias = alias.replace(/\W+/g, '_');
+    return alias;
 };
 
 export const buildSelectColumn = (tableAlias, columnName_, options: Partial<BuildSelectColumnOptions> = {}) => {
     const [columnName, columnAlias = columnName_] = columnName_.split(' ');
 
     options = { ...defaultBuildSelectColumnOptions, ...options };
-    const alias = !options.makeAlias ? columnAlias : buildColumnAlias(tableAlias, columnAlias);
+    const alias = buildColumnAlias(tableAlias, columnAlias, options);
+
     return [buildColumnName(tableAlias, columnName), alias];
 };
 
@@ -95,12 +110,28 @@ export const buildOrderByClause = (orderBy): string => {
     return ` ORDER BY ${orderBy.join(', ')}`;
 };
 
-export const buildQuery = (tablePath, alias, queryOptions: PlainQueryOptions): string => {
-    const { where = '', columns = [], orderBy = '' } = queryOptions;
-    const _columns = selectColumns(alias, columns);
+export const buildGroupByClause = (groupBy): string => {
+    if (!groupBy) return '';
+    if (!isArray(groupBy)) {
+        groupBy = [groupBy];
+    }
+    return ` GROUP BY ${groupBy.join(', ')}`;
+};
+
+export const buildQuery = (tablePath, queryOptions: PlainQueryOptions): string => {
+    const { where = '', columns = [], orderBy = '', offset, limit, groupBy } = queryOptions;
+    const _columns = selectColumns(queryOptions.alias || 'datatable', columns);
     const _where = buildWhereClause(where);
     const _orderBy = buildOrderByClause(orderBy);
+    const _groupBy = buildGroupByClause(groupBy);
 
-    const query = `SELECT ${_columns} FROM ${tablePath} AS "datatable" ${_where} ${_orderBy}`;
+    let pagination = '';
+    if (offset || limit) {
+        const _offset = offset ? ` OFFSET ${offset}` : '';
+        const _limit = limit ? ` LIMIT ${limit}` : '';
+        pagination = `${_offset}${_limit}`;
+    }
+
+    const query = `SELECT ${_columns} FROM ${tablePath} AS "datatable" ${_where} ${_groupBy} ${_orderBy} ${pagination}`.trim();
     return query;
 };

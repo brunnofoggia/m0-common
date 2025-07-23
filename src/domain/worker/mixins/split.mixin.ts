@@ -53,7 +53,8 @@ export abstract class SplitMixin {
             }
 
             // esse status nao é o stageExecution.stageStatusUid do m0
-            const isStartingParallelization = statusValue === StageStatusEnum.INITIAL;
+            const isStartingParallelization =
+                statusValue === StageStatusEnum.INITIAL || !!this.stageExecution.data?.options?._forceParallelization;
             const nextValueRemovedFromDb = typeof nextValue === 'undefined';
 
             // or its a new stage or a stage that required some stages before (requiredStage: results in stage waiting)

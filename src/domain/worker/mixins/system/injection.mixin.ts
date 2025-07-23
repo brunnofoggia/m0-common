@@ -1,7 +1,7 @@
 import { applyMixins } from 'node-labs/lib/utils/mixin';
 
 import { Domain } from '../../../../types/domain.type';
-import { StageAllProperties, StageStructureProperties } from '../../../../interfaces/stageParts.interface';
+import { StageStructureProperties } from '../../../../interfaces/stageParts.interface';
 import { DomainOptions } from '../../../../interfaces/domain.interface';
 
 import { DynamicWorkerMixin } from './dynamicWorker.mixin';

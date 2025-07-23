@@ -67,6 +67,7 @@ export abstract class DatabaseMixin {
             omit(_options, 'product', 'secretPath'),
         );
 
+        console.log(`Connecting to product database "${product}" with options:`, options);
         return await DynamicDatabase.setDataSource(options);
     }
 
