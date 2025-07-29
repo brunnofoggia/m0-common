@@ -57,7 +57,7 @@ export class StageWorker extends StageGeneric implements StageParts {
         if (!this.stageExecution) exitRequest(ERROR.NO_STAGE_EXEC_DATA);
     }
 
-    async __debug(...args) {
+    __debug(...args) {
         debug(...args);
     }
 
