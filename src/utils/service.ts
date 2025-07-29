@@ -120,7 +120,9 @@ export const buildGroupByClause = (groupBy): string => {
 
 export const buildQuery = (tablePath, queryOptions: PlainQueryOptions): string => {
     const { where = '', columns = [], orderBy = '', offset, limit, groupBy } = queryOptions;
-    const _columns = selectColumns(queryOptions.alias || 'datatable', columns);
+    if (!queryOptions.alias) queryOptions.alias = 'datatable';
+
+    const _columns = selectColumns(queryOptions.alias, columns);
     const _where = buildWhereClause(where);
     const _orderBy = buildOrderByClause(orderBy);
     const _groupBy = buildGroupByClause(groupBy);
@@ -132,6 +134,6 @@ export const buildQuery = (tablePath, queryOptions: PlainQueryOptions): string =
         pagination = `${_offset}${_limit}`;
     }
 
-    const query = `SELECT ${_columns} FROM ${tablePath} AS "datatable" ${_where} ${_groupBy} ${_orderBy} ${pagination}`.trim();
+    const query = `SELECT ${_columns} FROM ${tablePath} AS "${queryOptions.alias}" ${_where} ${_groupBy} ${_orderBy} ${pagination}`.trim();
     return query;
 };

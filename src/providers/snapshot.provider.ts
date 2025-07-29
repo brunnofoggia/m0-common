@@ -2,6 +2,7 @@ import { throwHttpException } from 'node-labs/lib/utils/errors';
 
 import { ERROR } from '../types/error.type';
 import { M0ApiProvider, M0ApiProviderV2 } from './m0Api.provider';
+import { defaultsDeep, find } from 'lodash';
 
 export class SnapshotProviderV2 extends M0ApiProviderV2 {
     basePath = 'm0/snapshot';
@@ -47,6 +48,14 @@ export class SnapshotProviderV2 extends M0ApiProviderV2 {
             })
         ).data;
     }
+
+    getStageConfigFromSnapshot(stageUid, moduleConfigSnapshot) {
+        const stageConfig = moduleConfigSnapshot.stageConfig || {};
+        const foundStageConfig = find(moduleConfigSnapshot.stagesConfig || [], (stage) => stage.stageUid === stageUid);
+
+        // allow to merge snapshot with stage config on worker
+        return defaultsDeep(foundStageConfig || {}, stageConfig);
+    }
 }
 
 export class SnapshotProvider extends M0ApiProvider {
@@ -68,5 +77,10 @@ export class SnapshotProvider extends M0ApiProvider {
     static async saveModuleConfig(projectUid: string, transactionUid: string, stageUid: string, data = {}) {
         await this.setInstance();
         return this.instance.saveModuleConfig(projectUid, transactionUid, stageUid, data);
+    }
+
+    static async getStageConfigFromSnapshot(stageUid, moduleConfigSnapshot) {
+        await this.setInstance();
+        return this.instance.getStageConfigFromSnapshot(stageUid, moduleConfigSnapshot);
     }
 }

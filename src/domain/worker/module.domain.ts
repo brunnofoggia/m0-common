@@ -103,7 +103,7 @@ export class ModuleDomain extends ModuleGeneric {
             this.moduleConfig = await this._getSnapshotConfig();
         }
         this.moduleConfig = this.buildSnapshot((this.moduleConfig || {}) as never, this.body.mergeSnapshot);
-        this.stageConfig = this.getStageConfigFromSnapshot(this.stageUid, this.moduleConfig || {});
+        this.stageConfig = await SnapshotProvider.getStageConfigFromSnapshot(this.stageUid, this.moduleConfig || {});
 
         this.project = this.moduleConfig?.project;
     }
@@ -114,13 +114,5 @@ export class ModuleDomain extends ModuleGeneric {
         } catch (error) {
             m0RequestErrorHandler(error);
         }
-    }
-
-    getStageConfigFromSnapshot(stageUid, moduleConfig) {
-        const stageConfig = moduleConfig.stageConfig || {};
-        const foundStageConfig = find(moduleConfig.stagesConfig || [], (stage) => stage.stageUid === stageUid);
-
-        // allow to merge snapshot with stage config on worker
-        return defaultsDeep(foundStageConfig || {}, stageConfig);
     }
 }

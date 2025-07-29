@@ -3,7 +3,7 @@ import { defaultsDeep, filter, isArray, sortBy } from 'lodash';
 import { StageGeneric } from '../../../../domain/worker/stage.generic';
 import { PathMixin } from './path.mixin';
 import { StageExecutionProvider } from '../../../../providers/stageExecution.provider';
-import { BodyInterface } from '../../../../interfaces/body.interface';
+import { SnapshotProvider } from '../../../../providers/snapshot.provider';
 
 export abstract class StagesMixin {
     parentStageConfig: any = {};
@@ -65,7 +65,11 @@ export abstract class StagesMixin {
 
         const parentStage = this.separateStageUidAndExecutionUid(this.getParentStage()).stageUid;
         if (parentStage) {
-            this.parentStageConfig = await this.findStageConfig(parentStage);
+            if (!this.body.mockStageExecution) {
+                this.parentStageConfig = await this.findStageConfig(parentStage);
+            } else {
+                this.parentStageConfig = await SnapshotProvider.getStageConfigFromSnapshot(parentStage, this.moduleConfig || {});
+            }
         }
     }
 

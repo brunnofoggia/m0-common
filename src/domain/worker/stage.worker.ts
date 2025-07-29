@@ -37,6 +37,22 @@ export class StageWorker extends StageGeneric implements StageParts {
         this.setPaths();
     }
 
+    async checkInitialization() {
+        if (!this.stageExecution || !size(this.stageExecution)) {
+            this.log('Stage execution not found or already done, skipping execution');
+            exitRequest(ERROR.NO_STAGE_EXEC_DATA);
+        }
+
+        // if worker dies, when deploying maybe, and someone trigger the stage again
+        // this will avoid to run the stage again by detecting that the stage is already done
+        // reason: queue is not cleared when worker dies. so if someone trigger the stage there will be two queues
+        // and it would run twice
+        if (this.stageExecution.statusUid === StageStatusEnum.DONE) {
+            this.log('Stage is already done, skipping execution');
+            exitRequest(ERROR.STAGE_EXEC_ALREADY_DONE);
+        }
+    }
+
     async checkExecution() {
         if (!this.stageExecution) exitRequest(ERROR.NO_STAGE_EXEC_DATA);
     }
@@ -66,12 +82,8 @@ export class StageWorker extends StageGeneric implements StageParts {
         this._setUniqueId(uniqueId);
         this.__debug('find module+stage execution');
         this.stageExecution = await this.findCurrentLastStageExecution();
-        if (!size(this.stageExecution)) return;
-        // if worker dies, when deploying maybe, and someone trigger the stage again
-        // this will avoid to run the stage again by detecting that the stage is already done
-        // reason: queue is not cleared when worker dies. so if someone trigger the stage there will be two queues
-        // and it would run twice
-        if (this.stageExecution.statusUid === StageStatusEnum.DONE) return;
+
+        this.checkInitialization();
 
         this.moduleExecution = this.stageExecution.moduleExecution;
 
