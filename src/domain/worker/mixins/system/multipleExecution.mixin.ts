@@ -21,13 +21,13 @@ export abstract class MultipleExecutionMixin {
 
     setIndex() {
         this.index = this.defineIndex();
-        console.log(`Final index: "${this.index}"`);
+        // console.log(`Final index: "${this.index}"`);
     }
 
     getIndex(): number {
         if (this.index === undefined || this.index === null) {
             const index = this.defineIndex();
-            console.log(`temp index: "${index}"`);
+            // console.log(`temp index: "${index}"`);
 
             return index;
         }

@@ -59,7 +59,7 @@ export const buildColumnAlias = (tableAlias, columnAlias, options: Partial<Build
     if (options.makeAlias) alias = `${tableAlias}_${columnAlias}`;
 
     // to allow use of functions like SUM, AVG, etc.
-    if (/\W+/.test(alias)) alias = alias.replace(/\W+/g, '_');
+    if (/\W+/.test(alias)) alias = alias.replace(/\W+/g, '_').toLowerCase();
     return alias;
 };
 
@@ -99,6 +99,7 @@ export const buildWhereClause = (where): string => {
     if (!isArray(where)) {
         where = [where];
     }
+    if (!where.length) return '';
     return ` WHERE ` + where.map((clause) => `(${clause})`).join(' AND ');
 };
 
@@ -107,6 +108,7 @@ export const buildOrderByClause = (orderBy): string => {
     if (!isArray(orderBy)) {
         orderBy = [orderBy];
     }
+    if (!orderBy.length) return '';
     return ` ORDER BY ${orderBy.join(', ')}`;
 };
 
@@ -115,6 +117,7 @@ export const buildGroupByClause = (groupBy): string => {
     if (!isArray(groupBy)) {
         groupBy = [groupBy];
     }
+    if (!groupBy.length) return '';
     return ` GROUP BY ${groupBy.join(', ')}`;
 };
 

@@ -89,10 +89,10 @@ export class StateService<ENTITY> extends DynamicDatabase<ENTITY> {
         return map(await this.getRepository().find({ where: { key: Like(key + '%') } }), (item) => item.value);
     }
 
-    async push(key, value) {
-        if (!value && value !== 0) return [];
+    async push(key, index, value) {
+        if (!index && index !== 0) return [];
 
-        return await this.save(key + '.' + value, value + '');
+        return await this.save(key + '.' + index, value + '');
     }
 
     async getArray(key) {

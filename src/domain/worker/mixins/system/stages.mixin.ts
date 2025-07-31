@@ -111,6 +111,7 @@ export abstract class StagesMixin {
         if (shouldCallback) {
             defaultConfig.callbackStage = this.buildCurrentStageUidAndExecutionUid();
             defaultConfig.callbackIndex = this.getIndex();
+            defaultConfig.isSubprocess = 1;
         }
 
         return defaultConfig;

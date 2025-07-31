@@ -2,7 +2,7 @@ import _debug from 'debug';
 const debug = _debug('worker:mixin:split');
 const log = _debug('worker:essential:split');
 
-import { defaultsDeep, result, omit, pick, isArray, cloneDeep, size, isString } from 'lodash';
+import { defaultsDeep, result, omit, pick, isArray, cloneDeep, size, isString, find } from 'lodash';
 
 import { exitRequest } from 'node-labs/lib/utils/errors';
 
@@ -100,16 +100,17 @@ export abstract class SplitMixin {
 
     async getFinished(stateService) {
         const childIndex = this.body.options?.childResultInfo?.index;
+        const childStatusUid = this.body.options?.childResultInfo?.statusUid;
         if (typeof childIndex === 'undefined') throw new Error('childResultInfo.index not found in body options');
 
-        let finishedArr = await stateService.getArray(this._childKeys.process);
-        const finishedArrLengthBefore = finishedArr.length;
-        await stateService.push(this._childKeys.process, childIndex);
-        finishedArr = await stateService.getArray(this._childKeys.process);
-        const finished = finishedArr.length;
-        if (finishedArrLengthBefore === finished) this.log(`Child index ${childIndex} already processed, skipping duplicated call...`);
+        let finishedData = await stateService.getArray(this._childKeys.process);
+        const finishedArrLengthBefore = finishedData.length;
+        await stateService.push(this._childKeys.process, childIndex, childStatusUid);
+        finishedData = await stateService.getArray(this._childKeys.process);
+        const totalFinished = finishedData.length;
+        if (finishedArrLengthBefore === totalFinished) this.log(`Child index ${childIndex} already processed, skipping duplicated call...`);
 
-        return finished;
+        return { totalFinished, finishedData };
     }
 
     async splitStagesResult(): Promise<ResultInterface | null> {
@@ -118,26 +119,49 @@ export abstract class SplitMixin {
         const isTestingResult = this.isTestingResult();
 
         const ordered = +(await stateService.getValue(this._childKeys.length));
-        const finished = await this.getFinished(stateService);
+        const { totalFinished, finishedData } = await this.getFinished(stateService);
 
-        if (ordered === finished || isTestingResult) {
-            const saved = (await stateService.saveBy(this._childKeys.next, '1', '0')) || isTestingResult;
-            await stateService.clearByPrefix(this.getBaseKeyPrefix());
-            if (!saved) {
-                // will get here when concurrent updates find each other
-                return null;
-            }
-
-            await this._setChildStatusTo(StageStatusEnum.DONE);
-            // finished all child
-            return await this.splitStagesDone();
-        } else if (finished > ordered) {
-            return this.statusFailed({ errorMessage: `finished: ${finished} > ordered: ${ordered}` });
+        if (ordered === totalFinished || isTestingResult) {
+            return await this.childStagesFinished(finishedData);
+        } else if (totalFinished > ordered) {
+            return this.statusFailed({ errorMessage: `finished: ${totalFinished} > ordered: ${ordered}` });
         }
 
         // still waiting other child to finish
         return this.statusWaiting();
     }
+
+    async childStagesFinished(finishedData) {
+        const stateService = this._stateService;
+        const isTestingResult = this.isTestingResult();
+
+        const saved = (await stateService.saveBy(this._childKeys.next, '1', '0')) || isTestingResult;
+        if (!saved) {
+            // will get here when concurrent updates collide
+            return null;
+        }
+
+        await stateService.clearByPrefix(this.getBaseKeyPrefix());
+
+        const isAllDone = find(finishedData, (status) => status !== StageStatusEnum.DONE) === undefined;
+        this.log(`Child stages finished status: "${finishedData.join('";"')}", all done successfully? ${isAllDone}`);
+        if (isAllDone) {
+            return await this.splitStagesDone();
+        }
+        return await this.splitStagesFailed();
+    }
+
+    // async childStagesFinishedSuccess() {
+    //     await this._setChildStatusTo(StageStatusEnum.DONE);
+    //     // finished all child
+    //     return await this.splitStagesDone();
+    // }
+
+    // async childStagesFinishedFailed() {
+    //     await this._setChildStatusTo(StageStatusEnum.FAILED);
+    //     // finished all child
+    //     return await this.splitStagesDone();
+    // }
 
     isTestingResult() {
         return !!this.stageExecution.data.options?._testResult;
@@ -153,6 +177,14 @@ export abstract class SplitMixin {
         const results = this.mergeParallelResults(results_);
         const isTestingResult = this.isTestingResult();
         return !isTestingResult ? this.status(results) : this.statusWaiting(results);
+    }
+
+    async splitStagesFailed(results: any = {}) {
+        return this.splitStagesFailedResult(results);
+    }
+
+    async splitStagesFailedResult(results_: any = {}) {
+        return this.statusFailed(results_);
     }
 
     mergeParallelResults(results_) {
@@ -215,17 +247,17 @@ export abstract class SplitMixin {
             this.combineChildSendParams(this.stageConfig.config.childSendOptions, this.stageConfig.options),
         );
         let childConfig: any = defaultsDeep(
-            {},
+            { isSubProcess: 1 },
             this.stageConfig.config.childConfig || {},
             this.combineChildSendParams(this.stageConfig.config.childSendConfig, this.stageConfig.config),
         );
         const childRoot: any = defaultsDeep({}, this.stageConfig.config.childRoot || {});
 
         // send callback stage to child stage
-        const shouldCallback = !!this.stageConfig.config.childCallback;
-        if (shouldCallback) {
-            childConfig.callbackStage = this.buildCurrentStageUidAndExecutionUid();
-        }
+        // const shouldCallback = !!this.stageConfig.config.childCallback;
+        // if (shouldCallback) {
+        //     childConfig.callbackStage = this.buildCurrentStageUidAndExecutionUid();
+        // }
 
         // combine everything
         childOptions = defaultsDeep(
