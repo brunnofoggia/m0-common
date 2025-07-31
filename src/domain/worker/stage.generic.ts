@@ -52,6 +52,7 @@ export abstract class StageGeneric {
     stageUid: string;
     executionUid: string;
     stageName: string;
+    index: number;
 
     moduleExecution: ModuleExecutionInterface;
     moduleConfig: ModuleConfigInterface;

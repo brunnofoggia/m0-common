@@ -1,4 +1,4 @@
-import { isNaN, random, size, uniqueId } from 'lodash';
+import { isNaN, isNumber, random, size, uniqueId } from 'lodash';
 
 import { applyMixins } from 'node-labs/lib/utils/mixin';
 
@@ -9,12 +9,41 @@ import { BodyInterface } from '../../../../interfaces/body.interface';
 export abstract class MultipleExecutionMixin {
     abstract body: BodyInterface;
     abstract uniqueId: string;
+    abstract stageExecution: StageExecutionInterface;
+    abstract index: number;
+
+    // getIndex(): number {
+    //     const bodyIndex = this.body?.options?.index;
+
+    //     const index = bodyIndex;
+    //     return index === undefined || index === null || index === false ? -1 : +index;
+    // }
+
+    setIndex() {
+        this.index = this.defineIndex();
+        console.log(`Final index: "${this.index}"`);
+    }
 
     getIndex(): number {
-        const bodyIndex = this.body?.options?.index;
+        if (this.index === undefined || this.index === null) {
+            const index = this.defineIndex();
+            console.log(`temp index: "${index}"`);
 
-        const index = bodyIndex;
-        return index === undefined || index === null || index === false ? -1 : +index;
+            return index;
+        }
+        return this.index;
+    }
+
+    defineIndex(): number {
+        const bodyIndex = this.body.options?.index;
+        const stageExecutionIndex = this['stageExecution']?.data?.options?.index;
+
+        // console.log(`stageExecutionIndex: "${stageExecutionIndex}", bodyIndex: "${bodyIndex}"`, isNumber(stageExecutionIndex));
+
+        let index = isNumber(stageExecutionIndex) ? stageExecutionIndex : bodyIndex;
+        index = index === undefined || index === null || index === false ? -1 : +index;
+
+        return index;
     }
 
     getStageExecutionSplitter() {
@@ -143,24 +172,7 @@ export abstract class MultipleExecutionMixin {
     // #endregion
 }
 
-export abstract class MultipleExecutionStageMixin {
-    abstract stageExecution: StageExecutionInterface;
-
-    getIndex(): number {
-        const bodyIndex = this.body.options?.index;
-        const stageExecutionIndex =
-            size(this.stageExecution?.data) > 0
-                ? !isNaN(this.stageExecution.data.options?.index)
-                    ? this.stageExecution.data.options.index
-                    : !isNaN(this.stageExecution.data.index)
-                    ? this.stageExecution.data.index
-                    : undefined
-                : undefined;
-
-        const index = stageExecutionIndex || bodyIndex;
-        return index === undefined || index === null || index === false ? -1 : +index;
-    }
-
+export abstract class MultipleExecutionStageMixin extends MultipleExecutionMixin {
     getExecutionUid() {
         const executionUid =
             this.stageExecution && this.stageExecution?.system?.executionUid

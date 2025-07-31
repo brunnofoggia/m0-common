@@ -87,6 +87,7 @@ export class StageWorker extends StageGeneric implements StageParts {
 
         this.moduleExecution = this.stageExecution.moduleExecution;
 
+        this.setIndex();
         this.prepareConfig();
         this.prepareOptions();
 
@@ -229,19 +230,19 @@ export class StageWorker extends StageGeneric implements StageParts {
 
         switch (error) {
             case StageExecutionFindError.NOT_FOUND:
-                throw new WorkerError(
+                exitRequest(
                     `stageExecution not found for
                         transactionUid:${this.transactionUid} , stageUid: ${this.stageConfig?.stageUid} , index: ${index}
                         ("${JSON.stringify(stageExecution)}")`,
-                    StageStatusEnum.UNKNOWN,
                 );
+                break;
             case StageExecutionFindError.FAILED:
-                throw new WorkerError(
+                exitRequest(
                     `invalid stageExecution for
                     transactionUid:${this.transactionUid} , stageUid: ${this.stageConfig?.stageUid} , index: ${index}
                     ("${JSON.stringify(stageExecution)}")`,
-                    StageStatusEnum.FAILED,
                 );
+                break;
         }
 
         return stageExecution;
