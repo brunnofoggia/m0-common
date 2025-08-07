@@ -83,7 +83,7 @@ export class StageWorker extends StageGeneric implements StageParts {
         this.__debug('find module+stage execution');
         this.stageExecution = await this.findCurrentLastStageExecution();
 
-        this.checkInitialization();
+        await this.checkInitialization();
 
         this.moduleExecution = this.stageExecution.moduleExecution;
 
