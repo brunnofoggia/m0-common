@@ -29,6 +29,14 @@ export abstract class ParallelWorkerGeneric {
         await this.down();
     }
 
+    async afterSplitFailed(): Promise<void> {
+        const childStageExecutionList = await this.findChildStageExecutionList();
+        const childErrors = this.getValueListFromErrorField(childStageExecutionList);
+        if (childErrors?.length) {
+            this.setExecutionInfoValue('childErrors', childErrors);
+        }
+    }
+
     public async execute(): Promise<ResultInterface | null> {
         const options = await this.splitExecuteOptions();
         return await this.splitExecute(options);
@@ -74,8 +82,19 @@ export abstract class ParallelWorkerGeneric {
         });
     }
 
+    getValueListFromErrorField(stageExecutionList) {
+        return map(stageExecutionList, (stageExecution) => {
+            const lastError = this._getLastError(stageExecution);
+            return lastError;
+        });
+    }
+
     _getLastResult(stageExecution) {
         return stageExecution.result[stageExecution.result.length - 1];
+    }
+
+    _getLastError(stageExecution) {
+        return stageExecution.error[stageExecution.error.length - 1];
     }
 
     async calcInfoField(stageExecutionList, infoField): Promise<number> {

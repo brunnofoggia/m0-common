@@ -30,6 +30,7 @@ export abstract class SplitMixin {
     abstract afterSplitStart(): Promise<void>;
     // this method will be called when all child stages are done
     abstract afterSplitEnd(): Promise<void>;
+    abstract afterSplitFailed(): Promise<void>;
 
     abstract getChildStage();
 
@@ -180,6 +181,7 @@ export abstract class SplitMixin {
     }
 
     async splitStagesFailed(results: any = {}) {
+        this.afterSplitFailed && (await this.afterSplitFailed());
         return this.splitStagesFailedResult(results);
     }
 
