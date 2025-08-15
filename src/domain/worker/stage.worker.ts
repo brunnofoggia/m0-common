@@ -63,7 +63,7 @@ export class StageWorker extends StageGeneric implements StageParts {
 
     // #region log
     _log;
-    log(...args) {
+    log(...args: any[]): void {
         if (!this._log) this._setLog();
         this._log(...args);
     }
@@ -371,7 +371,8 @@ export class StageWorker extends StageGeneric implements StageParts {
 }
 
 export interface StageWorker
-    extends LifeCycleMixin,
+    extends StageGeneric,
+        LifeCycleMixin,
         DynamicWorkerMixin,
         InjectionMixin,
         ExecutionInfoMixin,

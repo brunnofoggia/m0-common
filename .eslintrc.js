@@ -5,7 +5,7 @@ module.exports = {
         tsconfigRootDir: __dirname,
         sourceType: 'module',
     },
-    plugins: ['@typescript-eslint/eslint-plugin'],
+    plugins: ['@typescript-eslint/eslint-plugin', 'promise'],
     extends: ['eslint:recommended', 'plugin:@typescript-eslint/recommended'],
     root: true,
     env: {
@@ -20,6 +20,11 @@ module.exports = {
         '@typescript-eslint/no-empty-interface': 0,
         '@typescript-eslint/no-unsafe-declaration-merging': 0,
         '@typescript-eslint/no-unused-vars': 1,
+        // promises
+        // 'require-await': 1,
+        // 'promise/always-return': 1,
+        '@typescript-eslint/no-floating-promises': 2,
+        //
         // '@typescript-eslint/explicit-function-return-type': 0,
         // '@typescript-eslint/explicit-module-boundary-types': 0,
         // '@typescript-eslint/no-floating-promises': 0,

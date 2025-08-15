@@ -6,6 +6,7 @@ import { StageStructureProperties } from '../../../../interfaces/stageParts.inte
 import { importFileMixin } from '../../../../utils/importWorker';
 import { StateService } from '../../../../database/m0/mx/services/state.service';
 import { MonitorService } from '../../../../database/m0/mx/services/monitor.service';
+import { ConnectionDataOptions } from 'domain/worker/interfaces/connection';
 
 export abstract class DatabaseMixin {
     abstract uniqueId: string;
@@ -39,7 +40,7 @@ export abstract class DatabaseMixin {
     }
 
     // database name is equal to product name
-    async connectProductDatabaseByModule(module, _options: any = {}) {
+    async connectProductDatabaseByModule(module, _options: Partial<ConnectionDataOptions> = {}) {
         const product = _options.product || this.getProductName();
         const options = defaultsDeep(
             {
@@ -55,12 +56,12 @@ export abstract class DatabaseMixin {
     }
 
     // database name comes from .env
-    async connectProductDatabase(module, _options: any = {}) {
+    async connectProductDatabase(alias, _options: Partial<ConnectionDataOptions> = {}) {
         const product = _options.product || this.getProductName();
         const options = defaultsDeep(
             {
                 poolId: this.getPoolId(),
-                alias: module,
+                alias,
                 databaseDir: product,
                 secretPath: _options.secretPath || this.getDatabaseSecretPath(),
             },

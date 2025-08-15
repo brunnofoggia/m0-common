@@ -14,7 +14,7 @@ export class WorkerController {
 
     @Post('async')
     async execute(@Body() body: BodyInterface): Promise<any> {
-        this.domain.initialize(body);
+        setTimeout(async () => await this.domain.initialize(body), 0);
         return { status: 'executing' };
     }
 

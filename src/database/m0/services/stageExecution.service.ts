@@ -12,7 +12,7 @@ export class StageExecutionService extends DynamicDatabase<StageExecutionEntity>
     body: BodyInterface;
     uniqueId: string;
 
-    async addWhereWithModuleExecutionAndStageUidAndExecutionUidAndIndex(
+    addWhereWithModuleExecutionAndStageUidAndExecutionUidAndIndex(
         queryBuilder,
         moduleExecutionId: number,
         stageUid: string,
