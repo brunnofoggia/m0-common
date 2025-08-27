@@ -15,7 +15,7 @@ import { StageExecutionFindError } from '../../types/stageExecution';
 
 import { StageExecutionProvider } from '../../providers/stageExecution.provider';
 import { SystemInterface } from '../../interfaces/result.interface';
-import { WorkerError } from './error';
+import { WorkerErrorWithCode } from './error';
 import { BodyInterface } from '../../interfaces/body.interface';
 
 import { ConfigMixin } from './mixins/system/config.mixin';
@@ -63,7 +63,7 @@ export abstract class StageGeneric {
     system: Partial<SystemInterface> = {};
 
     executionInfo: any = {};
-    executionError: WorkerError;
+    executionError: WorkerErrorWithCode;
     executionStatusUid: any = null;
 
     stackTriggers: Array<BodyInterface> = [];

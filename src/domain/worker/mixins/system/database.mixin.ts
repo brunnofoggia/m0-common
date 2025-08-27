@@ -111,18 +111,23 @@ export abstract class DatabaseMixin {
     }
 
     async connectM0Database(_options: any = {}) {
-        const product = MODULE.M0;
-        const options = defaultsDeep(
-            {
-                poolId: this.getPoolId(),
-                alias: product,
-                database: MODULE.M0,
-                databaseDir: product,
-                secretPath: this.getDatabaseSecretPath(),
-            },
-            _options,
-        );
-        return await DynamicDatabase.setDataSource(options);
+        try {
+            const product = MODULE.M0;
+            const options = defaultsDeep(
+                {
+                    poolId: this.getPoolId(),
+                    alias: product,
+                    database: MODULE.M0,
+                    databaseDir: product,
+                    secretPath: this.getDatabaseSecretPath(),
+                },
+                _options,
+            );
+            return await DynamicDatabase.setDataSource(options);
+        } catch (error) {
+            console.error(`Error connecting to M0 database: ${error.message}`);
+            throw error;
+        }
     }
 
     getService(Service): any {

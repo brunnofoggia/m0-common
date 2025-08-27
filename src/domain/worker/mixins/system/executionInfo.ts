@@ -2,12 +2,12 @@ import Decimal from 'decimal.js';
 
 import { StageStatusEnum } from '../../../../types/stageStatus.type';
 import { StageStructureProperties } from '../../../../interfaces/stageParts.interface';
-import { WorkerError } from '../../error';
-import { get, set, size } from 'lodash';
+import { WorkerError, WorkerErrorWithCode } from '../../error';
+import { get, isString, set, size } from 'lodash';
 
 export abstract class ExecutionInfoMixin {
     abstract executionInfo: any;
-    abstract executionError: WorkerError;
+    abstract executionError: WorkerErrorWithCode;
     abstract executionStatusUid: any;
 
     getExecutionInfo() {
@@ -65,15 +65,21 @@ export abstract class ExecutionInfoMixin {
         return this.executionStatusUid || null;
     }
 
-    setExecutionError(error, statusUid: any = StageStatusEnum.FAILED) {
+    setExecutionError(
+        error: string | { message: string } | Error | WorkerError | WorkerErrorWithCode,
+        statusUid: any = StageStatusEnum.FAILED,
+        override: boolean = false,
+    ) {
+        if (this.getExecutionStatus() !== null && !override) return this.executionError;
+        if (isString(error)) error = { message: error };
+
         const errorMessage = error.message;
-        const errorCode = (error.code || '0') + '';
+        const errorCode = (error['code'] || '0') + '';
         const errorStatus = statusUid || StageStatusEnum.FAILED;
 
         // if (!this.executionError) {
         // using WorkerError class so it can be thrown
-        this.executionError = new WorkerError(errorMessage, errorStatus);
-        this.executionError['code'] = errorCode;
+        this.executionError = new WorkerErrorWithCode(errorMessage, errorCode, errorStatus);
         // }
 
         if (statusUid) this.executionStatusUid = statusUid;

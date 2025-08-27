@@ -8,19 +8,19 @@ import {
     StageStatusProcess,
 } from '../../../../types/stageStatus.type';
 import { StageStructureProperties } from '../../../../interfaces/stageParts.interface';
-import { WorkerError } from '../../error';
+import { WorkerErrorWithCode } from '../../error';
 import { ExecutionInfoMixin } from './executionInfo';
 import { ResultInterface } from '../../../../interfaces/result.interface';
 
 export abstract class StatusMixin {
     abstract executionInfo: any;
-    abstract executionError: WorkerError;
+    abstract executionError: WorkerErrorWithCode;
     abstract executionStatusUid: any;
 
     _status(_result: Partial<ResultInterface>, statusUid: any = null): any {
         const info = size(this.executionInfo) ? { info: this.getPlainExecutionInfo() } : {};
         const error = size(this.executionError)
-            ? { errorMessage: this.executionError.message || '', errorCode: this.executionError['code'] || '' }
+            ? { errorMessage: this.executionError.message || '', errorCode: this.executionError.code || '' }
             : {};
         const status = { statusUid: statusUid || this.executionStatusUid || this.stageConfig.config.retryStatus || StageStatusEnum.DONE };
 

@@ -2,7 +2,7 @@ import _debug from 'debug';
 const debug = _debug('worker:module');
 const log = _debug('worker:essential:module');
 
-import { defaultsDeep, find, size } from 'lodash';
+import { size } from 'lodash';
 import { HttpStatusCode } from 'axios';
 
 import { exitRequest, throwHttpException } from 'node-labs/lib/utils/errors';
@@ -15,7 +15,6 @@ import { BodyInterface } from '../../interfaces/body.interface';
 import { ResultInterface } from '../../interfaces/result.interface';
 
 import { SnapshotProvider } from '../../providers/snapshot.provider';
-import { ModuleConfigProvider } from '../../providers/moduleConfig.provider';
 
 import { importWorker } from '../../utils/importWorker';
 import { ERROR } from '../../types/error.type';
