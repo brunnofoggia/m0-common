@@ -45,6 +45,12 @@ export abstract class ExecutionInfoMixin {
         set(this.executionInfo, path, currentArr);
     }
 
+    pushExecutionInfoValueToSet(path, ...values) {
+        const currentArr: Array<any> = get(this.executionInfo, path) || [];
+        currentArr.push(...values);
+        set(this.executionInfo, path, Array.from(new Set(currentArr)));
+    }
+
     increaseExecutionInfoValue(path, increase: number) {
         const currentValue = get(this.executionInfo, path) || 0;
         set(this.executionInfo, path, currentValue + increase);
