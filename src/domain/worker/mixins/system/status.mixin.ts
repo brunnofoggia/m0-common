@@ -8,13 +8,13 @@ import {
     StageStatusProcess,
 } from '../../../../types/stageStatus.type';
 import { StageStructureProperties } from '../../../../interfaces/stageParts.interface';
-import { WorkerErrorWithCode } from '../../error';
+import { WorkerError } from '../../error';
 import { ExecutionInfoMixin } from './executionInfo';
 import { ResultInterface } from '../../../../interfaces/result.interface';
 
 export abstract class StatusMixin {
     abstract executionInfo: any;
-    abstract executionError: WorkerErrorWithCode;
+    abstract executionError: WorkerError;
     abstract executionStatusUid: any;
 
     _status(_result: Partial<ResultInterface>, statusUid: any = null): any {
