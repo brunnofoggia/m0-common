@@ -1,0 +1,180 @@
+import _debug from 'debug';
+const debug = _debug('worker:mixin:PartWorkerGeneric');
+
+import { queuelize } from 'node-labs/lib/utils';
+
+import { ResultInterface } from '../../../interfaces/result.interface';
+import { defaultsDeep } from 'lodash';
+import { StageWorker } from '../stage.worker';
+import { StageStatusEnum } from '../../../types/stageStatus.type';
+
+/**
+ * Part Worker Generic Mixin v2
+ *
+ * @description v2 do part worker. para de percorrer as paginas quando o ultimo registro for atingido
+ */
+export abstract class PartWorkerGeneric {
+    public getDefaultOptions() {
+        const defaultOptions = defaultsDeep({}, this.defaultOptions, {
+            totalLimit: 50000,
+            pageLimit: 1000,
+            _testOnePage: false,
+            _testOneRow: false,
+        });
+        return defaultOptions;
+    }
+
+    /* execution */
+    public async execute(): Promise<ResultInterface> {
+        const { index, instance, loop } = await this.setupVariables();
+
+        // loop counter lives inside this object and the object is passed on each execution
+        const params: any = { page: -1, stopProcessing: false };
+
+        const execute = async (params) => {
+            const page = params.page;
+            const result = await this.processExecution({ index, instance, loop, page });
+
+            if (result === false) params.stopProcessing = true;
+            return result;
+        };
+
+        // will execute while condition is true
+        const condition = (params) => ++params.page < loop.totalPages && !params.stopProcessing;
+        // executions will run one at a time
+        await queuelize(condition, execute, {
+            async: 0,
+            params,
+            before: (params) => this.beforeQueue(params),
+            after: (params) => this.afterQueue(params),
+        });
+
+        return this.status({}, this.stageExecution.data?.options?._forceStatusDone ? StageStatusEnum.DONE : null);
+    }
+
+    async processExecution({ index, instance, loop, page }): Promise<boolean | void> {
+        let _break = false;
+        const result = () => !_break;
+
+        const skip = this.loopCalcSkip({ index, page, loop });
+        debug('page', page, 'skip: ', skip);
+
+        const rows = await this.paginateRecords(instance.localService, skip, loop.pageLimit);
+        // last page
+        if (rows.length < loop.pageLimit) _break = true;
+        debug('page', page, 'records: ', rows.length);
+        if (!rows.length) return result();
+
+        this.increaseExecutionInfoValue('lines', rows.length);
+        if (!(await this.processQueue({ page, skip, instance, loop, rows }))) _break = true;
+
+        // paginator.data;
+        return result();
+    }
+
+    /* variables */
+    public async setupVariables() {
+        const index = +this.getIndex();
+        return { index, instance: await this.instanceVariables(), loop: await this.loopVariables() };
+    }
+
+    instanceVariables(): any {
+        const localService = this.getLocalService();
+
+        return { localService };
+    }
+
+    public async loopVariables() {
+        const index = +this.getIndex();
+
+        // loop variables
+        const { totalLimit, pageLimit } = this.loopLimitVariables();
+        const count = await this.count(index * totalLimit, totalLimit);
+        debug('total records available', count);
+        const totalPages = count > pageLimit ? Math.ceil(count / pageLimit) : 1;
+        debug('totalLimit', totalLimit, 'count', count, 'pageLimit', pageLimit, 'totalPages', totalPages);
+
+        return { totalLimit, pageLimit, count, totalPages };
+    }
+
+    loopLimitVariables() {
+        const options = this.stageConfig.options;
+        const totalLimit = +options.totalLimit;
+        const pageLimit = Math.ceil(+(totalLimit && options.pageLimit >= totalLimit ? totalLimit : options.pageLimit));
+        debug({ totalLimit, pageLimit });
+        return { totalLimit, pageLimit };
+    }
+
+    loopCalcSkip({ index, page, loop }) {
+        return +index * loop.totalLimit + page * loop.pageLimit;
+    }
+
+    /* virtual methods */
+    getLocalService(): any {
+        return null;
+    }
+
+    async count(skip, take): Promise<number> {
+        const { totalLimit } = this.loopLimitVariables();
+        return totalLimit;
+    }
+
+    async paginateRecords(service, skip, take) {
+        return [];
+    }
+
+    async processQueue({ page, skip = null, instance, loop, rows }): Promise<any> {
+        debug('processing page', page);
+        await this.beforeEachQueue({ page });
+        rows = await this.composeRowsData({ instance, rows });
+
+        let error;
+        let lastResult: any;
+        try {
+            for (const index in rows) {
+                // const row = rows[index];
+                const data = await this.transformRow({ page, instance, index, row: rows[index] });
+                lastResult = data !== false && (await this.processRow({ page, instance, index, row: data })) !== false;
+                if (this.stageConfig.options._testOneRow || lastResult === false) break;
+            }
+        } catch (error_) {
+            error = error_;
+        }
+
+        await this.afterEachQueue({ page, error });
+        if (error) throw error;
+
+        if (this.stageConfig.options._testOnePage || lastResult === false) return false;
+        return true;
+    }
+
+    async composeRowsData({ instance, rows }) {
+        return rows;
+    }
+
+    async transformRow({ page, instance, index, row }): Promise<any> {
+        return row;
+    }
+
+    async processRow({ page, instance, index, row }): Promise<any> {
+        null;
+    }
+
+    async beforeQueue(params): Promise<any> {
+        null;
+    }
+
+    async beforeEachQueue(params): Promise<any> {
+        null;
+    }
+
+    async afterQueue(params): Promise<any> {
+        null;
+    }
+
+    async afterEachQueue(params): Promise<any> {
+        null;
+    }
+}
+
+export interface PartWorkerGeneric extends StageWorker {}

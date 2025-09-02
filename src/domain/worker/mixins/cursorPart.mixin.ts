@@ -53,13 +53,13 @@ export abstract class CursorPartGeneric {
         const rows = paginator.data;
         // last page
         if (rows.length < loop.pageLimit) _break = true;
+        debug('page', page, 'records: ', rows.length);
         if (!rows.length) return result();
 
         this.increaseExecutionInfoValue('lines', rows.length);
         if (!(await this.processQueue({ page, instance, loop, rows }))) _break = true;
 
         // paginator.data;
-        debug('page', page, 'records: ', paginator.data.length);
         return result();
     }
 
