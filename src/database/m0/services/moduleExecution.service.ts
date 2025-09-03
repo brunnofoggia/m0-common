@@ -2,6 +2,9 @@ import { MoreThanOrEqual } from 'typeorm';
 import { DynamicDatabase } from 'node-labs/lib/services/dynamicDatabase.service';
 
 import { ModuleExecutionEntity } from '../entities/moduleExecution.entity';
+import { uuidGenerate } from '../../../utils/uuid';
+import { CrudServiceParamsInterface } from 'node-labs/lib/services/crud.service';
+import { IdInterface } from 'node-labs/lib/interfaces/id.interface';
 
 export class ModuleExecutionService extends DynamicDatabase<ModuleExecutionEntity> {
     protected override entity = ModuleExecutionEntity;
@@ -106,5 +109,21 @@ export class ModuleExecutionService extends DynamicDatabase<ModuleExecutionEntit
                 take: 1,
             })
         )?.shift();
+    }
+
+    async generateUnusedTransactionUid() {
+        const transactionUid = uuidGenerate();
+        const moduleExecution = await this.findLastByTransaction(transactionUid);
+
+        if (moduleExecution) return await this.generateUnusedTransactionUid();
+        return transactionUid;
+    }
+
+    override async create(
+        item: ModuleExecutionEntity,
+        params?: Partial<CrudServiceParamsInterface>,
+    ): Promise<IdInterface | ModuleExecutionEntity> {
+        if (!item.transactionUid) item.transactionUid = await this.generateUnusedTransactionUid();
+        return await super.create(item, params);
     }
 }

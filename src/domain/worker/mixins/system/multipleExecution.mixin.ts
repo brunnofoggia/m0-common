@@ -9,6 +9,7 @@ import { BodyInterface } from '../../../../interfaces/body.interface';
 export abstract class MultipleExecutionMixin {
     abstract body: BodyInterface;
     abstract uniqueId: string;
+    // for index definition
     abstract stageExecution: StageExecutionInterface;
     abstract index: number;
 

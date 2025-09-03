@@ -6,11 +6,14 @@ import { applyMixins } from 'node-labs/lib/utils/mixin';
 import { StageExecutionEntity } from '../entities/stageExecution.entity';
 import { MultipleExecutionMixin } from '../../../domain/worker/mixins/system/multipleExecution.mixin';
 import { BodyInterface } from '../../../interfaces/body.interface';
+import { StageExecutionInterface } from '../../../interfaces/stageExecution.interface';
 
 export class StageExecutionService extends DynamicDatabase<StageExecutionEntity> {
     protected override entity = StageExecutionEntity;
     body: BodyInterface;
     uniqueId: string;
+    stageExecution: StageExecutionInterface;
+    index: number;
 
     addWhereWithModuleExecutionAndStageUidAndExecutionUidAndIndex(
         queryBuilder,

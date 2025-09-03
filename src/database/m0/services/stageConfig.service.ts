@@ -20,4 +20,13 @@ export class StageConfigService extends DynamicDatabase<StageConfigEntity> {
 
         return await queryBuilder.getMany();
     }
+
+    async findAllByProject(projectUid: string): Promise<StageConfigEntity[]> {
+        const queryBuilder = this.getRepository()
+            .createQueryBuilder('stageConfig')
+            .innerJoinAndSelect('stageConfig.moduleConfig', 'moduleConfig')
+            .where('moduleConfig.projectUid = :projectUid', { projectUid });
+
+        return await queryBuilder.getMany();
+    }
 }

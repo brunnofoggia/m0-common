@@ -1,10 +1,19 @@
-import { version as uuidVersion, validate as uuidValidate } from 'uuid';
+import { version as uuidVersion, validate as uuidValidate, v4 as uuidv4 } from 'uuid';
 
-export const uuidCheck = (value) => {
+export function uuidCheck(value: string): boolean {
     try {
-        if (value && uuidValidate(value) && uuidVersion(value) === 4) return true;
+        if (value) {
+            if (uuidValidate(value) && uuidVersion(value) === 4) {
+                return true;
+            }
+        }
     } catch (err) {
-        return false;
+        err;
     }
     return false;
-};
+}
+
+export function uuidGenerate(): string {
+    const uuid = uuidv4();
+    return uuid;
+}
