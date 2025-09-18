@@ -22,11 +22,21 @@ export class StageConfigService extends DynamicDatabase<StageConfigEntity> {
     }
 
     async findAllByProject(projectUid: string): Promise<StageConfigEntity[]> {
+        const queryBuilder = await this.findAllByProjectQueryBuilder(projectUid);
+        return await queryBuilder.getMany();
+    }
+
+    async findAllByProjectQueryBuilder(projectUid: string) {
         const queryBuilder = this.getRepository()
             .createQueryBuilder('stageConfig')
             .innerJoinAndSelect('stageConfig.moduleConfig', 'moduleConfig')
             .where('moduleConfig.projectUid = :projectUid', { projectUid });
+        return queryBuilder;
+    }
 
-        return await queryBuilder.getMany();
+    async findByProjectAndStage(projectUid: string, stageUid: string) {
+        const queryBuilder = await this.findAllByProjectQueryBuilder(projectUid);
+        queryBuilder.andWhere('stageConfig.stageUid = :stageUid', { stageUid });
+        return (await queryBuilder.getMany())?.shift();
     }
 }

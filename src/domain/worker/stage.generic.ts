@@ -35,13 +35,13 @@ import { SecretsMixin } from './mixins/system/secrets.mixin';
 import { DatabaseMixin } from './mixins/system/database.mixin';
 import { m0RequestErrorHandler } from '../../utils/request';
 
-export const worflowEventName = 'm0/workflow';
+export const workflowEventName = 'm0/workflow';
 
 export abstract class StageGeneric {
     static defaultWorker = 'index';
     static getSolutions;
 
-    readonly worflowEventName = worflowEventName;
+    readonly worflowEventName = workflowEventName;
 
     uniqueId: string;
     body: BodyInterface;
