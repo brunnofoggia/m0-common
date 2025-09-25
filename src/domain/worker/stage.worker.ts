@@ -121,6 +121,7 @@ export class StageWorker extends StageGeneric implements StageParts {
 
     async onInitialize(): Promise<void> {
         this.log('StageWorker onInitialize - opening M0 database connection');
+        // needed for state control on parallel worker v1
         await this.connectM0Database();
     }
 
