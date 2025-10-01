@@ -2,6 +2,7 @@ import { WorkerError } from '../../../worker/error';
 import { StageStructureProperties } from '../../../../interfaces/stageParts.interface';
 import { StageStatusEnum } from '../../../../types/stageStatus.type';
 import { PathMixin } from './path.mixin';
+import { MODULE } from '../../../../types/module.type';
 
 export abstract class SecretsMixin {
     abstract _getSolutions();
@@ -49,8 +50,18 @@ export abstract class SecretsMixin {
         return value;
     }
 
+    getM0SecretPath(name: string) {
+        const basePath = [MODULE.M0].join('/');
+        return this.buildSecretPath(name, basePath);
+    }
+
+    async getM0Secret(name: string) {
+        const basePath = [MODULE.M0].join('/');
+        return await this.getSecret(name, basePath);
+    }
+
     async getGlobalSecret(name: string, basePath: any = null) {
-        basePath === null && (basePath = ['mx'].join('/'));
+        basePath === null && (basePath = [MODULE.MX].join('/'));
         return await this.getSecret(name, basePath);
     }
 

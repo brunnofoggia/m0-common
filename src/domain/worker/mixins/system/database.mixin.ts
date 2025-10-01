@@ -7,6 +7,7 @@ import { importFileMixin } from '../../../../utils/importWorker';
 import { StateService } from '../../../../database/m0/mx/services/state.service';
 import { MonitorService } from '../../../../database/m0/mx/services/monitor.service';
 import { ConnectionDataOptions } from 'domain/worker/interfaces/connection';
+import { SecretsMixin } from './secrets.mixin';
 
 export abstract class DatabaseMixin {
     abstract uniqueId: string;
@@ -119,7 +120,7 @@ export abstract class DatabaseMixin {
                     alias: product,
                     database: MODULE.M0,
                     databaseDir: product,
-                    secretPath: this.getDatabaseSecretPath(),
+                    secretPath: this.getM0SecretPath('database'),
                 },
                 _options,
             );
@@ -199,4 +200,4 @@ export abstract class DatabaseMixin {
     }
 }
 
-export interface DatabaseMixin extends StageStructureProperties {}
+export interface DatabaseMixin extends StageStructureProperties, SecretsMixin {}
