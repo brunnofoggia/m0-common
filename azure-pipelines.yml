@@ -3,7 +3,7 @@ pool:
 trigger:
   batch: true
   branches:
-    include: [ 'refs/heads/main' ]
+    include: [ 'refs/heads/master' ]
 stages:
   - stage: Publish
     jobs:
