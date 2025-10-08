@@ -1,27 +1,30 @@
 pool:
-  vmImage: 'ubuntu-latest'
+    vmImage: 'ubuntu-latest'
 trigger:
-  batch: true
-  branches:
-    include: [ 'refs/heads/master' ]
+    batch: true
+    branches:
+        include: ['refs/heads/master']
 stages:
-  - stage: Publish
-    jobs:
-      - job: Publish
-        workspace:
-          clean: all
-        steps:
-          - task: NodeTool@0
-            inputs:
-              versionSpec: 22.x
-          - task: Npm@1
-            displayName: npm install
-            inputs:
-              workingDir: $(System.DefaultWorkingDirectory)
-              verbose: false
-          - task: Npm@1
-            displayName: npm publish
-            inputs:
-              command: custom
-              workingDir: $(System.DefaultWorkingDirectory)
-              customCommand: publish
+    - stage: Publish
+      jobs:
+          - job: Publish
+            workspace:
+                clean: all
+            steps:
+                - task: NodeTool@0
+                  inputs:
+                      versionSpec: 22.x
+                - task: npmAuthenticate@0
+                  inputs:
+                      workingFile: $(System.DefaultWorkingDirectory)/.npmrc
+                - task: Npm@1
+                  displayName: npm install
+                  inputs:
+                      workingDir: $(System.DefaultWorkingDirectory)
+                      verbose: false
+                - task: Npm@1
+                  displayName: npm publish
+                  inputs:
+                      command: custom
+                      workingDir: $(System.DefaultWorkingDirectory)
+                      customCommand: publish
