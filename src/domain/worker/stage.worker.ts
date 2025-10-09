@@ -377,7 +377,6 @@ export interface StageWorker
         DynamicWorkerMixin,
         InjectionMixin,
         ExecutionInfoMixin,
-        StagesMixin,
         DynamicDatabaseMixin {}
 
-applyMixins(StageWorker, [LifeCycleMixin, DynamicWorkerMixin, InjectionMixin, StagesMixin, DynamicDatabaseMixin]);
+applyMixins(StageWorker, [LifeCycleMixin, DynamicWorkerMixin, InjectionMixin, DynamicDatabaseMixin]);

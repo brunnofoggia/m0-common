@@ -34,6 +34,7 @@ import { PathMixin } from './mixins/system/path.mixin';
 import { SecretsMixin } from './mixins/system/secrets.mixin';
 import { DatabaseMixin } from './mixins/system/database.mixin';
 import { m0RequestErrorHandler } from '../../utils/request';
+import { StagesMixin } from './mixins/system/stages.mixin';
 
 export const workflowEventName = 'm0/workflow';
 
@@ -41,7 +42,7 @@ export abstract class StageGeneric {
     static defaultWorker = 'index';
     static getSolutions;
 
-    readonly worflowEventName = workflowEventName;
+    worflowEventName = workflowEventName;
 
     uniqueId: string;
     body: BodyInterface;
@@ -218,7 +219,7 @@ export abstract class StageGeneric {
         return params;
     }
 
-    async buildTriggerStageBody(stageUidAndExecutionUid_, options: any = {}, config: any = {}, root: any = {}) {
+    async buildTriggerStageBody(stageUidAndExecutionUid_, options: any = {}, config: any = {}, root: any = {}): Promise<any> {
         let stageUidAndExecutionUid = await this._prepareStageUidAndExecutionUid(stageUidAndExecutionUid_);
         root = this._prepareRootParams(root);
 
@@ -256,6 +257,7 @@ export abstract class StageGeneric {
 
 export interface StageGeneric
     extends StageStructureProperties,
+        StagesMixin,
         ConfigMixin,
         StatusMixin,
         RetryMixin,
@@ -274,6 +276,7 @@ export interface StageGeneric
         DatabaseMixin {}
 
 applyMixins(StageGeneric, [
+    StagesMixin,
     ConfigMixin,
     StatusMixin,
     RetryMixin,

@@ -1,13 +1,17 @@
 import { defaultsDeep, filter, isArray, sortBy } from 'lodash';
 
-import { StageGeneric } from '../../../../domain/worker/stage.generic';
-import { PathMixin } from './path.mixin';
 import { StageExecutionProvider } from '../../../../providers/stageExecution.provider';
 import { SnapshotProvider } from '../../../../providers/snapshot.provider';
 
+import { PathMixin } from './path.mixin';
+import { MultipleExecutionStageMixin } from './multipleExecution.mixin';
+import { SnapshotMixin } from '../snapshot.mixin';
+import { StackTriggerMixin } from './stackTrigger.mixin';
+import { ForwardedMixin, ForwardedResultsMixin } from './forwarded';
+
 export abstract class StagesMixin {
     parentStageConfig: any = {};
-    abstract forwardInternalOptions(): any;
+    abstract buildTriggerStageBody(stageUidAndExecutionUid_, options?: any, config?: any, root?: any): Promise<any>;
 
     isStageStatus(status: string) {
         return this.stageExecution.statusUid === status;
@@ -194,4 +198,10 @@ export abstract class StagesMixin {
     }
 }
 
-export interface StagesMixin extends StageGeneric, PathMixin {}
+export interface StagesMixin
+    extends MultipleExecutionStageMixin,
+        SnapshotMixin,
+        StackTriggerMixin,
+        ForwardedMixin,
+        ForwardedResultsMixin,
+        PathMixin {}
