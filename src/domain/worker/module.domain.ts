@@ -1,5 +1,5 @@
 import _debug from 'debug';
-const debug = _debug('worker:module');
+const debug = _debug('worker:debug:module');
 const log = _debug('worker:essential:module');
 
 import { size } from 'lodash';

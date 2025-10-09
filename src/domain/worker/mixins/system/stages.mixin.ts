@@ -81,6 +81,36 @@ export abstract class StagesMixin {
     getChildStage() {
         return this.stageConfig.config.childStage || this.stageConfig.config.splitStage;
     }
+
+    getRequiredStages(stageConfig) {
+        const _requiredStages = stageConfig.config.requiredStage;
+        return isArray(_requiredStages) ? _requiredStages : [_requiredStages];
+    }
+
+    getTriggeredRequiredStages(stageConfig) {
+        const triggerRequiredStageConfig = stageConfig.config.triggerRequiredStage;
+        if (!triggerRequiredStageConfig) return [];
+        let triggeredRequiredStages = [];
+
+        if (isArray(triggerRequiredStageConfig)) {
+            triggeredRequiredStages = [...triggerRequiredStageConfig];
+        }
+        // if triggerRequiredStage is empty it means no stage is triggered
+        else if (triggerRequiredStageConfig) {
+            if (typeof triggerRequiredStageConfig === 'string') {
+                triggeredRequiredStages.push(triggerRequiredStageConfig);
+            } else {
+                // trigger all required stages
+
+                // no need because is applied later below
+                // triggeredRequiredStages = [...this.getRequiredStagesWithForwardedExecutionUid(stageConfig)];
+
+                triggeredRequiredStages = [...this.getRequiredStages(stageConfig)];
+            }
+        }
+
+        return triggeredRequiredStages;
+    }
     // #endregion
 
     // #region child stage
