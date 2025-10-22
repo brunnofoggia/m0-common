@@ -1,6 +1,6 @@
 {
     "name": "m0-common",
-    "version": "2.105.16",
+    "version": "2.105.18",
     "description": "",
     "license": "ISC",
     "author": "Bruno Foggia",
@@ -20,7 +20,7 @@
         "api-link-aio": "^0.5.0",
         "decimal.js": "^10.6.0",
         "lodash": "^4.17.21",
-        "node-labs": "^0.9.5-alpha.1",
+        "node-labs": "^0.9.7",
         "uuid": "^13.0.0"
     },
     "devDependencies": {
