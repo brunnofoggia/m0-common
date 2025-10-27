@@ -14,16 +14,16 @@ export class StageExecutionEntity extends GenericEntity {
     moduleExecutionId: number;
 
     @Column(set({ name: 'data', type: 'jsonb', default: {} }))
-    data?: JSON;
+    data?: any;
 
     @Column(set({ name: 'error', type: 'jsonb', default: [] }))
-    error?: JSON;
+    error?: any;
 
     @Column(set({ name: 'result', type: 'jsonb', default: [] }))
-    result?: JSON;
+    result?: any;
 
     @Column(set({ name: 'system', type: 'jsonb', default: {} }))
-    system?: JSON;
+    system?: any;
 
     @Column({ name: 'stage_config_id' })
     stageConfigId: number;

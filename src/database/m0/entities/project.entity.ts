@@ -18,8 +18,11 @@ export class ProjectEntity extends TimestampEntity {
     @Column({ name: 'name' })
     name: string;
 
-    @Column(set({ name: 'config', type: 'jsonb' }))
-    config: JSON;
+    @Column(set({ name: 'config', type: 'jsonb', default: {} }))
+    config: any;
+
+    @Column(set({ name: 'options', type: 'jsonb', default: {} }))
+    options: any;
 
     @ManyToOne(() => EnterpriseEntity, (enterprise) => enterprise.projects)
     @JoinColumn({ name: 'enterprise_uid' })

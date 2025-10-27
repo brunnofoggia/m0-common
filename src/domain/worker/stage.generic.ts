@@ -93,6 +93,9 @@ export abstract class StageGeneric {
 
         this.project = this.moduleConfig.project;
         this.projectUid = projectUid || this.moduleConfig.projectUid || this.project.uid;
+
+        // XXX: undoing this bad idea of removing base field from project
+        if (!this.project.config) this.project.config = this.project._config;
     }
 
     _getSolutions() {

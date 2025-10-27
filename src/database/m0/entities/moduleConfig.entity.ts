@@ -17,10 +17,10 @@ export class ModuleConfigEntity extends GenericEntity {
     projectUid: string;
 
     @Column(set({ name: 'config', type: 'jsonb', default: {} }))
-    config?: JSON;
+    config?: any;
 
     @Column(set({ name: 'options', type: 'jsonb', default: {} }))
-    options?: JSON;
+    options?: any;
 
     @Column({ name: 'description', nullable: true })
     description: string;

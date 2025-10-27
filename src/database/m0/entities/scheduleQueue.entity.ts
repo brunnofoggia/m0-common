@@ -9,10 +9,10 @@ export class ScheduleQueueEntity extends GenericEntity {
     queueName: string;
 
     @Column(set({ name: 'body', type: 'jsonb', default: {} }))
-    body: JSON;
+    body: any;
 
     @Column(set({ name: 'config', type: 'jsonb' }))
-    config: JSON;
+    config: any;
 
     @Column(set({ name: 'date', type: 'timestamptz' }))
     date: Date;

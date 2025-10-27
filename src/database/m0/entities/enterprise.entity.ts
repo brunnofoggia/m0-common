@@ -14,10 +14,10 @@ export class EnterpriseEntity extends TimestampEntity {
     name: string;
 
     @Column(set({ name: 'config', type: 'jsonb' }))
-    config: JSON;
+    config: any;
 
     @Column(set({ name: 'data', type: 'jsonb' }))
-    data: JSON;
+    data: any;
 
     @OneToMany(() => ProjectEntity, (projects) => projects.enterprise)
     projects: ProjectEntity[];

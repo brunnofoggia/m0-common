@@ -73,8 +73,9 @@ export abstract class SnapshotMixin {
             moduleConfig = await this._createSnapshotForModuleConfig({ projectUid, transactionUid, stageUid, mergeSnapshot });
         }
 
+        const created = !size(moduleConfig) || forceUpdate_;
         const stageConfig = this.getStageConfigFromModule(stageUid, moduleConfig);
-        return { moduleConfig, stageConfig };
+        return { moduleConfig, stageConfig, created };
     }
 
     async reloadSnapshot({ projectUid = '', transactionUid, stageUid, mergeSnapshot = {} }) {
@@ -88,7 +89,7 @@ export abstract class SnapshotMixin {
     }
 
     async persistSnapshot({ projectUid = '', transactionUid, stageUid, forceUpdate = false, mergeSnapshot = {} }) {
-        let { moduleConfig, stageConfig } = await this.getSnapshotForModuleConfig({
+        let { moduleConfig, stageConfig, created } = await this.getSnapshotForModuleConfig({
             projectUid,
             transactionUid,
             stageUid,
@@ -108,7 +109,7 @@ export abstract class SnapshotMixin {
         }
 
         if (!size(stageConfig)) throw new Error(`Stage config not found (${stageUid})`);
-        return { moduleConfig, stageConfig, project: moduleConfig?.project };
+        return { moduleConfig, stageConfig, project: moduleConfig?.project, created };
     }
 }
 

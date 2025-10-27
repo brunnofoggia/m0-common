@@ -33,7 +33,7 @@ export class ModuleExecutionEntity extends GenericEntity {
     date?: Date;
 
     @Column(set({ name: 'data', type: 'jsonb', default: {} }))
-    data?: JSON;
+    data?: any;
 
     @ManyToOne(() => ProjectEntity, (project) => project.modulesExecution)
     @JoinColumn({ name: 'project_uid' })
