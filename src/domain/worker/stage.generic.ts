@@ -155,6 +155,12 @@ export abstract class StageGeneric {
     }
     // #endregion
 
+    // #region checkers
+    isLikeStageUid(text: string): boolean {
+        return /^\w+\/\w+/.test(text);
+    }
+    // #endregion
+
     async _findCurrentLastExecution() {
         try {
             return await StageExecutionProvider.findByTransactionAndModuleAndIndex(
@@ -239,6 +245,13 @@ export abstract class StageGeneric {
                     parentTransactionUid,
                 };
             }
+            // XXX: so aplicar diante de um exemplo logico que justifique essa contradição
+            // disparo de novas transactions mantendo o parentTransaction origem
+            // else if (configBla && isTransactionUidForcedBlank) {
+            //     refData.moduleExecutionData = {
+            //         parentTransactionUid,
+            //     };
+            // }
         }
 
         options = defaultsDeep(

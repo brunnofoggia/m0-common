@@ -1,6 +1,6 @@
 import _debug from 'debug';
 const debug = _debug('worker:stage:ParallelWorker');
-import { defaultsDeep, filter, map, omit, reduce, reverse, sortBy } from 'lodash';
+import { bind, defaultsDeep, filter, get, isArray, map, omit, reduce, reverse, sortBy } from 'lodash';
 import Decimal from 'decimal.js';
 
 import { applyMixins } from 'node-labs/lib/utils/mixin';
@@ -25,22 +25,6 @@ export abstract class ParallelWorkerGeneric {
 
     /* do not replace methods bellow */
     /* split lifecycle */
-    async afterSplitEnd(): Promise<void> {
-        await this.down();
-    }
-
-    async afterSplitFailed(): Promise<void> {
-        const childStageExecutionList = await this.findChildStageExecutionList();
-        const childErrors = this.getValueListFromErrorField(childStageExecutionList);
-        if (childErrors?.length) {
-            this.setExecutionInfoValue('childErrors', childErrors);
-        }
-    }
-
-    public async execute(): Promise<ResultInterface | null> {
-        const options = await this.splitExecuteOptions();
-        return await this.splitExecute(options);
-    }
 
     defineLimits(options) {
         const bulkLimit = !this.isProjectConfigActivated('limitRows') ? options.bulkLimit : this.limitRows;
@@ -78,7 +62,7 @@ export abstract class ParallelWorkerGeneric {
     getValueListFromInfoField(stageExecutionList, infoField) {
         return map(stageExecutionList, (stageExecution) => {
             const lastResult = this._getLastResult(stageExecution);
-            return (lastResult && lastResult.info && lastResult.info[infoField]) || 0;
+            return lastResult && lastResult.info && get(lastResult.info, infoField, 0);
         });
     }
 
@@ -121,6 +105,42 @@ export abstract class ParallelWorkerGeneric {
         };
     }
 
+    async afterSplitEnd(): Promise<void> {
+        await this.down();
+        await this.childDoneResult();
+    }
+
+    async afterSplitFailed(): Promise<void> {
+        const childStageExecutionList = await this.findChildStageExecutionList();
+        const childErrors = this.getValueListFromErrorField(childStageExecutionList);
+        if (childErrors?.length) {
+            this.setExecutionInfoValue('childErrors', childErrors);
+        }
+    }
+
+    public async execute(): Promise<ResultInterface | null> {
+        const options = await this.splitExecuteOptions();
+        return await this.splitExecute(options);
+    }
+
+    async childDoneResult(): Promise<void> {
+        const childStageExecutionList = await this.findChildStageExecutionList();
+        await this.childCalcResults(childStageExecutionList);
+    }
+
+    async childCalcResults(stageExecutionList) {
+        const calcChildResults = this.stageConfig.config.calcChildResults || [];
+        if (!isArray(calcChildResults) || !calcChildResults?.length) return;
+
+        for (const calcResult of calcChildResults) {
+            const { keyPath, outputKey, isDecimal = false } = calcResult;
+            const method = bind(isDecimal ? this.calcDecimalInfoField : this.calcInfoField, this);
+            const value = await method(stageExecutionList, keyPath);
+
+            this.setExecutionInfoValue(outputKey, value);
+        }
+    }
+
     /* replace methods bellow if needed */
     async beforeSplitStart(): Promise<void> {
         await this._stateService.clearByPrefix(this.getBaseKeyPrefix());
@@ -153,7 +173,7 @@ export abstract class ParallelWorkerGeneric {
         return await service.count(options);
     }
 
-    /* optional */
+    // #region optional
     async afterSplitStart(): Promise<void> {
         null;
     }
@@ -171,6 +191,7 @@ export abstract class ParallelWorkerGeneric {
     }
 
     abstract getLocalService();
+    // #endregion
 
     // #region legacy code
     async findSplitStageExecutionList() {

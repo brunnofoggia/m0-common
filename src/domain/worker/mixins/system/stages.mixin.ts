@@ -1,4 +1,4 @@
-import { defaultsDeep, filter, isArray, sortBy } from 'lodash';
+import { cloneDeep, defaultsDeep, filter, isArray, size, sortBy } from 'lodash';
 
 import { StageExecutionProvider } from '../../../../providers/stageExecution.provider';
 import { SnapshotProvider } from '../../../../providers/snapshot.provider';
@@ -12,6 +12,7 @@ import { ForwardedMixin, ForwardedResultsMixin } from './forwarded';
 export abstract class StagesMixin {
     parentStageConfig: any = {};
     abstract buildTriggerStageBody(stageUidAndExecutionUid_, options?: any, config?: any, root?: any): Promise<any>;
+    abstract isLikeStageUid(stageUid: string): boolean;
 
     isStageStatus(status: string) {
         return this.stageExecution.statusUid === status;
@@ -119,11 +120,17 @@ export abstract class StagesMixin {
 
     // #region child stage
     async triggerChildStage(options: any = {}, config: any = {}, root: any = {}) {
-        const stageUid = this.getChildStage() || root.stageUid;
+        let stageUid = this.getChildStage() || root.stageUid;
         if (!stageUid || this.stageExecution.data.options?._triggerChildStage === 0) return;
 
-        const body = await this.buildChildStageBody(options, config, root);
-        return this.addTriggerToStack(body);
+        if (!isArray(stageUid)) {
+            stageUid = [stageUid];
+        }
+
+        for (const stageUidItem of stageUid) {
+            const body = await this.buildChildStageBody(options, config, { ...root, stageUid: stageUidItem });
+            await this.addTriggerToStack(body);
+        }
     }
 
     async getChildStageDefaultOptions(): Promise<any> {
@@ -134,8 +141,20 @@ export abstract class StagesMixin {
         return defaultOptions;
     }
 
-    async buildChildStageOptions(options: any = {}): Promise<any> {
-        const _options = defaultsDeep({}, options, await this.getChildStageDefaultOptions(), this.forwardInternalOptions());
+    async buildChildStageOptions(options: any = {}, root_: any = {}): Promise<any> {
+        let childStageOptions = this._getTriggerParams(this.stageConfig.config.childStageOptions, root_.stageUid);
+        // let rootChildStageOptions = defaultsDeep({}, this.stageConfig.config.childStageOptions || {});
+        // if (root_.stageUid && rootChildStageOptions[root_.stageUid]) {
+        //     childStageOptions = rootChildStageOptions[root_.stageUid];
+        // }
+
+        const _options = defaultsDeep(
+            {},
+            childStageOptions,
+            options,
+            await this.getChildStageDefaultOptions(),
+            this.forwardInternalOptions(),
+        );
         return this.setForwardedResultsToTrigger(_options);
     }
 
@@ -168,7 +187,7 @@ export abstract class StagesMixin {
     }
 
     async buildChildStageBody(options_: any = {}, config_: any = {}, root_: any = {}) {
-        const options = await this.buildChildStageOptions(options_);
+        const options = await this.buildChildStageOptions(options_, root_);
         const config = await this.buildChildStageConfig(config_);
         const root = await this.buildChildStageRoot(root_);
 
@@ -195,6 +214,27 @@ export abstract class StagesMixin {
 
     async findStageExecutionListAfter(stageUid, executionUid = '') {
         return this._findStageExecutionListAfter(this.transactionUid, stageUid, executionUid);
+    }
+
+    _getTriggerParams(params, stageUidAndExecutionUid) {
+        let result = {};
+        if (!stageUidAndExecutionUid) return result;
+        const { stageUid } = this.separateStageUidAndExecutionUid(stageUidAndExecutionUid);
+
+        params = cloneDeep(params || {});
+        if (!size(params)) return result;
+
+        const firstKey = Object.keys(params)[0];
+        const stageParams = defaultsDeep({}, params[stageUidAndExecutionUid] || params[stageUid]);
+        if (size(stageParams) > 0) {
+            result = stageParams;
+        }
+        // assuming that the first option will be certain to decide if it is a stageUid
+        else if (!this.isLikeStageUid(firstKey)) {
+            result = params;
+        }
+
+        return result;
     }
 }
 

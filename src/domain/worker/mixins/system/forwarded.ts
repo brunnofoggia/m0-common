@@ -24,6 +24,25 @@ export abstract class ForwardedMixin {
             return /^_[a-zA-Z]/.test(key);
         });
     }
+
+    forwardInternalOptionsAndFlags(): any {
+        if (this.shouldForwardInternalOptions()) {
+            return this.forwardInternalOptions();
+        }
+
+        const options: any = {};
+        // if the user asks for force clean or force update snapshot
+        // even if it is not under forwardInternalOptions it should be passed along
+        // XXX: this feature caused many problems by sending undesired forclean to every step on a workflow
+        // if (this.isForceClean(true)) {
+        // options._forceClean = 1;
+        // }
+        if (this.stageExecution.data.options._forceUpdateSnapshot) {
+            options._forceUpdateSnapshot = 1;
+        }
+
+        return options;
+    }
 }
 
 export abstract class ForwardedResultsMixin {
