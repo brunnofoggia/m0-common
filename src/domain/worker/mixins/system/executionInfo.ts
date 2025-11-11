@@ -88,7 +88,7 @@ export abstract class ExecutionInfoMixin {
         this.executionError = new WorkerError(errorMessage, errorCode, errorStatus);
         // }
 
-        if (statusUid) this.executionStatusUid = statusUid;
+        if (statusUid) this.executionStatusUid = errorStatus;
         return this.executionError;
     }
 }
