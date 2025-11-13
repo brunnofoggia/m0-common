@@ -7,16 +7,22 @@ import { DateMixin } from './date.mixin';
 import dayjs from 'dayjs';
 
 export interface renderOptions {
+    // configs
     config: any;
     options: any;
     stageConfig: any;
     moduleConfig: any;
     projectConfig: any;
     project: any;
+    // execution
     moduleExecution: any;
     stageExecution: any;
+    // other data
     date: dayjs.Dayjs;
     env: string;
+    transactionUid: string;
+    executionUid: string;
+    projectUid: string;
     worker: any;
 }
 

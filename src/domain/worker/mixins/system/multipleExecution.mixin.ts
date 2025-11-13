@@ -6,6 +6,15 @@ import { ModuleStructureProperties } from '../../../../interfaces/stageParts.int
 import { StageExecutionInterface, StageUidAndExecutionUid } from '../../../../interfaces/stageExecution.interface';
 import { BodyInterface } from '../../../../interfaces/body.interface';
 
+// Exemplos de funções no executionUid:
+// :today() - substitui pela data atual no formato YYYYMMDD
+// :now() - substitui pela data e hora atual no formato YYYYMMDDHHMMSSmmm
+// :stageuid() - substitui pelo stageUid atual, com caracteres especiais substituídos por '-'
+// :index() - substitui pelo index atual
+// :keep() - mantém o executionUid atual (útil quando combinado com o encaminhamento de executionUid)
+// :random() - substitui por um número aleatório (dois números de 3 dígitos separados por '_')
+// :uniqueid() - substitui por um uniqueId gerado
+// :count() / :counter() - substitui por um contador que incrementa a cada chamada em todas as instâncias desta classe
 export abstract class MultipleExecutionMixin {
     abstract body: BodyInterface;
     abstract uniqueId: string;
@@ -133,9 +142,9 @@ export abstract class MultipleExecutionMixin {
     _buildExecutionUid_count(executionUid_) {
         if (!executionUid_) return executionUid_;
         if (!this['_MultipleExecutionMixinCount']) this['_MultipleExecutionMixinCount'] = 0;
-        const counter = this['_MultipleExecutionMixinCount']++;
+        const count = this['_MultipleExecutionMixinCount']++;
 
-        return executionUid_.replace(':count()', counter);
+        return executionUid_.replace(':count()', count);
     }
 
     async _buildExecutionUid(executionUid_, options: any = {}) {
