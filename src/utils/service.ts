@@ -63,7 +63,13 @@ export const countQuery = async (dataSource, query) => {
 export const buildColumnName = (tableAlias, columnPath) => {
     // allows use of functions like SUM, AVG, etc.
     // also allows to specify table.column format
-    if (/\W+/.test(columnPath)) {
+    const hasNonWordCharacters = /\W+/.test(columnPath);
+    if (hasNonWordCharacters) {
+        if (/^\w+\.\w+$/.test(columnPath)) {
+            const [tableAliasFromColumn, columnName] = columnPath.split('.');
+            return `"${tableAliasFromColumn}"."${columnName}"`;
+        }
+
         return columnPath;
     }
 
