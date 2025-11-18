@@ -5,23 +5,16 @@ import { PathMixin } from './path.mixin';
 import { MODULE } from '../../../../types/module.type';
 
 export abstract class SecretsMixin {
+    // #region abstract
     abstract _getSolutions();
     abstract getEnv(): string;
     abstract getFakeEnv(): string;
     abstract getProjectUid(): string;
+    // #endregion
 
+    // #region getters, setters
     getSecretsEnv() {
         return process.env.SECRETS_ENV || this.getFakeEnv();
-    }
-
-    buildSecretPath(name: string, basePath: any = null) {
-        const env = this.getSecretsEnv();
-        const path = ['', env];
-        basePath === null && (basePath = this.getProjectPath());
-        path.push(basePath);
-        path.push(name);
-
-        return path.join('/');
     }
 
     stripSlashesFromSecretName(secretName: string) {
@@ -36,49 +29,90 @@ export abstract class SecretsMixin {
         const { secrets } = await this._getSolutions();
         if (this.shouldClearSecrets()) secrets.clearCache();
     }
+    // #endregion
 
-    async getSecret(name: string, basePath: any = null) {
+    // #region path builders
+    buildSecretPath(name: string, basePath: any = null) {
+        const env = this.getSecretsEnv();
+        // starts with /dev /prd etc
+        const path = ['', env];
+
+        basePath === null && (basePath = this.getProjectPath());
+        path.push(basePath);
+
         name = this.stripSlashesFromSecretName(name);
+        path.push(name);
+
+        return path.join('/');
+    }
+
+    buildM0SecretPath(name: string) {
+        const basePath = this.getM0Path();
+        return this.buildSecretPath(name, basePath);
+    }
+
+    buildGlobalSecretPath(name: string) {
+        const basePath = this.getGlobalPath();
+        return this.buildSecretPath(name, basePath);
+    }
+
+    buildProjectSecretPath(name: string) {
+        const basePath = this.getProjectPath();
+        return this.buildSecretPath(name, basePath);
+    }
+
+    buildModuleSecretPath(name: string) {
+        const basePath = this.getProjectModulePath();
+        return this.buildSecretPath(name, basePath);
+    }
+
+    buildStageSecretPath(name: string) {
+        const basePath = this.getProjectStagePath();
+        return this.buildSecretPath(name, basePath);
+    }
+    // #endregion
+
+    // #region secret getters
+    async getSecretValueByPath(secretPath: string) {
+        await this.clearSecretsCache();
         const { secrets } = await this._getSolutions();
 
-        await this.clearSecretsCache();
-
-        const secretPath = this.buildSecretPath(name, basePath);
         const value = await secrets.getSecretValue(secretPath);
         if (!value) throw new WorkerError(`secret:value not found for ${secretPath}`, StageStatusEnum.FAILED);
 
         return value;
     }
 
-    getM0SecretPath(name: string) {
-        const basePath = [MODULE.M0].join('/');
-        return this.buildSecretPath(name, basePath);
+    async getSecret(name: string, basePath: any = null) {
+        const secretPath = this.buildSecretPath(name, basePath);
+        return await this.getSecretValueByPath(secretPath);
     }
 
     async getM0Secret(name: string) {
-        const basePath = [MODULE.M0].join('/');
-        return await this.getSecret(name, basePath);
+        const m0SecretPath = this.buildM0SecretPath(name);
+        return await this.getSecretValueByPath(m0SecretPath);
     }
 
-    async getGlobalSecret(name: string, basePath: any = null) {
-        basePath === null && (basePath = [MODULE.MX].join('/'));
-        return await this.getSecret(name, basePath);
+    async getGlobalSecret(name: string) {
+        const secretPath = this.buildGlobalSecretPath(name);
+        return await this.getSecretValueByPath(secretPath);
     }
 
-    async getProjectSecret(name: string, basePath: any = null) {
-        basePath === null && (basePath = this.getProjectPath());
-        return await this.getSecret(name, basePath);
+    async getProjectSecret(name: string) {
+        const secretPath = this.buildProjectSecretPath(name);
+        return await this.getSecretValueByPath(secretPath);
     }
 
-    async getModuleSecret(name: string, basePath: any = null) {
-        basePath === null && (basePath = this.getProjectModulePath());
-        return await this.getSecret(name, basePath);
+    async getModuleSecret(name: string) {
+        const secretPath = this.buildModuleSecretPath(name);
+        return await this.getSecretValueByPath(secretPath);
     }
 
-    async getStageSecret(name: string, basePath: any = null) {
-        basePath === null && (basePath = this.getProjectStagePath());
-        return await this.getSecret(name, basePath);
+    async getStageSecret(name: string) {
+        const secretPath = this.buildStageSecretPath(name);
+        return await this.getSecretValueByPath(secretPath);
     }
+    // #endregion
 }
 
 export interface SecretsMixin extends StageStructureProperties, PathMixin {}

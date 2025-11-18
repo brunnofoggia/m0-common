@@ -1,12 +1,27 @@
+import dayjs from 'dayjs';
 import { StageUidAndExecutionUid } from '../../../../interfaces/stageExecution.interface';
 import { StageStructureProperties } from '../../../../interfaces/stageParts.interface';
+import { MODULE } from '../../../../types/module.type';
+import { DateMixin } from './date.mixin';
 
 export interface PathProperties {
+    m0Path: string;
+    globalPath: string;
+    globalDatedPath: string;
+    // new names
+    transactionPath: string;
+    modulePath: string;
+    stagePath: string;
+    executionPath: string;
+    projectSharedPath: string;
+    // new names end
+    // legacy names
     rootDir: string;
     moduleDir: string;
     stageDir: string;
     executionDir: string;
     projectSharedDir: string;
+    // legacy names end
 
     projectPath: string;
     projectModulePath: string;
@@ -18,17 +33,30 @@ export interface PathProperties {
 }
 
 export abstract class PathMixin {
+    // #region abstract
     abstract getProjectUid(): string;
     abstract getEnv(): string;
     abstract getFakeEnv(): string;
     abstract separateStageUidAndExecutionUid(stageUidAndExecUid: string): StageUidAndExecutionUid;
+    // #endregion
 
+    // #region path properties
+    // new names
+    transactionPath: string;
+    modulePath: string;
+    stagePath: string;
+    executionPath: string;
+    // new names end
+    // legacy names
     rootDir: string;
     moduleDir: string;
     stageDir: string;
     executionDir: string;
+    // legacy names end
 
-    internalPath: string;
+    globalPath: string;
+    globalDatedPath: string;
+    m0Path: string;
     projectPath: string;
     projectModulePath: string;
     projectStagePath: string;
@@ -37,130 +65,39 @@ export abstract class PathMixin {
     sharedPath: string;
     sharedModulePath: string;
     sharedStagePath: string;
+    // #endregion
 
+    // #region getters
     getStorageEnv() {
         return process.env.STORAGE_ENV || this.getFakeEnv();
     }
 
-    setPaths() {
-        this.setPathRoot();
-        this.setPathModule();
-        this.setPathStage();
-        this.setProjectSharedPath();
-
-        this.setSharedPath();
-        this.setSharedModulePath();
-        this.setSharedStagePath();
+    getM0Path() {
+        return this.m0Path;
     }
 
-    setPathRoot() {
-        this.projectPath = this.getProjectUid();
-        this.rootDir = this.buildRootDir();
+    getGlobalPath() {
+        return this.globalPath;
     }
 
-    setPathModule() {
-        this.moduleDir = [this.rootDir, this.moduleConfig.moduleUid].join('/');
-        this.projectModulePath = [this.projectPath, this.moduleUid].join('/');
+    getGlobalDatedPath() {
+        return this.globalDatedPath;
     }
 
-    setPathStage() {
-        const stageDir = [this.rootDir, this.stageConfig.stageUid];
-        this.stageDir = stageDir.join('/');
-
-        if (this.executionUid) stageDir.push(this.executionUid);
-        this.executionDir = stageDir.join('/');
-
-        this.projectStagePath = [this.projectPath, this.stageUid].join('/');
-    }
-
-    buildRootDir(transactionUid = '') {
-        const _transactionUid = transactionUid || this.transactionUid;
-        const rootDir = [];
-        // bucket can be switched just by creating another one
-        // const envPath = this.getStorageEnv();
-        // if (envPath) rootDir.push(envPath);
-
-        rootDir.push(this.projectPath);
-        rootDir.push(_transactionUid);
-
-        return rootDir.join('/');
-    }
-
-    setProjectSharedPath() {
-        const projectSharedDir = [];
-        projectSharedDir.push(this.projectPath);
-        projectSharedDir.push('shared');
-
-        this.projectSharedPath = projectSharedDir.join('/');
-    }
-
-    setSharedPath() {
-        const sharedDir = [];
-        sharedDir.push('shared');
-
-        this.sharedPath = sharedDir.join('/');
-    }
-
-    setSharedModulePath() {
-        const sharedModuleDir = [];
-        sharedModuleDir.push(this.sharedPath);
-        sharedModuleDir.push(this.moduleConfig.moduleUid);
-
-        this.sharedModulePath = sharedModuleDir.join('/');
-    }
-
-    setSharedStagePath() {
-        const sharedStageDir = [];
-        sharedStageDir.push(this.sharedPath);
-        sharedStageDir.push(this.stageConfig.stageUid);
-
-        this.sharedStagePath = sharedStageDir.join('/');
-    }
-
-    // buildExecutionDir(stageUid: string, executionUid: string) {
-    //     const stageDir = [this.rootDir, stageUid];
-    //     if (executionUid) stageDir.push(executionUid);
-    //     return stageDir.join('/');
-
-    // }
-
-    buildStageDir(stageUidAndExecutionUid: string, rootDir = '') {
-        const { stageUid } = this.separateStageUidAndExecutionUid(stageUidAndExecutionUid);
-
-        const stageDir = [rootDir || this.rootDir, stageUid];
-        return stageDir.join('/');
-    }
-
-    buildExecutionDir(stageUidAndExecutionUid: string, executionUid_ = '', rootDir = '') {
-        const { stageUid, executionUid } = this.separateStageUidAndExecutionUid(stageUidAndExecutionUid);
-        if (!executionUid_ && executionUid) {
-            executionUid_ = executionUid;
-        }
-
-        const executionDir = [this.buildStageDir(stageUid, rootDir)];
-        if (executionUid_) executionDir.push(executionUid_);
-        return executionDir.join('/');
-    }
-
-    buildExecutionDirWithCurrentExecutionUid(stageUid: string, rootDir = '') {
-        return this.buildExecutionDir(stageUid, this.executionUid, rootDir);
-    }
-
-    // #region getters
     getRootDir() {
-        return this.rootDir;
+        return this.transactionPath;
     }
 
     getModuleDir() {
-        return this.moduleDir;
+        return this.modulePath;
     }
 
     getStageDir() {
-        return this.stageDir;
+        return this.stagePath;
     }
 
     getExecutionDir() {
-        return this.executionDir;
+        return this.executionPath;
     }
 
     getProjectPath() {
@@ -177,20 +114,171 @@ export abstract class PathMixin {
 
     getAllPaths(): PathProperties {
         return {
-            rootDir: this.rootDir,
-            moduleDir: this.moduleDir,
-            stageDir: this.stageDir,
-            executionDir: this.executionDir,
+            m0Path: this.m0Path,
+            globalPath: this.globalPath,
+            globalDatedPath: this.globalDatedPath,
+            // new names
+            transactionPath: this.transactionPath,
+            modulePath: this.modulePath,
+            stagePath: this.stagePath,
+            executionPath: this.executionPath,
+            projectSharedPath: this.projectSharedPath,
+            // new names end
+            // legacy names
+            rootDir: this.transactionPath,
+            moduleDir: this.modulePath,
+            stageDir: this.stagePath,
+            executionDir: this.executionPath,
+            projectSharedDir: this.projectSharedPath,
+            // legacy names end
             projectPath: this.projectPath,
             projectModulePath: this.projectModulePath,
             projectStagePath: this.projectStagePath,
-            projectSharedDir: this.projectSharedPath,
             sharedPath: this.sharedPath,
             sharedModulePath: this.sharedModulePath,
             sharedStagePath: this.sharedStagePath,
         };
     }
     // #endregion
+
+    // #region path setters
+    setPaths() {
+        this.setM0Path();
+        this.setGlobalPath();
+        this.setGlobalDatedPath();
+
+        this.setPathRoot();
+        this.setPathModule();
+        this.setPathStage();
+        this.setProjectSharedPath();
+
+        this.setSharedPath();
+        this.setSharedModulePath();
+        this.setSharedStagePath();
+    }
+
+    setPathRoot() {
+        this.projectPath = this.getProjectUid();
+        this.transactionPath = this.buildRootDir();
+        this.rootDir = this.transactionPath;
+    }
+
+    setPathModule() {
+        this.modulePath = [this.transactionPath, this.moduleConfig.moduleUid].join('/');
+        this.moduleDir = this.modulePath;
+        this.projectModulePath = [this.projectPath, this.moduleUid].join('/');
+    }
+
+    setPathStage() {
+        const stagePath = [this.transactionPath, this.stageConfig.stageUid];
+        this.stagePath = stagePath.join('/');
+        this.stageDir = this.stagePath;
+
+        if (this.executionUid) stagePath.push(this.executionUid);
+        this.executionPath = stagePath.join('/');
+        this.executionDir = this.executionPath;
+
+        this.projectStagePath = [this.projectPath, this.stageUid].join('/');
+    }
+
+    setProjectSharedPath() {
+        const projectSharedPath = [];
+        projectSharedPath.push(this.projectPath);
+        projectSharedPath.push('shared');
+
+        this.projectSharedPath = projectSharedPath.join('/');
+    }
+
+    setM0Path() {
+        const dir = [];
+        dir.push(MODULE.M0);
+
+        this.m0Path = dir.join('/');
+    }
+
+    setGlobalPath() {
+        const dir = [];
+        dir.push(MODULE.MX);
+
+        this.globalPath = dir.join('/');
+    }
+
+    setGlobalDatedPath() {
+        const dir = [this.globalPath];
+        dir.push(this.getDate().format('YYYYMMDD'));
+
+        this.globalDatedPath = dir.join('/');
+    }
+
+    setSharedPath() {
+        const sharedPath = [];
+        sharedPath.push(MODULE.SHARED);
+
+        this.sharedPath = sharedPath.join('/');
+    }
+
+    setSharedModulePath() {
+        const sharedModulePath = [];
+        sharedModulePath.push(this.sharedPath);
+        sharedModulePath.push(this.moduleConfig.moduleUid);
+
+        this.sharedModulePath = sharedModulePath.join('/');
+    }
+
+    setSharedStagePath() {
+        const sharedStagePath = [];
+        sharedStagePath.push(this.sharedPath);
+        sharedStagePath.push(this.stageConfig.stageUid);
+
+        this.sharedStagePath = sharedStagePath.join('/');
+    }
+    // #endregion
+
+    // #region path builders
+    buildEnvPath(path: string, env = null) {
+        env = env || this.getEnv();
+        const fullPath = [];
+        fullPath.push(env);
+        if (path) fullPath.push(path);
+
+        return fullPath.join('/');
+    }
+
+    buildRootDir(transactionUid = '') {
+        const _transactionUid = transactionUid || this.transactionUid;
+        const rootPath = [];
+        // bucket can be switched just by creating another one
+        // const envPath = this.getStorageEnv();
+        // if (envPath) rootPath.push(envPath);
+
+        rootPath.push(this.projectPath);
+        rootPath.push(_transactionUid);
+
+        return rootPath.join('/');
+    }
+
+    buildStageDir(stageUidAndExecutionUid: string, rootPath = '') {
+        const { stageUid } = this.separateStageUidAndExecutionUid(stageUidAndExecutionUid);
+
+        const stageDir = [rootPath || this.transactionPath, stageUid];
+        return stageDir.join('/');
+    }
+
+    buildExecutionDir(stageUidAndExecutionUid: string, executionUid_ = '', rootPath = '') {
+        const { stageUid, executionUid } = this.separateStageUidAndExecutionUid(stageUidAndExecutionUid);
+        if (!executionUid_ && executionUid) {
+            executionUid_ = executionUid;
+        }
+
+        const executionDir = [this.buildStageDir(stageUid, rootPath)];
+        if (executionUid_) executionDir.push(executionUid_);
+        return executionDir.join('/');
+    }
+
+    buildExecutionDirWithCurrentExecutionUid(stageUid: string, rootPath = '') {
+        return this.buildExecutionDir(stageUid, this.executionUid, rootPath);
+    }
+    // #endregion
 }
 
-export interface PathMixin extends StageStructureProperties {}
+export interface PathMixin extends StageStructureProperties, DateMixin {}

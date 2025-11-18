@@ -120,7 +120,7 @@ export abstract class DatabaseMixin {
                     alias: product,
                     database: MODULE.M0,
                     databaseDir: product,
-                    secretPath: this.getM0SecretPath('database'),
+                    secretPath: this.buildM0SecretPath('database'),
                 },
                 _options,
             );

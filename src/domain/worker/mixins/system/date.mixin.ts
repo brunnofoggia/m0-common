@@ -21,7 +21,7 @@ export abstract class DateMixin {
         return timezoneString + (addMinutes ? ':00' : '');
     }
 
-    getDate(date = undefined, keepLocalTime = false, _customTimezoneOffset = null): dayjs.Dayjs {
+    getDate(date: any = undefined, keepLocalTime: boolean = false, _customTimezoneOffset: number | null = null): dayjs.Dayjs {
         (typeof date === 'undefined' || date === null) && (date = this.moduleExecution?.date || new Date());
         const timezoneOffset = this.getTimezoneOffset(_customTimezoneOffset);
         return getDateForTimezone(timezoneOffset, date, keepLocalTime);
