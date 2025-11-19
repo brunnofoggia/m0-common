@@ -65,15 +65,16 @@ export abstract class SnapshotMixin {
 
     async getSnapshotForModuleConfig({ projectUid = '', transactionUid, stageUid, forceUpdate = false, mergeSnapshot = {} }) {
         const forceUpdate_ = +forceUpdate;
-        let moduleConfig;
+        let moduleConfig,
+            created = false;
 
         if (!forceUpdate_) moduleConfig = await SnapshotProvider.findModuleConfig(projectUid, transactionUid, stageUid, forceUpdate_);
         if (!size(moduleConfig) || forceUpdate_) {
             // create / update a snapshot
             moduleConfig = await this._createSnapshotForModuleConfig({ projectUid, transactionUid, stageUid, mergeSnapshot });
+            created = true;
         }
 
-        const created = !size(moduleConfig) || forceUpdate_;
         const stageConfig = this.getStageConfigFromModule(stageUid, moduleConfig);
         return { moduleConfig, stageConfig, created };
     }
