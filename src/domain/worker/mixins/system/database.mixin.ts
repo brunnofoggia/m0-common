@@ -8,6 +8,7 @@ import { StateService } from '../../../../database/m0/mx/services/state.service'
 import { MonitorService } from '../../../../database/m0/mx/services/monitor.service';
 import { ConnectionDataOptions } from 'domain/worker/interfaces/connection';
 import { SecretsMixin } from './secrets.mixin';
+import { MxDatabaseAlias } from 'database/mx/types/mxModule';
 
 export abstract class DatabaseMixin {
     abstract uniqueId: string;
@@ -121,6 +122,26 @@ export abstract class DatabaseMixin {
                     database: MODULE.M0,
                     databaseDir: product,
                     secretPath: this.buildM0SecretPath('database'),
+                },
+                _options,
+            );
+            return await DynamicDatabase.setDataSource(options);
+        } catch (error) {
+            console.error(`Error connecting to M0 database: ${error.message}`);
+            throw error;
+        }
+    }
+
+    async connectMXDatabase(_options: any = {}) {
+        try {
+            const alias = MxDatabaseAlias;
+            const options = defaultsDeep(
+                {
+                    poolId: this.getPoolId(),
+                    alias: alias,
+                    database: alias,
+                    databaseDir: alias,
+                    secretPath: this.buildGlobalSecretPath('database'),
                 },
                 _options,
             );
