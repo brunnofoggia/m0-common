@@ -8,7 +8,7 @@ import { StateService } from '../../../../database/m0/mx/services/state.service'
 import { MonitorService } from '../../../../database/m0/mx/services/monitor.service';
 import { ConnectionDataOptions } from 'domain/worker/interfaces/connection';
 import { SecretsMixin } from './secrets.mixin';
-import { MxDatabaseAlias } from 'database/mx/types/mxModule';
+import { MxDatabaseAlias } from '../../../../database/mx/types/mxModule';
 
 export abstract class DatabaseMixin {
     abstract uniqueId: string;
