@@ -1,5 +1,6 @@
 import { uniqueId as _uniqueId } from 'lodash';
 
 export function processUniqueId() {
-    return [_uniqueId('worker:'), new Date().toISOString()].join(':');
+    const date = new Date().toISOString().replace(/[-:.]/g, '');
+    return [_uniqueId('worker:'), date].join(':');
 }

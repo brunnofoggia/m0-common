@@ -35,6 +35,7 @@ import { SecretsMixin } from './mixins/system/secrets.mixin';
 import { DatabaseMixin } from './mixins/system/database.mixin';
 import { m0RequestErrorHandler } from '../../utils/request';
 import { StagesMixin } from './mixins/system/stages.mixin';
+import { processUniqueId } from './utils/uniqueId';
 
 export const workflowEventName = 'm0/workflow';
 
@@ -104,8 +105,8 @@ export abstract class StageGeneric {
     }
 
     _setUniqueId(_uniqueId = '') {
-        !_uniqueId && (_uniqueId = [uniqueId('worker:'), new Date().toISOString()].join(':'));
-        this.uniqueId = _uniqueId;
+        !_uniqueId && (_uniqueId = processUniqueId());
+        return (this.uniqueId = _uniqueId);
     }
 
     _checkResult(result) {
