@@ -7,6 +7,11 @@ export interface EnterpriseInterface extends TimestampInterface {
     config: {
         [key: string]: any;
     };
-    data: JSON;
+    options: {
+        [key: string]: any;
+    };
+    data: {
+        [key: string]: any;
+    };
     projects?: Array<ProjectInterface>;
 }

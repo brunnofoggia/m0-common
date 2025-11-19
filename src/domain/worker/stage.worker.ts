@@ -322,11 +322,11 @@ export class StageWorker extends StageGeneric implements StageParts {
 
     // #region worker name, version, file
     static _getWorker(stageConfig, project) {
-        return stageConfig?.config?.worker || project?._config?.defaultWorker || StageGeneric._getDefaultWorker();
+        return stageConfig?.config?.worker || project?.config?.defaultWorker || StageGeneric._getDefaultWorker();
     }
 
     static _getWorkerVersion(stageConfig, project) {
-        return stageConfig?.config?.version || project?._config?.defaultVersion || '';
+        return stageConfig?.config?.version || project?.config?.defaultVersion || '';
     }
 
     static _getWorkerFile(stageConfig, project) {

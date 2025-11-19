@@ -9,7 +9,7 @@ export abstract class DateMixin {
 
     getTimezoneOffset(_customTimezoneOffset = null) {
         const timezoneOffset =
-            !_customTimezoneOffset && _customTimezoneOffset !== 0 ? this.project?._config?.timezoneOffset : _customTimezoneOffset;
+            !_customTimezoneOffset && _customTimezoneOffset !== 0 ? this.project?.config?.timezoneOffset : _customTimezoneOffset;
         return +(timezoneOffset || 0);
     }
 

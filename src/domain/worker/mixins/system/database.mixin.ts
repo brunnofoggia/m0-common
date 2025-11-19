@@ -105,8 +105,8 @@ export abstract class DatabaseMixin {
     }
 
     getDatabaseSecretPath() {
-        if (this.project._config?.database?.connectBySecret) {
-            const secretPath = this.project._config?.database?.secretPath || this.getDefaultDatabaseSecretPath();
+        if (this.project.config?.database?.connectBySecret) {
+            const secretPath = this.project.config?.database?.secretPath || this.getDefaultDatabaseSecretPath();
             return secretPath;
         }
     }

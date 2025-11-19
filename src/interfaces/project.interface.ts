@@ -10,6 +10,9 @@ export interface ProjectInterface extends TimestampInterface {
     config?: {
         [key: string]: any;
     };
+    options: {
+        [key: string]: any;
+    };
     _config?: {
         [key: string]: any;
     };

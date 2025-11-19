@@ -13,10 +13,13 @@ export class EnterpriseEntity extends TimestampEntity {
     @Column({ name: 'name' })
     name: string;
 
-    @Column(set({ name: 'config', type: 'jsonb' }))
+    @Column(set({ name: 'config', type: 'jsonb', default: {} }))
     config: any;
 
-    @Column(set({ name: 'data', type: 'jsonb' }))
+    @Column(set({ name: 'options', type: 'jsonb', default: {} }))
+    options: any;
+
+    @Column(set({ name: 'data', type: 'jsonb', default: {} }))
     data: any;
 
     @OneToMany(() => ProjectEntity, (projects) => projects.enterprise)

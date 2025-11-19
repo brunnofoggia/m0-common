@@ -6,13 +6,13 @@ export abstract class RetryMixin {
             options.retryInterval ||
             this.stageConfig.config.retryInterval ||
             this.moduleConfig.config.retryInterval ||
-            this.project._config.retryInterval ||
+            this.project.config.retryInterval ||
             5
         );
     }
 
     getRetryLimit() {
-        return this.stageConfig.config.retryLimit || this.moduleConfig.config.retryLimit || this.project._config.retryLimit || 3;
+        return this.stageConfig.config.retryLimit || this.moduleConfig.config.retryLimit || this.project.config.retryLimit || 3;
     }
 
     getRetryAttempt(increaseByOne = false) {

@@ -10,8 +10,8 @@ export abstract class DynamicDatabaseMixin {
 
     getDynamicDatabaseName() {
         const dynamicDatabaseName = [];
-        if (this.project._config?.database?.dynamicDatabaseNamePrefix) {
-            dynamicDatabaseName.push(this.project._config?.database?.dynamicDatabaseNamePrefix);
+        if (this.project.config?.database?.dynamicDatabaseNamePrefix) {
+            dynamicDatabaseName.push(this.project.config?.database?.dynamicDatabaseNamePrefix);
         }
         dynamicDatabaseName.push(this.rootDir.replace(/\//g, '-'));
         dynamicDatabaseName.push(this.getProductName());
