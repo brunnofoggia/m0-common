@@ -26,14 +26,50 @@ export interface renderOptions {
     worker: any;
 }
 
+export function renderTemplates(data: any, options: renderOptions | any = {}, templateEngine = null): any {
+    if (isString(data)) {
+        try {
+            return this.renderTemplate(data, options, templateEngine);
+        } catch (error) {
+            debug(`Error building template for input "${data}":`, error);
+            throw new Error(`Invalid template: ${data}`);
+        }
+    }
+
+    for (const key in data) {
+        let value = data[key];
+        if (isArray(value) || isObject(value) || isString(value)) {
+            value = renderTemplates(value, options, templateEngine);
+        }
+        data[key] = value;
+    }
+
+    return data;
+}
+
+export function renderTemplate(text, options: renderOptions | any = {}, templateEngine = null): string {
+    const _templateEngine = templateEngine || template;
+    const _template = isString(text) ? _templateEngine(text) : text;
+
+    return _template(options);
+}
+
+export function isTemplateExpression(text: string): boolean {
+    return isString(text) && text.includes('<%=');
+}
+
+export function isTemplateRenderedTruthy(text) {
+    const _text = (text + '').trim();
+    return _text === 'true' || _text === '1';
+}
+
 export abstract class TemplateMixin {
     isTemplateExpression(text: string): boolean {
-        return isString(text) && text.includes('<%=');
+        return isTemplateExpression(text);
     }
 
     isTemplateRenderedTruthy(text) {
-        const _text = (text + '').trim();
-        return _text === 'true' || _text === '1';
+        return isTemplateRenderedTruthy(text);
     }
 
     compileTemplates(data: any) {
@@ -56,31 +92,17 @@ export abstract class TemplateMixin {
     }
 
     renderTemplates(data: any, options: renderOptions | any = {}, templateEngine = null): any {
-        if (isString(data)) {
-            try {
-                return this.renderTemplate(data, options, templateEngine);
-            } catch (error) {
-                debug(`Error building template for input "${data}":`, error);
-                throw new Error(`Invalid template: ${data}`);
-            }
-        }
-
-        for (const key in data) {
-            let value = data[key];
-            if (isArray(value) || isObject(value) || isString(value)) {
-                value = this.renderTemplates(value, options, templateEngine);
-            }
-            data[key] = value;
-        }
-
-        return data;
+        const _options = this.getTemplateOptions(options);
+        return renderTemplates(data, _options, templateEngine);
     }
 
     renderTemplate(text, options: renderOptions | any = {}, templateEngine = null): string {
-        const _templateEngine = templateEngine || template;
-        const _template = isString(text) ? _templateEngine(text) : text;
+        const _options = this.getTemplateOptions(options);
+        return renderTemplate(text, _options, templateEngine);
+    }
 
-        const _options = {
+    getTemplateOptions(options: any): any {
+        return {
             ...options,
             ...this.getAllPaths(),
             // configs
@@ -101,7 +123,6 @@ export abstract class TemplateMixin {
             projectUid: this.getProjectUid(),
             worker: this,
         };
-        return _template(_options);
     }
 }
 
