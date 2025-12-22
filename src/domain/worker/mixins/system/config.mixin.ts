@@ -1,4 +1,4 @@
-import { cloneDeep, defaultsDeep, isNumber, isString, size } from 'lodash';
+import { cloneDeep, defaultsDeep, get, isNumber, isString, size } from 'lodash';
 
 import { StageStructureProperties } from '../../../../interfaces/stageParts.interface';
 
@@ -29,7 +29,7 @@ export abstract class ConfigMixin {
     _getConfigValue(configHolder, configName, configKey = 'config') {
         const holder = this._getConfigHolder(configHolder) || {};
         const config = holder[configKey] || {};
-        return config[configName] || undefined;
+        return get(config, configName, undefined);
     }
     // #endregion
 

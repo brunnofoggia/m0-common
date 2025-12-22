@@ -1,3 +1,5 @@
+import { capitalize, chain } from 'lodash';
+
 export enum StageStatusEnum {
     INITIAL = 'I',
     WAITING = 'W',
@@ -11,6 +13,11 @@ export enum StageStatusEnum {
     // UNEXPECTED FAILS SHOULD NOT BE EXECUTED AGAIN
     UNKNOWN = 'U',
 }
+
+export const StageStatusName = chain(StageStatusEnum)
+    .invert()
+    .mapValues((v) => v.toLowerCase())
+    .value();
 
 export const StageStatusProcess = [StageStatusEnum.INITIAL, StageStatusEnum.WAITING, StageStatusEnum.PROCESS, StageStatusEnum.ASYNC];
 export const StageStatusError = [StageStatusEnum.ERROR, StageStatusEnum.FAILED, StageStatusEnum.UNKNOWN];

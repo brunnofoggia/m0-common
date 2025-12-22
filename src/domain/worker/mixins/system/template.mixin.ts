@@ -29,7 +29,7 @@ export interface renderOptions {
 export function renderTemplates(data: any, options: renderOptions | any = {}, templateEngine = null): any {
     if (isString(data)) {
         try {
-            return this.renderTemplate(data, options, templateEngine);
+            return renderTemplate(data, options, templateEngine);
         } catch (error) {
             debug(`Error building template for input "${data}":`, error);
             throw new Error(`Invalid template: ${data}`);
