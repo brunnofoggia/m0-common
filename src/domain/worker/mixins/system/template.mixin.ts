@@ -117,6 +117,7 @@ export abstract class TemplateMixin {
             stageExecution: this.stageExecution,
             // other data
             date: this.getDate(),
+            currentDate: this.getDate(new Date()),
             env: this.getStorageEnv(),
             transactionUid: this.transactionUid,
             executionUid: this.executionUid,
