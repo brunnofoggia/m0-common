@@ -27,6 +27,9 @@ export class StageConfigEntity extends GenericEntity {
     @Column({ name: 'description', nullable: true })
     description: string;
 
+    @Column({ name: 'tags', nullable: true })
+    tags: string;
+
     @ManyToOne(() => ModuleConfigEntity, (moduleConfig) => moduleConfig.stagesConfig)
     @JoinColumn({ name: 'module_config_id' })
     moduleConfig: ModuleConfigEntity;
