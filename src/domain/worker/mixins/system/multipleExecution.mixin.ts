@@ -1,4 +1,4 @@
-import { isNaN, isNumber, random, size, uniqueId } from 'lodash';
+import { isNumber, random, uniqueId } from 'lodash';
 
 import { applyMixins } from 'node-labs/lib/utils/mixin';
 
@@ -22,12 +22,9 @@ export abstract class MultipleExecutionMixin {
     abstract stageExecution: StageExecutionInterface;
     abstract index: number;
 
-    // getIndex(): number {
-    //     const bodyIndex = this.body?.options?.index;
-
-    //     const index = bodyIndex;
-    //     return index === undefined || index === null || index === false ? -1 : +index;
-    // }
+    getStageExecutionSplitter() {
+        return '#';
+    }
 
     setIndex() {
         this.index = this.defineIndex();
@@ -56,8 +53,11 @@ export abstract class MultipleExecutionMixin {
         return index;
     }
 
-    getStageExecutionSplitter() {
-        return '#';
+    getUniqueIdByIndex(): number {
+        const index = this.getIndex() === -1 ? 0 : this.getIndex();
+        const _uniqueId = uniqueId();
+
+        return +[index, _uniqueId.padStart(10, '0')].join('');
     }
 
     separateModuleUidAndStageName(stageUid: string) {
