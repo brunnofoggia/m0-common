@@ -53,11 +53,11 @@ export abstract class MultipleExecutionMixin {
         return index;
     }
 
-    getUniqueIdByIndex(): number {
+    getUniqueIdByIndex(length = 10): number {
         const index = this.getIndex() === -1 ? 0 : this.getIndex();
         const _uniqueId = uniqueId();
 
-        return +[index, _uniqueId.padStart(10, '0')].join('');
+        return +[index, _uniqueId.padStart(length, '0')].join('');
     }
 
     separateModuleUidAndStageName(stageUid: string) {
