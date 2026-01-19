@@ -104,8 +104,8 @@ export abstract class StageGeneric {
         return StageGeneric.getSolutions();
     }
 
-    _setUniqueId(_uniqueId = '') {
-        !_uniqueId && (_uniqueId = processUniqueId());
+    _setUniqueId(_uniqueId = '', prefix = 'worker'): string {
+        !_uniqueId && (_uniqueId = processUniqueId(prefix));
         return (this.uniqueId = _uniqueId);
     }
 
@@ -259,7 +259,7 @@ export abstract class StageGeneric {
         options = defaultsDeep(
             {
                 _calledByStage: this.stageUid,
-                _calledByM0ProcessUid: this.uniqueId,
+                _calledByProcessUid: this.uniqueId,
             },
             options,
             refData,

@@ -54,8 +54,8 @@ export abstract class ModuleGeneric {
     abstract _checkBody(body);
     abstract _getBuilderClass();
 
-    protected setUniqueId(_uniqueId = '') {
-        !_uniqueId && (_uniqueId = processUniqueId());
+    protected setUniqueId(_uniqueId = '', prefix = 'worker'): string {
+        !_uniqueId && (_uniqueId = processUniqueId(prefix));
         return (this.uniqueId = _uniqueId);
     }
 
