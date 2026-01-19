@@ -20,7 +20,11 @@ export abstract class StatusMixin {
     _status(_result: Partial<ResultInterface>, statusUid: any = null): any {
         const info = size(this.executionInfo) ? { info: this.getPlainExecutionInfo() } : {};
         const error = size(this.executionError)
-            ? { errorMessage: this.executionError.message || '', errorCode: this.executionError.code || '' }
+            ? {
+                  errorMessage: this.executionError.message || '',
+                  errorCode: this.executionError.code || '',
+                  errorDetail: this.executionError['detail'] || '',
+              }
             : {};
         const status = { statusUid: statusUid || this.executionStatusUid || this.stageConfig.config.retryStatus || StageStatusEnum.DONE };
 

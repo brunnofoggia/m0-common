@@ -82,11 +82,10 @@ export abstract class ExecutionInfoMixin {
         const errorMessage = error.message;
         const errorCode = (error['code'] || '0') + '';
         const errorStatus = error['statusUid'] || statusUid || StageStatusEnum.FAILED;
+        const errorDetail = error['detail'] || '';
 
-        // if (!this.executionError) {
-        // using WorkerError class so it can be thrown
         this.executionError = new WorkerError(errorMessage, errorCode, errorStatus);
-        // }
+        this.executionError['detail'] = errorDetail;
 
         this.executionStatusUid = errorStatus;
         return this.executionError;

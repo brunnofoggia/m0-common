@@ -4,6 +4,7 @@ import { StageStatusEnum } from '../../types/stageStatus.type';
 export class WorkerError extends Error {
     public statusUid: StageStatusEnum;
     public code: string;
+    public detail: string;
 
     constructor(message, code: string = '', statusUid: StageStatusEnum = null) {
         super(message);
@@ -15,5 +16,6 @@ export class WorkerError extends Error {
 
         this.code = code || '0';
         this.statusUid = statusUid || StageStatusEnum.FAILED;
+        this.detail = '';
     }
 }

@@ -68,8 +68,8 @@ export abstract class StackTriggerMixin {
 
     async triggerSavedStack() {
         const stackTriggers = await this.findStageTriggerStack(this.stageExecution.id);
-        await this.triggerStackDispatch(stackTriggers);
         await this.clearStageTriggerStack(this.stageExecution.id);
+        await this.triggerStackDispatch(stackTriggers);
     }
 }
 

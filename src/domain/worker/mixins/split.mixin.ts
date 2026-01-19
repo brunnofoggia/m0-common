@@ -10,6 +10,7 @@ import { StageStatusEnum } from '../../../types/stageStatus.type';
 import { ResultInterface } from '../../../interfaces/result.interface';
 
 import { StageWorker } from '../stage.worker';
+import { WorkerError } from '../error';
 
 export enum ChildStageStatusEnum {
     STARTING = 'starting',
@@ -120,6 +121,8 @@ export abstract class SplitMixin {
         const isTestingResult = this.isTestingResult();
 
         const ordered = +(await stateService.getValue(this._childKeys.length));
+        this.setExecutionInfoValue('childs', ordered);
+
         const { totalFinished, finishedData } = await this.getFinished(stateService);
 
         if (ordered === totalFinished || isTestingResult) {
@@ -170,6 +173,12 @@ export abstract class SplitMixin {
 
     // this method will be called when all child stages are done
     async splitStagesDone(results: any = {}) {
+        if (this.stageConfig.config.failOnNoChildStage) {
+            const length = this.getExecutionInfoValue('childs');
+            if (length === 0) {
+                throw new WorkerError('No child stages', 'NO_CHILD_STAGES', StageStatusEnum.UNKNOWN);
+            }
+        }
         this.afterSplitEnd && (await this.afterSplitEnd());
         return this.splitStagesDoneResult(results);
     }
