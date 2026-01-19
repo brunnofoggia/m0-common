@@ -24,6 +24,7 @@ import { validateOptionsByRuleSet } from './utils/validate';
 import { StagesMixin } from './mixins/system/stages.mixin';
 import { formatExecDate } from '../../utils/execDate';
 import { DynamicDatabaseMixin } from './mixins/dynamicDatabase.mixin';
+import dayjs from 'dayjs';
 
 export class StageWorker extends StageGeneric implements StageParts {
     defaultConfig: any = {};
@@ -91,7 +92,7 @@ export class StageWorker extends StageGeneric implements StageParts {
         this.prepareConfig();
         this.prepareOptions();
 
-        this.system.startedAt = new Date().toISOString();
+        this.system.startedAt = dayjs().format('YYYY-MM-DDTHH:mm:ss Z');
         let result, execResult;
         if (!this.isFakeResult) {
             try {
@@ -106,7 +107,7 @@ export class StageWorker extends StageGeneric implements StageParts {
 
                 execResult = this.buildExecutionError(error);
             }
-            this.system.finishedAt = new Date().toISOString();
+            this.system.finishedAt = dayjs().format('YYYY-MM-DDTHH:mm:ss.SSSZ');
             result = await this._result(execResult);
 
             debug('lifecycle: on destroy');
@@ -372,11 +373,6 @@ export class StageWorker extends StageGeneric implements StageParts {
 }
 
 export interface StageWorker
-    extends StageGeneric,
-        LifeCycleMixin,
-        DynamicWorkerMixin,
-        InjectionMixin,
-        ExecutionInfoMixin,
-        DynamicDatabaseMixin {}
+    extends StageGeneric, LifeCycleMixin, DynamicWorkerMixin, InjectionMixin, ExecutionInfoMixin, DynamicDatabaseMixin {}
 
 applyMixins(StageWorker, [LifeCycleMixin, DynamicWorkerMixin, InjectionMixin, DynamicDatabaseMixin]);
