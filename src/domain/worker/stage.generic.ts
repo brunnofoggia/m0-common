@@ -259,6 +259,7 @@ export abstract class StageGeneric {
         options = defaultsDeep(
             {
                 _calledByStage: this.stageUid,
+                _calledByM0ProcessUid: this.uniqueId,
             },
             options,
             refData,
@@ -274,7 +275,8 @@ export abstract class StageGeneric {
 }
 
 export interface StageGeneric
-    extends StageStructureProperties,
+    extends
+        StageStructureProperties,
         StagesMixin,
         ConfigMixin,
         StatusMixin,
