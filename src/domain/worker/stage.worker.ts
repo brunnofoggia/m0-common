@@ -1,7 +1,7 @@
 import _debug from 'debug';
 const debug = _debug('worker:debug:stage');
 const essentialInfo = _debug('worker:essential:stage');
-import { size, defaultsDeep, pickBy, cloneDeep, isArray, map, isString, uniqueId } from 'lodash';
+import { size, defaultsDeep, pickBy, cloneDeep, isArray, map, isString, uniqueId, indexOf } from 'lodash';
 
 import { exitRequest } from 'node-labs/lib/utils/errors';
 import { applyMixins } from 'node-labs/lib/utils/mixin';
@@ -52,7 +52,10 @@ export class StageWorker extends StageGeneric implements StageParts {
             exitRequest(ERROR.STAGE_EXEC_ALREADY_DONE);
         }
 
-        if (this.stageExecution.system.messageReadAt) {
+        if (
+            indexOf([StageStatusEnum.PROCESS, StageStatusEnum.ASYNC], this.stageExecution.statusUid) >= 0 &&
+            this.stageExecution.system.messageReadAt
+        ) {
             this.log('Message already read, skipping execution');
             exitRequest(ERROR.MESSAGE_ALREADY_READ);
         }
