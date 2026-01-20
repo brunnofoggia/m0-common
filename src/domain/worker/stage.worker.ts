@@ -107,7 +107,7 @@ export class StageWorker extends StageGeneric implements StageParts {
 
                 execResult = this.buildExecutionError(error);
             }
-            this.system.finishedAt = dayjs().format('YYYY-MM-DDTHH:mm:ss.SSSZ');
+            this.system.finishedAt = dayjs().format('YYYY-MM-DDTHH:mm:ss.SSS Z');
             result = await this._result(execResult);
 
             debug('lifecycle: on destroy');

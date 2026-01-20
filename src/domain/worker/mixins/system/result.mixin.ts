@@ -76,9 +76,11 @@ export abstract class ResultMixin {
             !result.system && (result.system = { executionList: [] });
             result.system.startedAt = this.system.startedAt;
             result.system.finishedAt = this.system.finishedAt;
+            result.system.statusUid = result.statusUid;
             result.system.executionList.push({
                 startedAt: this.system.startedAt,
                 finishedAt: this.system.finishedAt,
+                statusUid: result.statusUid,
             });
 
             // runs before trigger result to catch errors

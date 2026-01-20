@@ -1,11 +1,13 @@
 export interface ExecutionListInterface {
     startedAt: string;
     finishedAt: string;
+    statusUid: string;
 }
 
 export interface SystemInterface extends ExecutionListInterface {
     startedAt: string;
     finishedAt: string;
+    statusUid: string;
     executionList?: ExecutionListInterface[];
 }
 
