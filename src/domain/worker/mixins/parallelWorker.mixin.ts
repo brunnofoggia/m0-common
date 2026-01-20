@@ -49,8 +49,8 @@ export abstract class ParallelWorkerGeneric {
         const indexFoundList = [];
         const removedDuplicatedStageExecutionList = [];
         filteredStageExecutionList.forEach((stageExecution) => {
-            if (indexFoundList.indexOf(stageExecution.index) === -1) {
-                indexFoundList.push(stageExecution.index);
+            if (indexFoundList.indexOf(stageExecution.data?.options?.index) === -1) {
+                indexFoundList.push(stageExecution.data?.options?.index);
                 removedDuplicatedStageExecutionList.push(stageExecution);
             }
         });
@@ -68,7 +68,8 @@ export abstract class ParallelWorkerGeneric {
 
     getValueListFromErrorField(stageExecutionList) {
         return map(stageExecutionList, (stageExecution) => {
-            const lastError = this._getLastError(stageExecution);
+            const lastError: any = this._getLastError(stageExecution) || {};
+            lastError.index = stageExecution.data?.options?.index;
             return lastError;
         });
     }
