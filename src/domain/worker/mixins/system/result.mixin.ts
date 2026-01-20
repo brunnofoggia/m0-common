@@ -74,9 +74,12 @@ export abstract class ResultMixin {
             result.statusUid = result.statusUid || StageStatusEnum.UNKNOWN;
 
             !result.system && (result.system = { executionList: [] });
-            result.system.startedAt = this.system.startedAt;
-            result.system.finishedAt = this.system.finishedAt;
-            result.system.statusUid = result.statusUid;
+
+            // legacy
+            // result.system.startedAt = this.system.startedAt;
+            // result.system.finishedAt = this.system.finishedAt;
+            // result.system.statusUid = result.statusUid;
+
             result.system.executionList.push({
                 startedAt: this.system.startedAt,
                 finishedAt: this.system.finishedAt,

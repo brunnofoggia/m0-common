@@ -21,10 +21,9 @@ import { ExecutionInfoMixin } from './mixins/system/executionInfo';
 
 import { StageGeneric } from './stage.generic';
 import { validateOptionsByRuleSet } from './utils/validate';
-import { StagesMixin } from './mixins/system/stages.mixin';
 import { formatExecDate } from '../../utils/execDate';
 import { DynamicDatabaseMixin } from './mixins/dynamicDatabase.mixin';
-import dayjs from 'dayjs';
+import { StageExecutionProvider } from '../../providers/stageExecution.provider';
 
 export class StageWorker extends StageGeneric implements StageParts {
     defaultConfig: any = {};
@@ -51,6 +50,11 @@ export class StageWorker extends StageGeneric implements StageParts {
         if (this.stageExecution.statusUid === StageStatusEnum.DONE) {
             this.log('Stage is already done, skipping execution');
             exitRequest(ERROR.STAGE_EXEC_ALREADY_DONE);
+        }
+
+        if (this.stageExecution.system.messageReadAt) {
+            this.log('Message already read, skipping execution');
+            exitRequest(ERROR.MESSAGE_ALREADY_READ);
         }
     }
 
@@ -85,6 +89,8 @@ export class StageWorker extends StageGeneric implements StageParts {
         this.stageExecution = await this.findCurrentLastStageExecution();
 
         await this.checkInitialization();
+        // only read a queue message once
+        await this.setStageExecutionMessageRead();
 
         this.moduleExecution = this.stageExecution.moduleExecution;
 
@@ -92,7 +98,7 @@ export class StageWorker extends StageGeneric implements StageParts {
         this.prepareConfig();
         this.prepareOptions();
 
-        this.system.startedAt = dayjs().format('YYYY-MM-DDTHH:mm:ss Z');
+        this.system.startedAt = this.getCurrentFullDateString();
         let result, execResult;
         if (!this.isFakeResult) {
             try {
@@ -107,7 +113,7 @@ export class StageWorker extends StageGeneric implements StageParts {
 
                 execResult = this.buildExecutionError(error);
             }
-            this.system.finishedAt = dayjs().format('YYYY-MM-DDTHH:mm:ss.SSS Z');
+            this.system.finishedAt = this.getCurrentFullDateString();
             result = await this._result(execResult);
 
             debug('lifecycle: on destroy');
@@ -370,6 +376,19 @@ export class StageWorker extends StageGeneric implements StageParts {
         return this.forwardInternalOptions();
     }
     // #endregion
+
+    private async _updateStageExecution(stageExecution) {
+        await StageExecutionProvider.update(stageExecution);
+    }
+
+    private async setStageExecutionMessageRead() {
+        if (this.stageExecution.system.messageReadAt) return;
+
+        this.stageExecution.system = this.stageExecution.system || {};
+        this.stageExecution.system.messageReadAt = this.getCurrentFullDateString();
+
+        await this._updateStageExecution(this.stageExecution);
+    }
 }
 
 export interface StageWorker

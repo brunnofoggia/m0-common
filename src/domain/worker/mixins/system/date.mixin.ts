@@ -30,5 +30,9 @@ export abstract class DateMixin {
     getTimezone() {
         return this.getTimezoneOffset();
     }
+
+    getCurrentFullDateString(_customTimezoneOffset: number | null = null): string {
+        return this.getDate(undefined, false).format(`YYYY-MM-DDTHH:mm:ss Z`);
+    }
 }
 export interface DateMixin extends StageStructureProperties {}
