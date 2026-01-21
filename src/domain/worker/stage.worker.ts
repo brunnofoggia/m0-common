@@ -52,13 +52,14 @@ export class StageWorker extends StageGeneric implements StageParts {
             exitRequest(ERROR.STAGE_EXEC_ALREADY_DONE);
         }
 
-        if (
-            indexOf([StageStatusEnum.PROCESS, StageStatusEnum.ASYNC], this.stageExecution.statusUid) >= 0 &&
-            this.stageExecution.system.messageReadAt
-        ) {
-            this.log('Message already read, skipping execution');
-            exitRequest(ERROR.MESSAGE_ALREADY_READ);
-        }
+        // TODO: aplicar message read a partir de um hash da mensagem para nao conflitar uma coisa com outra
+        // if (
+        //     indexOf([StageStatusEnum.PROCESS, StageStatusEnum.ASYNC], this.stageExecution.statusUid) >= 0 &&
+        //     this.stageExecution.system.messageReadAt
+        // ) {
+        //     this.log('Message already read, skipping execution');
+        //     exitRequest(ERROR.MESSAGE_ALREADY_READ);
+        // }
     }
 
     async checkExecution() {
