@@ -3,6 +3,15 @@ import { StageStructureProperties } from '../../../../interfaces/stageParts.inte
 import { StageStatusEnum } from '../../../../types/stageStatus.type';
 import { PathMixin } from './path.mixin';
 import { MODULE } from '../../../../types/module.type';
+import { capitalize } from 'lodash';
+
+export enum SecretTypeEnum {
+    M0 = 'm0',
+    GLOBAL = 'global',
+    PROJECT = 'project',
+    MODULE = 'module',
+    STAGE = 'stage',
+}
 
 export abstract class SecretsMixin {
     // #region abstract
@@ -111,6 +120,17 @@ export abstract class SecretsMixin {
     async getStageSecret(name: string) {
         const secretPath = this.buildStageSecretPath(name);
         return await this.getSecretValueByPath(secretPath);
+    }
+
+    async getSecretByType(name: string, type: SecretTypeEnum = null) {
+        type = (type || SecretTypeEnum.STAGE).toLowerCase() as SecretTypeEnum;
+        const secretMethod = `get${capitalize(type)}Secret`;
+        if (!this[secretMethod]) {
+            throw new Error(`Secret type "${type}" not exists`);
+        }
+
+        const secretValue = await this[secretMethod](name);
+        return secretValue;
     }
     // #endregion
 }
