@@ -103,7 +103,6 @@ export abstract class SplitMixin {
     async getFinished(stateService) {
         const childIndex = this.body.options?.childResultInfo?.index;
         const childStatusUid = this.body.options?.childResultInfo?.statusUid;
-        if (typeof childIndex === 'undefined') throw new Error('childResultInfo.index not found in body options');
 
         let finishedData = await stateService.getArray(this._childKeys.process);
         const finishedArrLengthBefore = finishedData.length;
@@ -116,6 +115,13 @@ export abstract class SplitMixin {
     }
 
     async splitStagesResult(): Promise<ResultInterface | null> {
+        const childIndex = this.body.options?.childResultInfo?.index;
+        if (typeof childIndex === 'undefined') {
+            // throw new Error('childResultInfo.index not found in body options');
+            console.log('childResultInfo.index not found in body options');
+            return;
+        }
+
         const stateService = this._stateService;
         this.beforeSplitEnd && (await this.beforeSplitEnd());
         const isTestingResult = this.isTestingResult();

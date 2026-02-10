@@ -3,6 +3,8 @@ import { ResultInterface } from './result.interface';
 export interface BodyInterface {
     m0QueuePrefix?: string;
     queuePrefix?: string;
+    // queue message identifier
+    messageUid?: string;
 
     stageUid: string;
     executionUid?: string;
