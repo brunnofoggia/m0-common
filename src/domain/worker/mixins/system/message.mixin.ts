@@ -1,3 +1,5 @@
+import { version as uuidVersion, validate as uuidValidate, v4 as uuidv4 } from 'uuid';
+
 export abstract class MessageMixin {
     abstract _getSolutions();
     abstract worflowEventName: string;
@@ -12,7 +14,13 @@ export abstract class MessageMixin {
         // worker will operate with only one prefix
         // the one that is set into env or the one received inside the body
         const { sendPrefix } = this._processQueuePrefixes(_name, body);
+        body.messageUid = this.generateMessageUid();
         return await events.sendToQueue(_name, body, { prefix: sendPrefix });
+    }
+
+    generateMessageUid(): string {
+        const uuid = uuidv4();
+        return uuid;
     }
 
     // #region queueprefix

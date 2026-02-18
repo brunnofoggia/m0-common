@@ -52,14 +52,10 @@ export class StageWorker extends StageGeneric implements StageParts {
             exitRequest(ERROR.STAGE_EXEC_ALREADY_DONE);
         }
 
-        // TODO: aplicar message read a partir de um hash da mensagem para nao conflitar uma coisa com outra
-        // if (
-        //     indexOf([StageStatusEnum.PROCESS, StageStatusEnum.ASYNC], this.stageExecution.statusUid) >= 0 &&
-        //     this.stageExecution.system.messageReadAt
-        // ) {
-        //     this.log('Message already read, skipping execution');
-        //     exitRequest(ERROR.MESSAGE_ALREADY_READ);
-        // }
+        if (this.body.messageUid && this.stageExecution.system.messageRead[this.body.messageUid]) {
+            this.log('Message already read, skipping execution');
+            exitRequest(ERROR.MESSAGE_ALREADY_READ);
+        }
     }
 
     async checkExecution() {
@@ -386,11 +382,7 @@ export class StageWorker extends StageGeneric implements StageParts {
     }
 
     private async setStageExecutionMessageRead() {
-        if (this.stageExecution.system.messageReadAt) return;
-
-        this.stageExecution.system = this.stageExecution.system || {};
-        this.stageExecution.system.messageReadAt = this.getCurrentFullDateString();
-
+        this.stageExecution.system.messageRead[this.body.messageUid] = this.getCurrentFullDateString();
         await this._updateStageExecution(this.stageExecution);
     }
 }
