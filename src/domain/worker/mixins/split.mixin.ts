@@ -75,7 +75,7 @@ export abstract class SplitMixin {
             }
 
             return this.splitStagesResult();
-        } catch (_error) {
+        } catch (_error: any) {
             const error = isString(_error) ? new Error(_error) : _error;
 
             this.logError(error);
@@ -127,13 +127,16 @@ export abstract class SplitMixin {
         const isTestingResult = this.isTestingResult();
 
         const ordered = +(await stateService.getValue(this._childKeys.length));
-        this.setExecutionInfoValue('childs', ordered);
+        this['_childSize'] = ordered;
 
         const { totalFinished, finishedData } = await this.getFinished(stateService);
 
         if (ordered === totalFinished || isTestingResult) {
+            this.setExecutionInfoValue('childs', ordered);
             return await this.childStagesFinished(finishedData);
         } else if (totalFinished > ordered) {
+            this.setExecutionInfoValue('childs', ordered);
+            this.setExecutionInfoValue('childFinished', totalFinished);
             return this.statusFailed({ errorMessage: `finished: ${totalFinished} > ordered: ${ordered}` });
         }
 
